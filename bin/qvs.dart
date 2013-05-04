@@ -4,7 +4,25 @@ import 'qvs_grammar.dart';
 String input = r'''
 JOIN (   [asdf]  ) 
 ''';
-
+void runQlikView(String buffer) {
+  var lines = buffer.split('\n');
+  var firstLine = lines[0];
+  if (firstLine.startsWith('//!#')) {
+    var fileName = firstLine.substring(4);
+    var file = new File(fileName);
+    if (!file.existsSync())
+    {
+      print('File not found: $fileName');
+//      exit(2);
+    }
+    var arguments = ['/r', '/Nodata',fileName];
+    Process.run("C:\\Program Files\\QlikView\\qv.exe", arguments)
+    .then((ProcessResult res) {
+      var message = 'QlikView process finished. ${res.stderr}'; 
+      print(message);
+    });
+  }
+}
 void main() {
   input = '';
   var options = new Options();
@@ -33,10 +51,9 @@ void main() {
   Parser qvs = new QvsGrammar().ref('start');
     
   Result id1 = qvs.parse(input);
-//  id1 = qvs.parse(r" $(invlude=QVD)");
+
   if (id1.isFailure) {
     var rowAndCol = Token.lineAndColumnOf(input, id1.position);
-//    print('Parse error on row:${rowAndCol[0]} col: ${rowAndCol[1]}.  ${id1.message}');
     String subInput = input.substring(id1.position); 
     int maxPosition = -1;
     String message;
@@ -58,5 +75,6 @@ void main() {
     
   } else {
     print('Parsing OK');
+    runQlikView(input);
   }  
 }
