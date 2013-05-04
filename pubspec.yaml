@@ -1,0 +1,12 @@
+name: qvs_parser
+version: 0.0.2-dev
+author: Vadim Tsushko <vadimtsushko@gmail.com>
+description: A sample command-line application
+homepage: https://github.com/vadimtsushko/qvs_parser
+dependencies:
+  petitparser:
+    path: ../petitparserdart
+  meta: any
+
+#dependencies:
+#  unittest: any
