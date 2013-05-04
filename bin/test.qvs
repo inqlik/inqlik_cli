@@ -1,3 +1,9 @@
+Concatenate (CustTable)
+LOAD * INLINE [
+     лиент—сылка,  лиент од,  лиент,  лиентёр‘из,  лиент“ипќтношений,  лиентЌаименование”ровн€,  лиентЌаименование”ровн€1
+    00000000-0000-0000-0000-000000000000, ѕокупатель, ѕокупательѕо”молчанию, ‘из. лицо, ѕокупатель, „ј—“Ќџ≈ Ћ»÷ј, „ј—“Ќџ≈ Ћ»÷ј
+];
+
 SET ThousandSep='†';
 SET DecimalSep=',';
 SET MoneyThousandSep='†';
@@ -112,7 +118,7 @@ FROM
 [..\Data\Source\ онтрагенты.txt]
 (txt, utf8, embedded labels, delimiter is '\t', no quotes);
 
-DROP FIELDS ќтветственный«а«акупку—сылка, ѕоставщик—сылка, ѕоставщик“овара—сылка FROM PurchTrans;
+DROP FIELDS ќтветственный«а«акупку—сылка, ѕоставщик—сылка, ѕоставщик“овара—сылка;
 
 Concatenate (InventTrans)
 LOAD * RESIDENT PurchTrans;

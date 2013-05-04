@@ -2,21 +2,7 @@ import 'package:petitparser/petitparser.dart';
 import 'dart:io';
 import 'qvs_grammar.dart';
 var input = r'''
-InventTrans:
-LOAD Num(DayStart(Дата)) as Дата, 
-     Номенклатура as НоменклатураСсылка,
-     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка,
- /*    Количество * If(ВидДвижения = 'Расход',-1,1) as */ ПроводкаКоличество, 
-     Стоимость * If(ВидДвижения = 'Расход',-1,1) as ПроводкаСтоимость, 
-//     Склад as СкладСсылка, 
-     КодОперации,
-     Регистратор,
-     СерияНоменклатуры as СерияНоменклатурыСсылка, 
-     ДокументДвижения,
-     Dual('ПартииПоТовару',1) as ТипПроводки
-FROM
-[..\Data\Source\ПартииПоТовару.txt]
-(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+JOIN (   [asdf]  ) 
 ''';
 
 void main() {
@@ -44,7 +30,7 @@ void main() {
       }
     }
   }
-  Parser qvs = new QvsGrammar().ref('start');;
+  Parser qvs = new QvsGrammar().ref('start');
   Result id1 = qvs.parse(input);
 //  id1 = qvs.parse(r" $(invlude=QVD)");
   if (id1.isFailure) {
