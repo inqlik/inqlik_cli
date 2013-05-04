@@ -25,6 +25,7 @@ class QvsGrammar extends CompositeParser {
         .or(ref('rename field'))
         .or(ref('store table')) 
         .or(ref('load inline'))
+        .or(ref('load autogenerate'))        
         .or(ref('assignment')));
     def('rename table',
         _token('RENAME')
@@ -48,14 +49,14 @@ class QvsGrammar extends CompositeParser {
         .seq(_token('Noconcatenate').optional())
         .seq(_token('MAPPING').optional())
         .seq(ref('preceding load').star())
-        .seq(ref('hierarchy').optional())
+        .seq(ref('preload func').optional())
         .seq(_token('LOAD'))
-        .seq(_token('DISTINCT').optional())
         .seq(ref('selectList').trim(ref('whitespace')))
         .seq(_token('FROM').or(_token('RESIDENT')))
         .seq(ref('table'))
         .seq(ref('whereClause').optional())
         .seq(ref('group by').optional())
+        .seq(ref('order by').optional())
         .seq(char(';'))
           .trim(ref('whitespace')).flatten());
     def('preceding load',
@@ -99,14 +100,12 @@ class QvsGrammar extends CompositeParser {
         ref('binaryExpression').trim(ref('whitespace'))
         );   
     def('join',
-        _token('LEFT').or(_token('RIGHT')).optional()
-        .seq(_token('JOIN'))
-        .seq(_token('('))
-        .seq(ref('fieldref'))
-        .seq(_token(')'))
+        _token('LEFT').or(_token('RIGHT')).or(_token('INNER')).optional()
+        .seq(_token('JOIN').or(_token('KEEP')))
+        .seq(ref('table in parens').optional())
         .flatten());
-    def('hierarchy',
-        _token('Hierarchy')
+    def('preload func',
+        _token('Hierarchy').or(_token('IntervalMatch'))
         .seq(ref('simpleParens'))
         .flatten());
     def('load inline',
@@ -119,17 +118,43 @@ class QvsGrammar extends CompositeParser {
           .seq(_token(']'))
           .seq(char(';'))
           .trim(ref('whitespace')).flatten());
+    def('load autogenerate',
+        ref('tableDesignator').optional()
+        .seq(_token('Noconcatenate').optional())
+        .seq(_token('LOAD'))
+        .seq(_token('DISTINCT').optional())
+        .seq(ref('selectList').trim(ref('whitespace')))
+        .seq(_token('autogenerate'))
+        .seq(ref('expression'))
+        .seq(ref('while clause').optional())
+        .seq(char(';'))
+          .trim(ref('whitespace')).flatten());
+    def('while clause',
+        _token('while')
+        .seq(ref('expression'))
+        .flatten());
+    
     def('concatenate',
-        _token('CONCATENATE')
-        .seq(_token('('))
+        _token('concatenate')
+        .seq(ref('table in parens').optional())
+        .flatten());
+    def('table in parens',
+        _token('(')
         .seq(ref('fieldref'))
         .seq(_token(')'))
-        .flatten());
+        );
     def('group by',
         _token('GROUP')
         .seq(_token('BY'))
         .seq(ref('params'))
         );
+    def('order by',
+        _token('ORDER')
+        .seq(_token('BY'))
+        .seq(ref('fieldrefsOrderBy'))
+        .flatten()
+        );
+
     def('primaryExpression',
         ref('string')
         .or(ref('negatedExpression'))
@@ -148,6 +173,14 @@ class QvsGrammar extends CompositeParser {
           .or(ref('fieldrefInBrackets')));
     def('fieldrefs',
         ref('fieldref').separatedBy(char(',').trim(ref('whitespace')), includeSeparators: false));
+    def('fieldrefsOrderBy',
+        ref('fieldrefOrderBy').separatedBy(char(',').trim(ref('whitespace')), includeSeparators: false));
+
+    def('fieldrefOrderBy',
+        ref('identifier')
+        .or(ref('fieldrefInBrackets'))
+        .seq(_token('DESC').optional()));
+    
     def('identifier',letter()
         .seq(word().or(char('.')).plus())
         .seq(whitespace().star().seq(char('(')).not())
@@ -162,7 +195,7 @@ class QvsGrammar extends CompositeParser {
     def('tableDesignator',
         ref('fieldref').seq(char(':'))
         .or(ref('join'))
-        .or(ref('concatenate'))
+        .or(ref('concatenate')).plus()
         .trim(ref('whitespace')).flatten()
         );
     def('constant',
@@ -192,7 +225,7 @@ class QvsGrammar extends CompositeParser {
             .seq(char(')').trim(ref('whitespace'))).flatten());
     
     def('negatedExpression',
-        _token('NOT').or(_token('-')).trim(ref('whitespace'))
+        _token('NOT').or(_token('-').or(_token('DISTINCT'))).trim(ref('whitespace'))
             .seq(ref('expression'))
             .trim(ref('whitespace')).flatten());
     def('binaryOperator',
@@ -209,7 +242,7 @@ class QvsGrammar extends CompositeParser {
         .trim(ref('whitespace')).flatten()
         );
     def('table',
-        word().or(anyIn(r'./\[]')).plus()
+        word().or(anyIn(r'./\[]:')).plus()
         .seq(ref('simpleParens').optional())
         .trim(ref('whitespace')));
     def('whereClause',
