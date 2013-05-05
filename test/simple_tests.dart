@@ -23,5 +23,8 @@ void main() {
   test('testIdentifier3', () {
     return validate('@4', 'identifier');
   });
+  test('testIdentifier4', () {
+    return validate('_КодНоменклатуры', 'identifier');
+  });
 
 }

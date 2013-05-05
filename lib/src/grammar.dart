@@ -11,6 +11,10 @@ class QvsGrammar extends CompositeParser {
     _qvs();
 //    _builtIns();
   }
+  /**
+   * Russian letters
+   */
+  localLetter() => range(1024,1273);
   void _qvs() {
     def('start', ref('command').plus().end().flatten());
     def('command',
@@ -179,8 +183,8 @@ class QvsGrammar extends CompositeParser {
         .or(ref('fieldrefInBrackets'))
         .seq(_token('DESC').optional()));
     
-    def('identifier',letter().or(char('_').or(char('@')))
-        .seq(word().or(char('.')).or(char('_')).plus())
+    def('identifier',letter().or(char('_').or(char('@')).or(localLetter()))
+        .seq(word().or(char('.')).or(char('_')).or(localLetter()).plus())
         .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(ref('whitespace')));
     def('fieldrefInBrackets', _token('[')
@@ -240,7 +244,7 @@ class QvsGrammar extends CompositeParser {
         .trim(ref('whitespace')).flatten()
         );
     def('table',
-        word().or(anyIn(r'./\[]:')).plus()
+        word().or(anyIn(r'./\[]:').or(localLetter())).plus()
         .seq(ref('simpleParens').optional())
         .trim(ref('whitespace')));
     def('whereClause',
