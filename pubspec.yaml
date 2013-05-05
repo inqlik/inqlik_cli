@@ -4,8 +4,7 @@ author: Vadim Tsushko <vadimtsushko@gmail.com>
 description: A sample command-line application
 homepage: https://github.com/vadimtsushko/qvs_parser
 dependencies:
-  petitparser:
-    path: ../petitparserdart
+  petitparser: any
   meta: any
 dev_dependencies:
   unittest: any
