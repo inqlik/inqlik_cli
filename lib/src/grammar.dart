@@ -1,6 +1,4 @@
-library qlikview_script;
-
-import 'package:petitparser/petitparser.dart';
+part of qvs_parser;
 
 /**
  * Smalltalk grammar definition.

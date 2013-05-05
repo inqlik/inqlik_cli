@@ -1,0 +1,1 @@
+dart --generate-script-snapshot=gvs.snapshot qvs.dart

@@ -1,13 +1,13 @@
 import 'package:petitparser/petitparser.dart';
 import 'dart:io';
-import 'qvs_grammar.dart';
+import 'package:qvs_parser/qvs_parser.dart';
 String input = r'''
 JOIN (   [asdf]  ) 
 ''';
 void runQlikView(String buffer) {
   var lines = buffer.split('\n');
   var firstLine = lines[0];
-  if (firstLine.startsWith('//!#')) {
+  if (firstLine.startsWith('//#!')) {
     var fileName = firstLine.substring(4).trim();
     var file = new File(fileName);
     if (!file.existsSync())
@@ -15,6 +15,7 @@ void runQlikView(String buffer) {
       print('File not found: $fileName');
       exit(2);
     }
+    print('Reloading file $fileName');
     var arguments = ['/r', '/Nodata',fileName];
     Process.run("C:\\Program Files\\QlikView\\qv.exe", arguments)
     .then((ProcessResult res) {
