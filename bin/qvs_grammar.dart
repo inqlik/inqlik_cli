@@ -52,7 +52,7 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('preload func').optional())
         .seq(_token('LOAD'))
         .seq(ref('selectList').trim(ref('whitespace')))
-        .seq(_token('FROM').or(_token('RESIDENT')))
+        .seq(_token('RESIDENT').or(_token('FROM')))
         .seq(ref('table'))
         .seq(ref('whereClause').optional())
         .seq(ref('group by').optional())
@@ -157,7 +157,7 @@ class QvsGrammar extends CompositeParser {
 
     def('primaryExpression',
         ref('string')
-        .or(ref('negatedExpression'))
+        .or(ref('unaryExpression'))
         .or(ref('function'))
         .or(ref('number'))
         .or(ref('fieldref'))
@@ -181,8 +181,8 @@ class QvsGrammar extends CompositeParser {
         .or(ref('fieldrefInBrackets'))
         .seq(_token('DESC').optional()));
     
-    def('identifier',letter()
-        .seq(word().or(char('.')).plus())
+    def('identifier',letter().or(char('_').or(char('@')))
+        .seq(word().or(char('.')).or(char('_')).plus())
         .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(ref('whitespace')));
     def('fieldrefInBrackets', _token('[')
@@ -224,7 +224,7 @@ class QvsGrammar extends CompositeParser {
             .seq(word().or(anyIn(r'./\[]=')).plus().trim(ref('whitespace')))
             .seq(char(')').trim(ref('whitespace'))).flatten());
     
-    def('negatedExpression',
+    def('unaryExpression',
         _token('NOT').or(_token('-').or(_token('DISTINCT'))).trim(ref('whitespace'))
             .seq(ref('expression'))
             .trim(ref('whitespace')).flatten());

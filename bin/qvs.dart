@@ -8,12 +8,12 @@ void runQlikView(String buffer) {
   var lines = buffer.split('\n');
   var firstLine = lines[0];
   if (firstLine.startsWith('//!#')) {
-    var fileName = firstLine.substring(4);
+    var fileName = firstLine.substring(4).trim();
     var file = new File(fileName);
     if (!file.existsSync())
     {
       print('File not found: $fileName');
-//      exit(2);
+      exit(2);
     }
     var arguments = ['/r', '/Nodata',fileName];
     Process.run("C:\\Program Files\\QlikView\\qv.exe", arguments)
@@ -25,6 +25,7 @@ void runQlikView(String buffer) {
 }
 void main() {
   input = '';
+  String fileName;
   var options = new Options();
   for (var option in options.arguments) {
     if (option.startsWith('-')) {
@@ -37,6 +38,7 @@ void main() {
       }
     } else {
       var file = new File(option);
+      fileName = option;
       if (file.existsSync())
       {
         if (input == '') {
@@ -57,8 +59,8 @@ void main() {
     String subInput = input.substring(id1.position); 
     int maxPosition = -1;
     String message;
-    int deltaRow;
-    int col;
+    int deltaRow = 0;
+    int col = rowAndCol[1];
     int row;
     for (Parser p in new QvsGrammar().ref('command').children) {
       Result id2 = p.parse(subInput);
@@ -71,8 +73,7 @@ void main() {
       }
     }
     row = rowAndCol[0]+ deltaRow - 1;
-    print('Parse error on row:$row col: $col.  $message');
-    
+    print('Parse error File: $fileName row: $row col: $col message: $message');
   } else {
     print('Parsing OK');
     runQlikView(input);

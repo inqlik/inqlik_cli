@@ -1,3 +1,4 @@
+
 //!#c:\QlikDocs\Polovik_pilot\EtlApps\DataModelDebug.qvw
 $(must_include=../Scripts/InitLoad.qvs);
 $(must_include=../Scripts/InQlik.qvs);
