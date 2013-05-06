@@ -4,27 +4,39 @@ library simple_tests;
 
 import 'package:qvs_parser/qvs_parser.dart';
 import 'package:unittest/unittest.dart';
+import 'package:petitparser/petitparser.dart';
 
 var qvs = new QvsGrammar();
 
-dynamic validate(String source, String production) {
+
+Result _parse(String source, String production) {
   var parser = qvs[production].end();
-  var result = parser.parse(source);
-  return result.value;
+  return parser.parse(source);
+}
+
+dynamic shouldFail(String source, String production) {
+  return expect(_parse(source, production).isFailure,isTrue);
+}
+
+dynamic shouldPass(String source, String production) {
+  return expect(_parse(source, production).isSuccess,isTrue);
 }
 
 void main() {
   test('testIdentifier1', () {
-    return validate('SimpleName', 'identifier');
+    return shouldPass('SimpleName', 'identifier');
   });
   test('testIdentifier2', () {
-    return validate('_SimpleNameWithUnderscore', 'identifier');
+    return shouldPass('_SimpleNameWithUnderscore', 'identifier');
   });
   test('testIdentifier3', () {
-    return validate('@4', 'identifier');
+    return shouldPass('@4', 'identifier');
   });
   test('testIdentifier4', () {
-    return validate('_КодНоменклатуры', 'identifier');
+    return shouldPass('_КодНоменклатуры', 'identifier');
+  });
+  test('testIdentifier5', () {
+    return shouldFail('~КодНоменклатуры', 'identifier');
   });
 
 }

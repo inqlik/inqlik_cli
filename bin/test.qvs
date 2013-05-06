@@ -1,4 +1,4 @@
-//#!c:\QlikDocs\Polovik_pilot\EtlApps\DataModelDebug.qvw
+///#!c:\QlikDocs\Polovik_pilot\EtlApps\DataModelDebug.qvw
 $(must_include=../Scripts/InitLoad.qvs);
 $(must_include=../Scripts/InQlik.qvs);
 $(must_include=../Scripts/InventTable.qvs);
@@ -19,7 +19,7 @@ LOAD * FROM ..\Data\Staged\ConsumerProperty.QVD (qvd);
 InventTrans:
 LOAD Num(DayStart(Дата)) as Дата, 
      Номенклатура as НоменклатураСсылка,
-     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка,
+     [~XyzХарактеристикаНоменклатуры] as ХарактеристикаНоменклатурыСсылка,
      Количество * If(ВидДвижения = 'Расход',-1,1) as ПроводкаКоличество, 
      Стоимость * If(ВидДвижения = 'Расход',-1,1) as ПроводкаСтоимость, 
   //  ВидДвижения, 

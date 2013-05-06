@@ -267,17 +267,6 @@ class QvsGrammar extends CompositeParser {
         char("(")
         .seq(char(")").neg().star())
         .seq(char(")")).trim(ref('whitespace')).flatten());
-    def('value',
-        ref('string')
-        .or(ref('number'))
-        .or(ref('array'))
-        .or(ref('function')));   
-    def('array',
-        char('[').trim(ref('whitespace'))
-        .seq(ref('elements').optional())
-        .seq(char(']').trim(ref('whitespace'))));
-    def('elements',
-      ref('value').separatedBy(char(',').trim(ref('whitespace')), includeSeparators: false));
     def('macroLine',
         ref('macro').trim(ref('whitespace'))
         .seq(char(';')).trim(ref('whitespace')).flatten());
@@ -296,7 +285,11 @@ class QvsGrammar extends CompositeParser {
       .seq(string('*/')));
   }
 
-  /** Defines a token parser that consumes whitespace. */
+  _expression() {
+    
+  }
+  
+  /** Defines a token parser that ignore case and consumes whitespace. */
   Parser _token(dynamic input) {
     var parser = input is Parser ? parser :
         input.length == 1 ? char(input) :
@@ -305,8 +298,7 @@ class QvsGrammar extends CompositeParser {
   }
   
   void _number() {
-    // the original implementation uses the hand written number
-    // parser of the system, this is the spec of the ANSI standard
+    // Implementation borrowed from Smalltalk parser
     def('number', char('-').optional()
         .seq(ref('positiveNumber')).flatten());
     def('positiveNumber', ref('scaledDecimal')
