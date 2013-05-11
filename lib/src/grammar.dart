@@ -8,18 +8,25 @@ class QvsGrammar extends CompositeParser {
   void initialize() {
     _whitespace();
     _number();
+    _expression();
     _qvs();
-//    _builtIns();
+//    action('table', (v) {
+//      print(v);
+//      print(v.join(''));
+//    });
+    
   }
   /**
    * Russian letters
    */
   localLetter() => range(1024,1273);
+  Parser get trimmer => ref('whitespace');
   void _qvs() {
     def('start', ref('command').plus().end().flatten());
     def('command',
         ref('macroLine')
         .or(ref('load'))
+        .or(ref('controlStatement'))
         .or(ref('call'))
         .or(ref('drop fields'))
         .or(ref('drop table'))
@@ -36,7 +43,7 @@ class QvsGrammar extends CompositeParser {
         .seq(_token('TO'))
         .seq(ref('fieldref'))
         .seq(char(';'))
-        .trim(ref('whitespace')).flatten());
+        .trim(trimmer).flatten());
     def('rename field',
         _token('RENAME')
         .seq(_token('FIELD'))
@@ -44,7 +51,7 @@ class QvsGrammar extends CompositeParser {
         .seq(_token('TO'))
         .seq(ref('fieldref'))
         .seq(char(';'))
-        .trim(ref('whitespace')).flatten());
+        .trim(trimmer).flatten());
 
     def('load',
         ref('tableDesignator').optional()
@@ -52,20 +59,20 @@ class QvsGrammar extends CompositeParser {
         .seq(_token('MAPPING').optional())
         .seq(ref('preceding load').star())
         .seq(ref('preload func').optional())
-        .seq(_token('LOAD'))
-        .seq(ref('selectList').trim(ref('whitespace')))
+        .seq(_token('LOAD').or(_token('SELECT')))
+        .seq(ref('selectList').trim(trimmer))
         .seq(_token('RESIDENT').or(_token('FROM')))
-        .seq(ref('table'))
+        .seq(ref('tableOrFilename'))
         .seq(ref('whereClause').optional())
         .seq(ref('group by').optional())
         .seq(ref('order by').optional())
         .seq(char(';'))
-          .trim(ref('whitespace')).flatten());
+          .trim(trimmer).flatten());
     def('preceding load',
         _token('LOAD')
-        .seq(ref('selectList').trim(ref('whitespace')))
+        .seq(ref('selectList').trim(trimmer))
         .seq(char(';'))
-          .trim(ref('whitespace')).flatten());
+          .trim(trimmer).flatten());
    
     def('from',
         _token('FROM')
@@ -77,37 +84,35 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('fieldrefs'))
         .seq(ref('from').optional())
         .seq(char(';'))
-        .trim(ref('whitespace')).flatten());
+        .trim(trimmer).flatten());
     def('drop table',
         _token('DROP')
         .seq(_token('TABLE'))
-        .seq(ref('fieldref'))
+        .seq(_token('S').or(_token('s')).optional())
+        .seq(ref('fieldrefs'))
         .seq(char(';'))
-        .trim(ref('whitespace')).flatten());
+        .trim(trimmer).flatten());
     def('store table',
         _token('STORE')
         .seq(ref('fieldref'))
         .seq(_token('INTO'))
-        .seq(ref('table'))
+        .seq(ref('tableOrFilename'))
         .seq(char(';'))
-        .trim(ref('whitespace')).flatten());
+        .trim(trimmer).flatten());
     
     def('selectList',
-        ref('field').or(char('*')).separatedBy(char(',').trim(ref('whitespace')), includeSeparators: false));
+        ref('field').or(char('*')).separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def('field',
         ref('expression').seq(_token('as')).seq(ref('fieldref'))
         .or(ref('expression'))
-        .trim(ref('whitespace')).flatten());
-    def('expression',
-        ref('binaryExpression').trim(ref('whitespace'))
-        );   
+        .trim(trimmer).flatten());
     def('join',
         _token('LEFT').or(_token('RIGHT')).or(_token('INNER')).optional()
         .seq(_token('JOIN').or(_token('KEEP')))
         .seq(ref('table in parens').optional())
         .flatten());
     def('preload func',
-        _token('Hierarchy').or(_token('IntervalMatch'))
+        _token('Hierarchy').or(_token('IntervalMatch')).or(_token('CrossTable'))
         .seq(ref('simpleParens'))
         .flatten());
     def('load inline',
@@ -119,18 +124,18 @@ class QvsGrammar extends CompositeParser {
           .seq(_token(']').neg().plus())
           .seq(_token(']'))
           .seq(char(';'))
-          .trim(ref('whitespace')).flatten());
+          .trim(trimmer).flatten());
     def('load autogenerate',
         ref('tableDesignator').optional()
         .seq(_token('Noconcatenate').optional())
         .seq(_token('LOAD'))
         .seq(_token('DISTINCT').optional())
-        .seq(ref('selectList').trim(ref('whitespace')))
+        .seq(ref('selectList').trim(trimmer))
         .seq(_token('autogenerate'))
         .seq(ref('expression'))
         .seq(ref('while clause').optional())
         .seq(char(';'))
-          .trim(ref('whitespace')).flatten());
+          .trim(trimmer).flatten());
     def('while clause',
         _token('while')
         .seq(ref('expression'))
@@ -157,120 +162,125 @@ class QvsGrammar extends CompositeParser {
         .flatten()
         );
 
-    def('primaryExpression',
-        ref('string')
-        .or(ref('unaryExpression'))
-        .or(ref('function'))
-        .or(ref('number'))
-        .or(ref('fieldref'))
-        .or(ref('macro'))
-        .or(ref('parens')));
-    
-    def('binaryExpression', ref('primaryExpression')
-        .seq(ref('binaryPart').star()).trim(ref('whitespace')).flatten());
-    def('binaryPart', ref('binaryOperator')
-        .seq(ref('primaryExpression')));
-    def('fieldref',
-          ref('identifier')
-          .or(ref('fieldrefInBrackets')));
     def('fieldrefs',
-        ref('fieldref').separatedBy(char(',').trim(ref('whitespace')), includeSeparators: false));
+        ref('fieldref').separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def('fieldrefsOrderBy',
-        ref('fieldrefOrderBy').separatedBy(char(',').trim(ref('whitespace')), includeSeparators: false));
+        ref('fieldrefOrderBy').separatedBy(char(',').trim(trimmer), includeSeparators: false));
 
     def('fieldrefOrderBy',
         ref('identifier')
         .or(ref('fieldrefInBrackets'))
         .seq(_token('DESC').optional()));
     
-    def('identifier',letter().or(char('_').or(char('@')).or(localLetter()))
-        .seq(word().or(char('.')).or(char('_')).or(localLetter()).plus())
-        .seq(whitespace().star().seq(char('(')).not())
-        .flatten().trim(ref('whitespace')));
-    def('fieldrefInBrackets', _token('[')
-        .seq(_token(']').neg().plus())
-        .seq(_token(']')).trim(ref('whitespace')).flatten());
-    def('string',
-            char("'")
-            .seq(char("'").neg().star())
-            .seq(char("'")).flatten());
     def('tableDesignator',
-        ref('fieldref').seq(char(':'))
+        ref('fieldref').or(ref('macro')).seq(char(':'))
         .or(ref('join'))
         .or(ref('concatenate')).plus()
-        .trim(ref('whitespace')).flatten()
+        .trim(trimmer).flatten()
         );
-    def('constant',
-        ref('number').or(ref('string')));
-    def('function',
-        letter()
-        .seq(word().plus())
-        .seq(char('#').optional())
-        .trim(ref('whitespace'))
-        .seq(char('(').trim(ref('whitespace')))
-        .seq(ref('params').optional())
-        .seq(char(')').trim(ref('whitespace'))).flatten());
     def('subRoutine',
-        word().or(char('.')).plus().trim(ref('whitespace'))
-        .seq(char('(').trim(ref('whitespace')))
+        word().or(char('.')).plus().trim(trimmer)
+        .seq(char('(').trim(trimmer))
         .seq(ref('params').optional())
-        .seq(char(')').trim(ref('whitespace'))).flatten());
+        .seq(char(')').trim(trimmer)).flatten());
     def('params',
-        ref('expression').separatedBy(char(',').trim(ref('whitespace')), includeSeparators: false));
+        ref('expression').separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def('parens',
-        char('(').trim(ref('whitespace'))
+        char('(').trim(trimmer)
             .seq(ref('expression'))
-            .seq(char(')').trim(ref('whitespace'))).flatten());
+            .seq(char(')').trim(trimmer)).flatten());
     def('macro',
         _token(r'$(')
-            .seq(word().or(anyIn(r'./\[]=')).plus().trim(ref('whitespace')))
-            .seq(char(')').trim(ref('whitespace'))).flatten());
+            .seq(word().or(anyIn(r'./\[]=')).plus().trim(trimmer))
+            .seq(char(')').trim(trimmer)).flatten());
     
-    def('unaryExpression',
-        _token('NOT').or(_token('-').or(_token('DISTINCT'))).trim(ref('whitespace'))
-            .seq(ref('expression'))
-            .trim(ref('whitespace')).flatten());
-    def('binaryOperator',
-        _token('and')
-        .or(_token('or'))
-        .or(_token('xor'))
-        .or(_token('like'))
-        .or(_token('<='))
-        .or(_token('<>'))
-        .or(_token('!='))
-        .or(_token('>='))
-        .or(anyIn('+-/*<>=&'))
-        .or(_token('precedes'))
-        .trim(ref('whitespace')).flatten()
-        );
-    def('table',
-        word().or(anyIn(r'./\[]:').or(localLetter())).plus()
-        .seq(ref('simpleParens').optional())
-        .trim(ref('whitespace')));
+    def('tableOrFilename',
+        word().or(anyIn(r'./\:').or(localLetter())).plus()
+        .or(ref('fieldrefInBrackets'))
+        .seq(ref('fileModifier').optional())
+        .trim(trimmer));
+//    def('fileName',
+//        );
     def('whereClause',
-        _token('where').trim(ref('whitespace'))
+        _token('where').or(_token('while')).trim(trimmer)
         .seq(ref('binaryExpression'))
-        .trim(ref('whitespace')));
+        .trim(trimmer));
     def('assignment',
-        _token('SET').or(_token('LET')).trim(ref('whitespace'))
-        .seq(ref('identifier').trim(ref('whitespace')))
-        .seq(char('=').trim(ref('whitespace')))
+        _token('SET').or(_token('LET')).trim(trimmer)
+        .seq(ref('identifier').trim(trimmer))
+        .seq(char('=').trim(trimmer))
         .seq(ref('expression').optional())
-        .seq(char(';')).trim(ref('whitespace')).flatten()
+        .seq(char(';')).trim(trimmer).flatten()
         );
     def('call',
-        _token('call').trim(ref('whitespace'))
-        .seq(ref('subRoutine').trim(ref('whitespace')))
-        .seq(char(';')).trim(ref('whitespace')).flatten()
+        _token('call').trim(trimmer)
+        .seq(ref('subRoutine').trim(trimmer))
+        .seq(char(';')).trim(trimmer).flatten()
         );
     def('simpleParens',
         char("(")
         .seq(char(")").neg().star())
-        .seq(char(")")).trim(ref('whitespace')).flatten());
+        .seq(char(")")).trim(trimmer).flatten());
     def('macroLine',
-        ref('macro').trim(ref('whitespace'))
-        .seq(char(';')).trim(ref('whitespace')).flatten());
+        ref('macro').trim(trimmer)
+        .seq(char(';')).trim(trimmer).flatten());
+    def('fileModifierTokens',
+        _token('embedded labels')
+        .or(_token('explicit labels'))
+        .or(_token('no')
+            .seq(_token('quotes').
+                or(_token('labels')).
+                or(_token('eof'))))
+        .or(_token('codepage is')
+            .seq(ref('decimalInteger').plus())
+            .or(_token('unicode'))
+            .or(_token('ansi'))
+            .or(_token('oem'))
+            .or(_token('mac'))
+            .or(_token('UTF').seq(char('-').optional().seq(char('8')))))
+        .or(_token('table is').seq(ref('fieldref')))
+        .or(_token('header').or(_token('record'))
+            .seq(_token('is'))
+            .seq(ref('decimalInteger'))
+            .seq(_token('lines')))
+        .or(_token('delimiter is').seq(ref('string')))
+        .flatten());
+    def('fileModifierElement',
+        ref('fileModifierTokens')
+        .or(ref('expression')));
+    def('fileModifierElements',
+        ref('fileModifierElement').separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def('fileModifier',
+        _token('(')
+         .seq(ref('fileModifierElements'))
+         .seq(_token(')')));
+    def('connect',
+        _token('ODBC').or(_token('OLEDB')).or(_token('CUSTOM')).optional()
+        .seq(_token('CONNECT'))
+        .seq(_token('TO'))
+        .seq(ref('string').trim(trimmer))
+        .seq(ref('simpleParens').optional())
+        .flatten()
+        );
+    def('controlStatement',
+        ref('subStart')
+        .or(ref('controlStatementFinish')));
+    def('controlStatementFinish',
+        _token('END')
+          .seq(_token('SUB').or(_token('IF')))
+        .or(_token('NEXT')
+          .seq(ref('identifier').optional()))
+        .seq(_token(';').optional()));
+    def('subStart',
+        _token('SUB')
+        .seq(ref('identifier').or(ref('function')))
+        .seq(_token(';').optional()));
+    def('paramInParens',
+        _token('(')
+        .seq(ref('params'))
+        .seq(_token(')')));
   }
+  
   
   /** Defines the whitespace and comments. */
   void _whitespace() {
@@ -284,9 +294,65 @@ class QvsGrammar extends CompositeParser {
       .seq(string('*/').neg().star())
       .seq(string('*/')));
   }
-
+ 
   _expression() {
-    
+    def('expression',
+        ref('binaryExpression').trim(trimmer)
+        );   
+    def('primaryExpression',
+        ref('string')
+        .or(ref('unaryExpression'))
+        .or(ref('function'))
+        .or(ref('number'))
+        .or(ref('fieldref'))
+        .or(ref('macro'))
+        .or(ref('parens')));
+    def('binaryExpression', ref('primaryExpression')
+        .seq(ref('binaryPart').star()).trim(trimmer).flatten());
+    def('binaryPart', ref('binaryOperator')
+        .seq(ref('primaryExpression')));
+    def('fieldref',
+          ref('identifier')
+          .or(ref('fieldrefInBrackets')));
+    def('identifier',letter().or(char('_').or(char('@')).or(localLetter()))
+        .seq(word().or(char('.')).or(char('_')).or(localLetter()).plus())
+        .seq(whitespace().star().seq(char('(')).not())
+        .flatten().trim(trimmer));
+    def('fieldrefInBrackets', _token('[')
+        .seq(_token(']').neg().plus())
+        .seq(_token(']')).trim(trimmer).flatten());
+    def('string',
+            char("'")
+            .seq(char("'").neg().star())
+            .seq(char("'")).flatten());
+   
+    def('constant',
+        ref('number').or(ref('string')));
+    def('function',
+        letter()
+        .seq(word().plus())
+        .seq(char('#').optional())
+        .trim(trimmer)
+        .seq(char('(').trim(trimmer))
+        .seq(ref('params').optional())
+        .seq(char(')').trim(trimmer)).flatten());
+    def('unaryExpression',
+        _token('NOT').or(_token('-').or(_token('DISTINCT'))).trim(trimmer)
+            .seq(ref('expression'))
+            .trim(trimmer).flatten());
+    def('binaryOperator',
+        _token('and')
+        .or(_token('or'))
+        .or(_token('xor'))
+        .or(_token('like'))
+        .or(_token('<='))
+        .or(_token('<>'))
+        .or(_token('!='))
+        .or(_token('>='))
+        .or(anyIn('+-/*<>=&'))
+        .or(_token('precedes'))
+        .trim(trimmer).flatten()
+        );
   }
   
   /** Defines a token parser that ignore case and consumes whitespace. */
@@ -294,7 +360,7 @@ class QvsGrammar extends CompositeParser {
     var parser = input is Parser ? parser :
         input.length == 1 ? char(input) :
         stringIgnoreCase(input);
-    return parser.token().trim(ref('whitespace'));
+    return parser.token().trim(trimmer);
   }
   
   void _number() {

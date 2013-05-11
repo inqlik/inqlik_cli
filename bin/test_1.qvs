@@ -1,0 +1,1531 @@
+Выражения:
+LOAD trim(@1) as Выражение, 
+     trim(@2) as ВыражениеТип, 
+     trim(@3) as ВыражениеОпределение, 
+     trim(@4) as ВыражениеЗаголовок, 
+     trim(@5) as ВыражениеОписание
+FROM
+[..\Resources\Expressions.qvs]   (txt, codepage is 1251, no labels, delimiter is '\t', msq, filters(
+  Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
+  ));
+
+////****** Расчет ABC по ВП
+AbcSum1:
+LOAD *,
+     RangeSum([~AbcНоменклатураПродажиВП],
+     Peek('~AbcВпНакопительно')) as [~AbcВпНакопительно]
+      RESIDENT AbcSumm
+          ORDER BY [~AbcНоменклатураПродажиВП] desc;
+AbcSum2:
+LOAD *, 
+     If([~AbcВпНакопительно] <= 0, 'CC',
+     If(([~AbcВпНакопительно] / [~AbcНоменклатураПродажиВПВсего]) < 0.8, 'A',
+     If(([~AbcВпНакопительно] / [~AbcНоменклатураПродажиВПВсего]) < 0.95, 'B','C'))) as НоменклатураМаржаАБС
+          RESIDENT AbcSum1;      
+DROP TABLE AbcSum1;      
+LEFT JOIN(AbcSumm) 
+LOAD 
+     ПодразделениеХранения,
+     НоменклатураНаименованиеУровня1,
+     [~КлючНоменклатураХарактеристика],
+     НоменклатураМаржаАБС
+          RESIDENT AbcSum2;
+DROP TABLE AbcSum2;  
+DROP FIELD НоменклатураНаименованиеУровня1 FROM AbcSumm;
+STORE AbcSumm INTO ../Data/Staged/InventAbcSumm.QVD(QVD);
+DROP TABLE AbcSumm;
+Department2DepartmentRef:
+MAPPING LOAD Подразделение, ПодразделениеСсылка
+     FROM
+          C:\QlikDocs\polovik_pilot\Data\Staged\Department.QVD
+               (qvd);
+ExtDeparmentMap:
+LOAD Подразделение2,
+           ApplyMap('Department2DepartmentRef', Подразделение2, 'Ссылка не найдена' )     as SourceDeparmentRef,  
+     ПодразделениеХранения,
+     ApplyMap('Department2DepartmentRef', ПодразделениеХранения, 'Ссылка не найдена' )    as TargetDeparmentRef 
+FROM
+C:\QlikDocs\polovik_pilot\Data\Source\ПодразделениеХранения.xls
+(biff, embedded labels, table is [Лист1$]);
+STORE ExtDeparmentMap INTO ExtDepartmentMap.QVD(QVD);
+StoreDepartmentMap:
+MAPPING LOAD
+     SourceDeparmentRef, TargetDeparmentRef
+          RESIDENT ExtDeparmentMap;
+DROP TABLE ExtDeparmentMap;
+
+
+
+DROP TABLE InventLocation;
+////////***************** Загрузка номенклатуры
+InventTableBase:
+LOAD ЗначениеСубконто as НоменклатураСсылка,
+     КодНоменклатуры as НоменклатураКод, 
+     Номенклатура, 
+     РодительНоменклатуры as НоменклатураКодУровня,
+     Артикул,
+     НоменклатурнаяГруппа, 
+     ОсновнойПоставщик, 
+     ОтветственныйМенеджерЗаПокупки, 
+     Услуга, 
+     Набор, 
+     Классификатор, 
+     Бренд as НоменклатураБренд, 
+     ОтветственныйМенеджерЛауфер, 
+     РазделСайтаПоловик, 
+     РассылкаКлиентам, 
+     НаименованиеПолное, 
+     ЕдиницаХраненияОстатков,
+     1 as НоменклатураСчетчик    
+FROM
+[..\Data\Source\Номенклатура.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+ItemRangeCodes:
+LOAD DISTINCT НоменклатураКодУровня as НоменклатураСсылка
+     Resident InventTableBase;
+LEFT JOIN (InventTableBase)
+     LOAD НоменклатураСсылка, 1 as [~ФлагГруппы]
+          Resident ItemRangeCodes;
+InventTable:
+Noconcatenate
+LOAD * Resident InventTableBase
+     Where IsNull([~ФлагГруппы]);
+Concatenate(InventTable)
+LOAD НоменклатураСсылка,
+     НоменклатураКод, 
+     'Синтетическая номенклатура ' & Номенклатура as Номенклатура, 
+     НоменклатураСсылка as НоменклатураКодУровня,
+     Артикул,
+     НоменклатурнаяГруппа, 
+     ОсновнойПоставщик, 
+     ОтветственныйМенеджерЗаПокупки, 
+     Услуга, 
+     Набор, 
+     Классификатор, 
+     НоменклатураБренд, 
+     ОтветственныйМенеджерЛауфер, 
+     РазделСайтаПоловик, 
+     РассылкаКлиентам, 
+     НаименованиеПолное, 
+     ЕдиницаХраненияОстатков,
+     НоменклатураСчетчик,
+     1 as [~ФлагСинтетическаяНоменклатура]    
+          RESIDENT InventTableBase
+               WHERE IsNull([~ФлагГруппы]) = 0;
+InventRange:
+Hierarchy(НоменклатураКодУровня,НоменклатураКодРодителяУровня,НоменклатураНаименованиеУровня,,НоменклатураНаименованиеУровня,[Дерево номенклатур])
+LOAD 
+     НоменклатураСсылка as НоменклатураКодУровня,
+     Номенклатура as НоменклатураНаименованиеУровня,
+     НоменклатураКодУровня as НоменклатураКодРодителяУровня
+          RESIDENT InventTableBase
+               WHERE [~ФлагГруппы] = 1;
+InventRangeRef:
+Hierarchy(НоменклатураКодУровня,НоменклатураКодРодителяУровня,НоменклатураСсылкаНаУровень,,НоменклатураСсылкаНаУровень)
+LOAD 
+     НоменклатураСсылка as НоменклатураКодУровня,
+     НоменклатураСсылка as НоменклатураСсылкаНаУровень,
+     НоменклатураКодУровня as НоменклатураКодРодителяУровня
+          RESIDENT InventTableBase
+               WHERE [~ФлагГруппы] = 1;
+LEFT JOIN(InventRange)
+LOAD * RESIDENT InventRangeRef;
+DROP TABLE InventRangeRef;
+RTN:
+LOAD Период, 
+     Номенклатура, 
+     РТН
+FROM
+[..\Data\Source\НоменклатураРТНа.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+MaxDate:
+RIGHT KEEP (RTN)
+LOAD Max(Период) as Период
+     Resident RTN;
+DROP TABLE MaxDate;
+DROP FIELD Период FROM RTN;
+
+LEFT JOIN (InventRange)
+LOAD Номенклатура as НоменклатураСсылкаНаУровень1,
+     РТН as РТН1
+     RESIDENT RTN;
+LEFT JOIN (InventRange)
+LOAD Номенклатура as НоменклатураСсылкаНаУровень2,
+     РТН as РТН2
+     RESIDENT RTN;
+LEFT JOIN (InventRange)
+LOAD Номенклатура as НоменклатураСсылкаНаУровень3,
+     РТН as РТН3
+          RESIDENT RTN;     
+LEFT JOIN (InventRange)
+LOAD Номенклатура as НоменклатураСсылкаНаУровень4,
+     РТН as РТН4
+     RESIDENT RTN;     
+LEFT JOIN (InventRange)
+LOAD Номенклатура as НоменклатураСсылкаНаУровень5,
+     РТН as РТН5
+     RESIDENT RTN;     
+LEFT JOIN (InventRange)
+LOAD Номенклатура as НоменклатураСсылкаНаУровень6,
+     РТН as РТН6
+     RESIDENT RTN;
+InventRange1:
+LOAD *,
+     If(IsNull(РТН1) = 0, РТН1,
+     If(IsNull(РТН2) = 0, РТН2,
+     If(IsNull(РТН3) = 0, РТН3,
+     If(IsNull(РТН4) = 0, РТН4,
+     If(IsNull(РТН5) = 0, РТН5,
+     If(IsNull(РТН6) = 0, РТН6)))))) as РтнСсылка     
+          RESIDENT InventRange;
+
+LEFT JOIN (InventRange1)
+LOAD Ссылка as РтнСсылка,
+     Пользователь as Менеджер
+FROM
+[..\Data\Source\Пользователи.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+DROP TABLE RTN;
+DROP TABLE InventTableBase;
+DROP TABLE ItemRangeCodes;
+DROP FIELDS РТН1, РТН2, РТН3, РТН4, РТН5, РТН6, Path,
+     [~ФлагГруппы], 
+     НоменклатураСсылкаНаУровень1,
+     НоменклатураСсылкаНаУровень2,
+     НоменклатураСсылкаНаУровень3,
+     НоменклатураСсылкаНаУровень4,
+     НоменклатураСсылкаНаУровень5,
+     НоменклатураСсылкаНаУровень6;
+LEFT JOIN(InventTable)
+LOAD * Resident InventRange1;
+DROP TABLE InventRange1;
+
+ItemCategory:
+LOAD СсылкаНоменклатура as НоменклатураСсылка, 
+     СсылкаКатегория as НоменклатураКатегорияСсылка
+FROM
+[..\Data\Source\КатегорииПоНоменклатуре.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+LEFT JOIN (ItemCategory)
+LOAD Ссылка as НоменклатураКатегорияСсылка, 
+     Наименование as НоменклатураКатегория
+FROM
+[..\Data\Source\Категории.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+LEFT JOIN (InventTable)
+LOAD НоменклатураСсылка,
+     НоменклатураКатегория
+          RESIDENT ItemCategory;
+DROP TABLE ItemCategory;
+InventTable1:
+LOAD *,
+     If(isNull(Менеджер),'РТН не назначен',Менеджер) as Менеджер1,
+     If(isNull(НоменклатураБренд) OR НоменклатураБренд = '','Бренд неопределен',НоменклатураБренд) as НоменклатураБренд1,
+     If(Not IsNull(НоменклатураНаименованиеУровня2), НоменклатураНаименованиеУровня2,
+          If(Peek('НоменклатураНаименованиеУровня1')=НоменклатураНаименованиеУровня1 and
+             Peek('_НоменклатураНаименованиеУровня2')<>НоменклатураНаименованиеУровня2,
+               '^^' & НоменклатураНаименованиеУровня1)) as _НоменклатураНаименованиеУровня2,
+     If(Not IsNull(НоменклатураНаименованиеУровня3), НоменклатураНаименованиеУровня3,
+          If(Peek('НоменклатураНаименованиеУровня2')=НоменклатураНаименованиеУровня2 and
+             Peek('_НоменклатураНаименованиеУровня3')<>НоменклатураНаименованиеУровня3,
+               '^^' & НоменклатураНаименованиеУровня2)) as _НоменклатураНаименованиеУровня3,
+     If(Not IsNull(НоменклатураНаименованиеУровня4), НоменклатураНаименованиеУровня4,
+          If(Peek('НоменклатураНаименованиеУровня3')=НоменклатураНаименованиеУровня3 and
+             Peek('_НоменклатураНаименованиеУровня4')<>НоменклатураНаименованиеУровня4,
+               '^^' & НоменклатураНаименованиеУровня3)) as _НоменклатураНаименованиеУровня4,  
+     If(Not IsNull(НоменклатураНаименованиеУровня5), НоменклатураНаименованиеУровня5,
+          If(Peek('НоменклатураНаименованиеУровня4')=НоменклатураНаименованиеУровня4 and
+             Peek('_НоменклатураНаименованиеУровня5')<>НоменклатураНаименованиеУровня5,
+               '^^' & НоменклатураНаименованиеУровня4)) as _НоменклатураНаименованиеУровня5,
+    If(Not IsNull(НоменклатураНаименованиеУровня6), НоменклатураНаименованиеУровня6,
+          If(Peek('НоменклатураНаименованиеУровня5')=НоменклатураНаименованиеУровня5 and
+             Peek('_НоменклатураНаименованиеУровня6')<>НоменклатураНаименованиеУровня6,
+               '^^' & НоменклатураНаименованиеУровня5)) as _НоменклатураНаименованиеУровня6
+           RESIDENT InventTable
+               ORDER BY
+                    НоменклатураНаименованиеУровня1 DESC,
+                    НоменклатураНаименованиеУровня2 DESC,
+                    НоменклатураНаименованиеУровня3 DESC,
+                    НоменклатураНаименованиеУровня4 DESC,
+                    НоменклатураНаименованиеУровня5 DESC,
+                    НоменклатураНаименованиеУровня6 DESC;
+                    
+DROP TABLE InventTable;          
+DROP FIELDS НоменклатураНаименованиеУровня2,НоменклатураНаименованиеУровня3,НоменклатураНаименованиеУровня4,
+     НоменклатураНаименованиеУровня5, НоменклатураНаименованиеУровня6, Менеджер, НоменклатураБренд;
+RENAME FIELD Менеджер1 TO Менеджер;     
+RENAME FIELD НоменклатураБренд1 TO НоменклатураБренд; 
+RENAME FIELD _НоменклатураНаименованиеУровня2 TO НоменклатураНаименованиеУровня2;
+RENAME FIELD _НоменклатураНаименованиеУровня3 TO НоменклатураНаименованиеУровня3;
+RENAME FIELD _НоменклатураНаименованиеУровня4 TO НоменклатураНаименованиеУровня4;
+RENAME FIELD _НоменклатураНаименованиеУровня5 TO НоменклатураНаименованиеУровня5;
+RENAME FIELD _НоменклатураНаименованиеУровня6 TO НоменклатураНаименованиеУровня6;
+STORE InventTable1 INTO ..\Data\Staged\InventTable.QVD (QVD);
+
+DROP TABLE InventTable1;
+DROP TABLE InventRange;
+
+// // ////***************** Конец загрузки номенклатуры
+
+InventConfig:
+LOAD СсылкаХарактеристика as ХарактеристикаНоменклатурыСсылка, 
+     Код as ХарактеристикаНоменклатурыКод, 
+     Text(Наименование) as ХарактеристикаНоменклатуры
+FROM
+[..\Data\Source\ХарактеристикиНоменклатуры.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+LOAD * INLINE [
+    ХарактеристикаНоменклатурыСсылка, ХарактеристикаНоменклатурыКод, ХарактеристикаНоменклатуры
+    00000000-0000-0000-0000-000000000000, Неопределено, Неопределено
+];
+STORE InventConfig INTO ../Data/Staged/InventConfig.qvd(qvd);
+
+ConsumerProperty:
+LOAD Ссылка as СсылкаСвойство,
+     КодСвойстваХарактеристик, 
+     Text(СвойстваХарактеристик) as СвойстваХарактеристик
+FROM
+[..\Data\Source\СвойстваХарактеристик.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+LEFT JOIN (ConsumerProperty)
+LOAD СсылкаВладелец as ХарактеристикаНоменклатурыСсылка, 
+     СсылкаСвойство, 
+     Text(Значение) as СвойстваХарактеристикЗначение 
+FROM
+[..\Data\Source\ЗначенияСвойств.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+DROP FIELDS КодСвойстваХарактеристик,СсылкаСвойство;
+
+STORE ConsumerProperty INTO ../Data/Staged/ConsumerProperty.QVD(QVD);
+InventTrans:
+LOAD Num(DayStart(Дата)) as Дата, 
+     Номенклатура as НоменклатураСсылка,
+     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка,
+     Количество * If(ВидДвижения = 'Расход',-1,1) as ПроводкаКоличество, 
+     Стоимость * If(ВидДвижения = 'Расход',-1,1) as ПроводкаСтоимость, 
+     ВидДвижения, 
+     Склад as СкладСсылка, 
+     КодОперации,
+     Регистратор,
+     СерияНоменклатуры as СерияНоменклатурыСсылка, 
+     ДокументДвижения
+FROM
+[..\Data\Source\ПартииПоТовару.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+LEFT JOIN (InventTrans)
+LOAD ЗначениеСубконто as СкладСсылка, 
+     Подразделение as ПодразделениеСсылка
+FROM
+[..\Data\Source\Склады.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+Concatenate (InventTrans)
+LOAD Num(Дата) as Дата, 
+     Номенклатура as НоменклатураСсылка,
+     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка,
+     ABCКлассНоменклатуры
+FROM
+[..\Data\Source\ABCКлассификацияНоменклатуры.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+Concatenate (InventTrans)
+LOAD Num(Дата) as Дата, 
+     Номенклатура as НоменклатураСсылка,
+     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка,
+     If(Классификация = 'По наценке',КлассификаторСсылка) as КлассификаторПоНаценке, 
+     If(Классификация = 'По частоте продаж',КлассификаторСсылка) as КлассификаторПоЧастотеПродаж
+FROM
+[..\Data\Source\КлассификацияНоменклатуры.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+////////***************** Загрузка планов продаж
+PlanTrans:
+LOAD Num(DayStart(Дата)) as Дата,
+     Проект as КаналСбыта,
+     СсылкаМенеджерИлиПодразделение as СсылкаМенеджерИлиПодразделение,
+     Выручка as ПланПродажи,
+     ВП as ПланВП,
+     Наценка as ПланНаценка
+FROM
+[..\Data\Source\ПланПродаж.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+LEFT JOIN (PlanTrans)
+LOAD Ссылка as СсылкаМенеджерИлиПодразделение,
+     Ссылка as ОтветственныйЗаПродажу
+FROM
+[..\Data\Source\Пользователи.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+LEFT JOIN (PlanTrans)
+LOAD Ссылка as СсылкаМенеджерИлиПодразделение,
+     Ссылка as ПодразделениеСсылка
+FROM
+[..\Data\Source\Подразделения.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+DROP FIELD СсылкаМенеджерИлиПодразделение FROM PlanTrans;
+
+Concatenate (InventTrans)
+LOAD * RESIDENT PlanTrans;
+DROP TABLE PlanTrans;
+
+/////
+
+SalesCostMap:
+MAPPING LOAD
+     Регистратор & '|' & НоменклатураСсылка & '|' & ХарактеристикаНоменклатурыСсылка,
+     iF(IsNull(ПродажиСебестоимость / ПродажиКоличество), 0, ПродажиСебестоимость / ПродажиКоличество) as ПродажиСебестоимостьЗаЕдиницу 
+          FROM ../Data/Staged/SalesData.QVD(QVD);
+SalesTaxMap:
+MAPPING LOAD
+     Регистратор & '|' & НоменклатураСсылка & '|' & ХарактеристикаНоменклатурыСсылка,
+     iF(IsNull(ПродажиНДС / ПродажиКоличество), 0, ПродажиНДС / ПродажиКоличество) as ПродажиНДСЗаЕдиницу 
+          FROM ../Data/Staged/SalesData.QVD(QVD);
+
+CheckTrans:
+LOAD *,
+     If(IsNull(ПродажиСебестоимость), ЧекКоличество) as ЧекКоличествоВнеОтчета,
+     If(IsNull(ПродажиСебестоимость), ЧекСуммаПродажи) as ЧекСуммаВнеОтчета,
+     If(IsNull(ПродажиСебестоимость), 'Вне отчета', 'В отчете') as ЧекОтчет,
+     If(IsNull(ПродажиСебестоимость) = 0, ЧекСуммаПродажи) as ПродажиСумма,
+     If(IsNull(ПродажиСебестоимость) = 0, ЧекКоличество) as ПродажиКоличество
+     ;
+LOAD *,
+     ApplyMap('SalesTaxMap',Регистратор & '|' & НоменклатураСсылка & '|' & ХарактеристикаНоменклатурыСсылка,Null()) * ЧекКоличество as ПродажиНДС,
+     ApplyMap('SalesCostMap',Регистратор & '|' & НоменклатураСсылка & '|' & ХарактеристикаНоменклатурыСсылка,Null()) * ЧекКоличество as ПродажиСебестоимость;
+LOAD Num(DayStart(Дата)) as Дата,
+     Num#(Text(Time(Дата,'HH'))) as Час,
+     Num#(Text(Time(Дата,'MM'))) as Минута,
+     '00000000-0000-0000-0000-000000000000' as КлиентСсылка,
+     Номер as [~КодЗаказа],
+     Номер as ДокументПродажи,
+     'розница' as  КаналСбыта,
+     Номенклатура as НоменклатураСсылка, 
+     Количество * If(ВидОперации = 'продажа',1,-1) as ЧекКоличество, 
+     Сумма * If(ВидОперации = 'продажа',1,-1) as ЧекСуммаПродажи, 
+     СтоимостьБезСкидок * If(ВидОперации = 'продажа',1,-1) as ПродажиСуммаБезСкидок, 
+     If(СкидкаПроцентРучная <> 0,'ручная скидка',If(СкидкаПроцентАвто <> 0,'авто скидка','без скидки')) as ТипСкидки,
+     ДисконтнаяКарта as СсылкаДисконтнаяКарта, 
+     Склад as СкладСсылка, 
+     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка, 
+     КассаККМ as КассаСсылка, 
+     Ответственный, 
+     Подразделение as ПодразделениеСсылка,
+     Рентабельность,
+     ОтчетККМ as Регистратор,
+     'ККМ ' & ВидОперации as ВидОперации,
+     МенеджерПродажи as ОтветственныйЗаПродажу    
+FROM
+[..\Data\Source\ЧекиККМ.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+/*LEFT JOIN (CheckTrans)
+LOAD СсылкаЗаказПокупателя as СсылкаЗаказПокупателя,
+     Ответственный as ОтветственныйЗаПродажу
+FROM
+[..\Data\Source\ЗаказПокупателя.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+LEFT JOIN (CheckTrans)
+LOAD СсылкаЗаказПокупателя as СсылкаЗаказПокупателя,
+     Ответственный as ОтветственныйЗаПродажу
+FROM
+[..\Data\Source\СчетНаОплатуПокупателю.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);*/
+
+LEFT JOIN (CheckTrans)
+LOAD Ссылка as КассаСсылка, 
+     Касса
+FROM
+[..\Data\Source\КассыККМ.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+LEFT JOIN (CheckTrans)
+LOAD Ссылка as Ответственный,
+     Пользователь as Кассир
+FROM
+[..\Data\Source\Пользователи.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+LEFT JOIN (CheckTrans)
+LOAD Ссылка as СсылкаДисконтнаяКарта,
+     text(КодКарты) as ДККод,
+     Наименование as ДКНаименование,
+     ПроцентСкидки as ДКПроцентСкидки,
+     МенеджерДискКарты as ДКМенеджер
+FROM
+[..\Data\Source\ДисконтныеКарты.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+STORE CheckTrans INTO ../Data/Staged/CheckTrans.QVD(QVD);
+
+Concatenate (InventTrans)
+LOAD * RESIDENT CheckTrans;
+
+Concatenate (InventTrans)
+LOAD * 
+     FROM ../Data/Staged/SalesData.QVD(QVD)
+          WHERE IsNull([~КодЗаказа]) = 0;
+// CheckReportData:
+// LOAD *,
+//      Регистратор & '|' & НоменклатураСсылка & '|' & ХарактеристикаНоменклатурыСсылка as CheckTransKey,
+//      RecNo() as НомерПроводки
+//  FROM ../Data/Staged/SalesData.qvd (QVD)
+//      WHERE IsNull([~КодЗаказа]);
+// STORE CheckReportData INTO ../Data/Staged/CheckReportData.QVD (QVD);
+// DROP TABLE CheckReportData; 
+// CheckTransKey:     
+// LOAD 
+//      Регистратор & '|' & НоменклатураСсылка & '|' & ХарактеристикаНоменклатурыСсылка as CheckTransKey
+//       RESIDENT CheckTrans;
+// Concatenate (InventTrans)                
+// LOAD *
+//      FROM ../Data/Staged/CheckReportData.QVD (QVD)
+//                Where NOT Exists(CheckTransKey);
+// DROP TABLE CheckTransKey;
+DROP TABLE CheckTrans;
+
+LEFT JOIN (InventTrans)
+LOAD Ссылка as ОтветственныйЗаПродажу,
+     Пользователь as МенеджерПродажи
+FROM
+[..\Data\Source\Пользователи.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+DROP FIELDS КассаСсылка, Ответственный, ОтветственныйЗаПродажу;
+
+STORE InventTrans INTO ../Data/Staged/InventTrans.QVD(QVD);
+OnHand:
+LOAD * FROM ../Data/Staged/ONHAND.QVD (qvd)
+     WHERE ОстаткиКоличество <> 0;         
+
+InventTrans:
+LOAD * FROM ../Data/Staged/INVENTTRANS.QVD (qvd);
+
+Key:
+LOAD Distinct
+          НоменклатураСсылка,
+          ХарактеристикаНоменклатурыСсылка,
+          ПодразделениеСсылка,
+          СерияНоменклатурыСсылка,
+          СкладСсылка Resident OnHand;
+JOIN (Key)
+LOAD date($(vMinDate)+recno()-1) as AsOfDate
+AUTOGENERATE $(vMaxDate)-$(vMinDate)+1;
+Inner join (OnHand)
+IntervalMatch (AsOfDate,НоменклатураСсылка,ПодразделениеСсылка,СерияНоменклатурыСсылка,СкладСсылка,ХарактеристикаНоменклатурыСсылка) 
+          LOAD Дата, DateTo,НоменклатураСсылка,
+          ХарактеристикаНоменклатурыСсылка,
+          ПодразделениеСсылка,
+          СерияНоменклатурыСсылка,
+          СкладСсылка RESIDENT OnHand;
+DROP TABLE Key;
+STORE OnHand INTO ../Data/Staged/ONHAND_BY_DAYS.QVD(qvd);
+
+CONCATENATE (InventTrans)
+LOAD Num(AsOfDate) as Дата,
+     Дата as DateFrom,
+     DateTo,
+     НоменклатураСсылка,
+     СкладСсылка,
+     СерияНоменклатурыСсылка,
+     ПодразделениеСсылка,
+     ХарактеристикаНоменклатурыСсылка,
+     ОстаткиКоличество,
+     ОстаткиСтоимость,
+     ПроводкаКоличество as СкладскоеДвижениеКоличество
+          RESIDENT OnHand; 
+DROP TABLE OnHand;
+
+LEFT JOIN (InventTrans)
+LOAD СсылкаСерии as СерияНоменклатурыСсылка, 
+     text(Наименование) as СерияНоменклатуры 
+FROM
+[..\Data\Source\СерииНоменклатуры.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+InventTrans1:
+LOAD *,
+     IF(IsNull([~КодЗаказа]) = 0, 1) as [~СчетчикСтрокПродаж],
+     IF(IsNull([~КодЗаказа]) = 0, [~НомерПроводки]) as [~НомерСтрокиПродаж]; 
+LOAD *,
+     RecNo() as [~НомерПроводки],
+     AutoNumber([~КодЗаказа],'Заказ') as Заказ,
+     If(isNull([~КодЗаказа]) = 0, 1) as [~ФлагЗаказ],  
+     AutoNumber(НоменклатураСсылка & '' & ХарактеристикаНоменклатурыСсылка,'КлючНоменклатураХарактеристика') as [~КлючНоменклатураХарактеристика],
+     НоменклатураСсылка & '' & ХарактеристикаНоменклатурыСсылка as [~СсылкиНаНоменклатуруИХарактеристику]
+          RESIDENT InventTrans;
+DROP TABLE InventTrans;     
+RENAME TABLE InventTrans1 TO InventTrans;
+
+Concatenate(InventTrans)
+LOAD Дата, 
+     ПодразделениеСсылка, 
+     Sum(ПродажиКоличество)/30 + COUNT(Distinct Заказ)* 4 as Траффик
+          RESIDENT InventTrans
+               GROUP BY Дата, ПодразделениеСсылка;
+STORE InventTrans INTO ../Data/Staged/InventTransAllData.qvd(qvd);
+LET vCurrentDate = Num(MakeDate(2013,3,12));
+LET vMinData= Num(MakeDate(2012,12,31));
+InventTransAggregated:
+LOAD НоменклатураСсылка,
+     ХарактеристикаНоменклатурыСсылка,
+     ПодразделениеСсылка,
+     СкладСсылка,
+     СерияНоменклатурыСсылка,
+     Дата,
+     Sum(ПроводкаКоличество) as ПроводкаКоличество,
+     Sum(ПроводкаСтоимость) as ПроводкаСтоимость
+          FROM ../Data/Staged/InventTrans.QVD (QVD)
+               WHERE Дата <= $(vCurrentDate)
+               GROUP BY  
+                    НоменклатураСсылка,
+                    ХарактеристикаНоменклатурыСсылка,
+                    ПодразделениеСсылка,
+                    СкладСсылка,
+                    СерияНоменклатурыСсылка,
+                    Дата;
+
+InventTransByDay:
+LOAD *,
+     RangeSum(ПроводкаКоличество,
+     If(НоменклатураСсылка = Peek('НоменклатураСсылка') 
+          and ХарактеристикаНоменклатурыСсылка = Peek('ХарактеристикаНоменклатурыСсылка')
+          and СкладСсылка = Peek('СкладСсылка')
+          and СерияНоменклатурыСсылка = Peek('СерияНоменклатурыСсылка'),
+          Peek('ОстаткиКоличество'),0)) as ОстаткиКоличество,
+     RangeSum(ПроводкаСтоимость,
+     If(НоменклатураСсылка = Peek('НоменклатураСсылка') 
+          and ХарактеристикаНоменклатурыСсылка = Peek('ХарактеристикаНоменклатурыСсылка')
+          and СкладСсылка = Peek('СкладСсылка')
+          and СерияНоменклатурыСсылка = Peek('СерияНоменклатурыСсылка'),
+          Peek('ОстаткиСтоимость'),0)) as ОстаткиСтоимость
+               RESIDENT InventTransAggregated
+                    ORDER BY  НоменклатураСсылка,
+                              ХарактеристикаНоменклатурыСсылка,
+                              ПодразделениеСсылка,
+                              СерияНоменклатурыСсылка,
+                              СкладСсылка,
+                              Дата;
+DROP TABLE InventTransAggregated;
+STORE InventTransByDay INTO ../Data/Staged/InventTransByDay.QVD(qvd);
+Interv:
+LOAD 
+     НоменклатураСсылка,
+     ХарактеристикаНоменклатурыСсылка,
+     ПодразделениеСсылка,
+     СкладСсылка,
+     СерияНоменклатурыСсылка,
+     Дата,
+     ПроводкаКоличество,
+     ПроводкаСтоимость,
+     ОстаткиКоличество,
+     ОстаткиСтоимость,
+     date(If(НоменклатураСсылка = Peek('НоменклатураСсылка') 
+          and ХарактеристикаНоменклатурыСсылка = Peek('ХарактеристикаНоменклатурыСсылка')
+          and СерияНоменклатурыСсылка = Peek('СерияНоменклатурыСсылка')
+          and СкладСсылка = Peek('СкладСсылка'),
+                    Peek('Дата') - 1,$(vCurrentDate))) as DateTo
+      Resident InventTransByDay
+          ORDER BY
+               НоменклатураСсылка,
+               ХарактеристикаНоменклатурыСсылка,
+               ПодразделениеСсылка,
+               СкладСсылка,
+               СерияНоменклатурыСсылка,
+               Дата DESC;
+DROP table InventTransByDay;
+STORE Interv INTO ../Data/Staged/ONHAND.QVD(qvd);
+DROP TABLE Interv;
+
+OnHand:
+LOAD * FROM ../Data/Staged/ONHAND.QVD (qvd)
+     WHERE ОстаткиКоличество <> 0;         
+Key:
+LOAD Distinct
+          НоменклатураСсылка,
+          ХарактеристикаНоменклатурыСсылка,
+          ПодразделениеСсылка,
+          СерияНоменклатурыСсылка,
+          СкладСсылка Resident OnHand;
+JOIN (Key)
+LOAD date($(vMinDate)+recno()-1) as AsOfDate
+AUTOGENERATE $(vCurrentDate)-$(vMinDate)+1;
+Inner join (OnHand)
+IntervalMatch (AsOfDate,НоменклатураСсылка,ПодразделениеСсылка,СерияНоменклатурыСсылка,СкладСсылка,ХарактеристикаНоменклатурыСсылка) 
+          LOAD Дата, DateTo,НоменклатураСсылка,
+          ХарактеристикаНоменклатурыСсылка,
+          ПодразделениеСсылка,
+          СерияНоменклатурыСсылка,
+          СкладСсылка RESIDENT OnHand;
+DROP TABLE Key;
+STORE OnHand INTO ../Data/Staged/ONHAND_BY_DAYS.QVD(qvd);
+DROP TABLE OnHand;
+Let vCurrentYear = 2013;
+LET _startDate = Num(MakeDate($(vCurrentYear),1,1));
+LET _endDate = Num(MakeDate($(vCurrentYear),3,12));
+
+Dates:
+LOAD date($(_startDate) + IterNo()-1) as Дата
+          AUTOGENERATE 1
+WHILE $(_startDate) + IterNo() <= $(_endDate)+1;
+
+WeeklyZeroSales:
+LOAD DISTINCT WeekStart(Дата) as ДатаНеделя 
+     RESIDENT Dates;
+     
+DROP TABLE Dates;
+
+// LEFT JOIN (AbsentTrans)
+// LOAD Дата 
+//     RESIDENT Календарь 
+//         WHERE [~ФлагДействующаяДата];
+
+WeeklySales:
+LOAD 
+     WeekStart(Дата) AS ДатаНеделя,     
+     ПодразделениеХранения,
+     [~КлючНоменклатураХарактеристика],
+     Count(ПродажиКоличество) as ПродажиКоличествоЗаказовЗаНеделю,
+     Sum(ПродажиКоличество) as ПродажиКоличествоЗаНеделю
+          FROM ../Data/Staged/InventTransAllDataNew.QVD(QVD)
+                    Where ПродажиКоличество > 0 
+                       GROUP BY WeekStart(Дата),
+                                ПодразделениеХранения,                            
+                                [~КлючНоменклатураХарактеристика];
+
+// WeeklySales:
+// LOAD 
+//      WeekStart(Дата) AS ДатаНеделя,  
+//      ПодразделениеХранения,
+//      [~КлючНоменклатураХарактеристика],
+//      Count(ПродажиКоличество) as ПродажиКоличествоЗаказовЗаНеделю,
+//      Sum(ПродажиКоличество) as ПродажиКоличествоЗаНеделю
+//           FROM ../Data/Staged/InventTransAllDataNew.QVD(QVD)
+//              Where ПродажиКоличество > 0 AND
+//              [~КлючНоменклатураХарактеристика] = '6991'
+//                        GROUP BY WeekStart(Дата),
+//                                 ПодразделениеХранения,                            
+//                                 [~КлючНоменклатураХарактеристика];
+
+STORE WeeklySales INTO ../Data/Staged/WeeklySales.QVD(QVD);
+
+// WeeklySales:
+// LOAD * FROM ../Data/Staged/WeeklySales.QVD(QVD);
+
+InventTableDepartment:
+LOAD DISTINCT [~КлючНоменклатураХарактеристика],
+              ПодразделениеХранения
+  FROM ../Data/Staged/WeeklySales.QVD(QVD);
+
+LEFT JOIN (InventTableDepartment)
+LOAD *,
+     0 as ПродажиКоличествоЗаНеделю,
+     0 as ПродажиКоличествоЗаказовЗаНеделю
+  RESIDENT WeeklyZeroSales;
+
+Concatenate (WeeklySales)
+LOAD *
+  RESIDENT InventTableDepartment;
+
+STORE WeeklySales INTO ../Data/Staged/WeeklySales2.QVD(QVD);
+
+DROP TABLE WeeklySales, InventTableDepartment, WeeklyZeroSales;
+
+WeeklySales:
+LOAD
+     Num(ДатаНеделя), 
+     ПодразделениеХранения,
+     [~КлючНоменклатураХарактеристика],
+     Sum(ПродажиКоличествоЗаказовЗаНеделю) as ПродажиКоличествоЗаказовЗаНеделю,
+     Sum(ПродажиКоличествоЗаНеделю) as ПродажиКоличествоЗаНеделю
+          FROM ../Data/Staged/WeeklySales2.QVD(QVD)
+               GROUP BY Num(ДатаНеделя),
+                        ПодразделениеХранения,
+                        [~КлючНоменклатураХарактеристика];
+
+InventXyz:
+LOAD *,
+     Alt(ПродажиКоличествоЗаНеделюСтандартноеОтклонение/ПродажиКоличествоЗаНеделюСреднее) as [~XyzНоменклатураКоэффВариации];
+LOAD ПодразделениеХранения,
+     [~КлючНоменклатураХарактеристика],
+     Sum(ПродажиКоличествоЗаказовЗаНеделю) as ПродажиКоличествоЗаказовВсего,
+     Avg(ПродажиКоличествоЗаказовЗаНеделю) as ПродажиКоличествоЗаказовЗаНеделюЗаНеделюСреднее,  
+     Stdev(ПродажиКоличествоЗаНеделю) as ПродажиКоличествоЗаНеделюСтандартноеОтклонение,
+     Avg(ПродажиКоличествоЗаНеделю) as ПродажиКоличествоЗаНеделюСреднее    
+         RESIDENT WeeklySales
+          GROUP BY ПодразделениеХранения,
+                    [~КлючНоменклатураХарактеристика];                      
+STORE InventXyz INTO ../Data/Staged/InventXYZ.QVD(QVD);
+
+DROP TABLE WeeklySales;
+DROP TABLE InventXyz;
+
+InventAbcXyz:
+LOAD
+     [~КлючНоменклатураХарактеристика],
+     ПодразделениеХранения,
+     НоменклатураПродажиАБС,
+     НоменклатураМаржаАБС 
+           FROM ../Data/Staged/InventAbcSumm.QVD(QVD);
+
+LEFT JOIN (InventAbcXyz)
+LOAD [~КлючНоменклатураХарактеристика],
+     ПодразделениеХранения,
+     if ([~XyzНоменклатураКоэффВариации] <= 1, 'X',
+      if ([~XyzНоменклатураКоэффВариации] <= 1.5, 'Y','Z')) as [~XyzНоменклатураКоэффВариации],
+      [~XyzНоменклатураКоэффВариации] as [~XYZКоэффициент]
+       FROM ../Data/Staged/InventXyz.QVD(QVD);
+STORE InventAbcXyz INTO ../Data/Staged/InventAbcXyz.QVD(QVD);
+DROP TABLE InventAbcXyz;
+MaxData:
+LOAD Max(Дата) as Дата
+     FROM ../Data/Staged/InventTransAllData.qvd(qvd)
+          WHERE IsNull(ABCКлассНоменклатуры)=0;
+
+InventClassifier:         
+LEFT KEEP(MaxData)
+LOAD Дата, 
+     ABCКлассНоменклатуры as ABCКлассНоменклатурыТекущий,
+     AutoNumber(НоменклатураСсылка & '' & ХарактеристикаНоменклатурыСсылка,'КлючНоменклатураХарактеристика') as [~КлючНоменклатураХарактеристика]
+     FROM ../Data/Staged/InventTransAllData.qvd(qvd)
+          WHERE IsNull(ABCКлассНоменклатуры)=0;
+DROP TABLE MaxData;
+
+MaxData:
+LOAD Max(Дата) as Дата
+     FROM ../Data/Staged/InventTransAllData.qvd(qvd)
+          WHERE IsNull(КлассификаторПоНаценке)=0;
+
+InventClassifier1:       
+LEFT KEEP(MaxData)
+LOAD Дата, 
+     КлассификаторПоНаценке as КлассификаторПоНаценкеТекущий,
+     AutoNumber(НоменклатураСсылка & '' & ХарактеристикаНоменклатурыСсылка,'КлючНоменклатураХарактеристика') as [~КлючНоменклатураХарактеристика]
+     FROM ../Data/Staged/InventTransAllData.qvd(qvd)
+          WHERE IsNull(КлассификаторПоНаценке)=0;
+DROP TABLE MaxData;
+Concatenate(InventClassifier)
+LOAD * RESIDENT InventClassifier1;
+DROP TABLE InventClassifier1;
+
+MaxData:
+LOAD Max(Дата) as Дата
+     FROM ../Data/Staged/InventTransAllData.qvd(qvd)
+          WHERE IsNull(КлассификаторПоЧастотеПродаж)=0;
+
+InventClassifier1:       
+LEFT KEEP(MaxData)
+LOAD Дата, 
+     КлассификаторПоЧастотеПродаж as КлассификаторПоЧастотеПродажТекущий,
+     AutoNumber(НоменклатураСсылка & '' & ХарактеристикаНоменклатурыСсылка,'КлючНоменклатураХарактеристика') as [~КлючНоменклатураХарактеристика]
+     FROM ../Data/Staged/InventTransAllData.qvd(qvd)
+          WHERE IsNull(КлассификаторПоЧастотеПродаж)=0;
+DROP TABLE MaxData;
+
+Concatenate(InventClassifier)
+LOAD * RESIDENT InventClassifier1;
+DROP TABLE InventClassifier1;
+DROP FIELD Дата FROM InventClassifier;
+
+InventClassifier1:
+Noconcatenate
+LOAD [~КлючНоменклатураХарактеристика],
+     MaxString(ABCКлассНоменклатурыТекущий) as ABCКлассНоменклатурыТекущий,
+     MaxString(КлассификаторПоНаценкеТекущий) as КлассификаторПоНаценкеТекущий,
+     MaxString(КлассификаторПоЧастотеПродажТекущий) as КлассификаторПоЧастотеПродажТекущий
+          RESIDENT InventClassifier
+               GROUP BY [~КлючНоменклатураХарактеристика];
+DROP TABLE InventClassifier;
+
+//InventTable:
+//LOAD * FROM ..\Data\Staged\InventTable.QVD (qvd);
+
+InventTableAndConfig:
+LOAD DISTINCT НоменклатураСсылка,
+              ХарактеристикаНоменклатурыСсылка,
+              [~КлючНоменклатураХарактеристика]
+                  RESIDENT InventTrans;
+LEFT JOIN (InventTableAndConfig)
+LOAD * 
+     RESIDENT InventTable;
+DROP TABLE InventTable;
+LEFT JOIN (InventTableAndConfig)
+LOAD *
+     RESIDENT InventConfig;
+DROP TABLE InventConfig;
+LEFT JOIN (InventTableAndConfig)
+LOAD *
+     RESIDENT InventClassifier1;
+DROP TABLE InventClassifier1;
+
+InventTableAndConfig1:
+LOAD *,
+     Номенклатура & ' ' & ХарактеристикаНоменклатуры as Номенклатура_Характеристика,
+     If(IsNull(ABCКлассНоменклатурыТекущий)=0 AND ABCКлассНоменклатурыТекущий <> 'D - класс', 1, 0) as МатричныйТовар
+          RESIDENT InventTableAndConfig;
+DROP TABLE InventTableAndConfig;
+RENAME TABLE InventTableAndConfig1 TO InventTableAndConfig;          
+
+DROP FIELDS  НоменклатураСсылка
+     FROM InventTableAndConfig;   
+
+STORE InventTableAndConfig INTO ../Data/Staged/IventTableAndCongig.QVD(QVD);
+
+DROP FIELDS  НоменклатураСсылка, ХарактеристикаНоменклатурыСсылка
+     FROM InventTrans;  
+
+SET ThousandSep=' ';
+SET DecimalSep=',';
+SET MoneyThousandSep=' ';
+SET MoneyDecimalSep=',';
+SET MoneyFormat='# ##0,00р.;-# ##0,00р.';
+SET TimeFormat='h:mm:ss';
+SET DateFormat='DD.MM.YYYY';
+SET TimestampFormat='DD.MM.YYYY h:mm:ss[.fff]';
+SET MonthNames='янв;фев;мар;апр;май;июн;июл;авг;сен;окт;ноя;дек';
+SET DayNames='Пн;Вт;Ср;Чт;Пт;Сб;Вс';
+
+$(Include=..\Scripts\InQlik.qvs);
+
+
+Выражения:
+LOAD trim(@1) as Выражение, 
+     trim(@2) as ВыражениеТип, 
+     trim(@3) as ВыражениеОпределение, 
+     trim(@4) as ВыражениеЗаголовок, 
+     trim(@5) as ВыражениеОписание
+FROM
+[..\Resources\Expressions.qvs]
+(txt, codepage is 1251, no labels, delimiter is '\t', msq, filters(
+Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
+));
+
+
+
+Vars:
+LOAD Выражение, ВыражениеОпределение
+     Resident Выражения
+          Where ВыражениеТип = 1;
+
+CALL PopulateVariables('Vars');
+DROP TABLE Vars;
+DepartmentMap:
+MAPPING 
+LOAD Подразделение2, ПодразделениеСсылка
+FROM
+     ..\Data\Staged\Department.QVD(qvd)
+WHERE (Подразделение = Подразделение2);
+InventRangeMap:
+MAPPING
+LOAD DISTINCT 
+     НоменклатураНаименованиеУровня2, 
+     НоменклатураКодУровня as НоменклатураСсылка
+FROM
+     ..\Data\Staged\IventTableAndCongig.QVD(qvd);
+CurrentDateRatio:     
+MAPPING 
+LOAD Дата, [~МесяцПрогнозныйКоеффициент]
+     RESIDENT Календарь;
+
+PlanSource:
+LOAD F1 as НоменклатураНаименованиеУровня2, 
+     F2 as Подразделение2,
+     F3 as КаналСбыта,  
+     [41275], 
+     [41306], 
+     [41334], 
+     [41365], 
+     [41395], 
+     [41426], 
+     [41456], 
+     [41487], 
+     [41518], 
+     [41548], 
+     [41579], 
+     [41609]
+FROM
+[..\Data\Source\план по подгруппам магазинам и каналам сбыта.xls]
+(biff, embedded labels, header is 1 lines, table is [Sheet1$])
+WHERE(not IsNull(F1) AND F1 <> 'Total' AND F1 <> 'НоменклатураНаименованиеУровня2' AND F1 <> '-');
+
+STORE PlanSource INTO ../Data/Staged/PlanSource.qvx (qvx);
+
+PlanData1:
+CrossTable(ДатаТекст, ПланПродажиСумма, 3)
+LOAD НоменклатураНаименованиеУровня2, 
+     Подразделение2, 
+     КаналСбыта, 
+     [41275], 
+     [41306], 
+     [41334], 
+     [41365], 
+     [41395], 
+     [41426], 
+     [41456], 
+     [41487], 
+     [41518], 
+     [41548], 
+     [41579], 
+     [41609]
+FROM
+     ../Data/Staged/PlanSource.qvx (qvx);
+STORE PlanData1 INTO ../Data/Staged/PlanData0.QVD(QVD);     
+DROP Table PlanSource;
+
+DepartmentMap:
+MAPPING 
+LOAD Подразделение2, ПодразделениеСсылка
+FROM
+     ..\Data\Staged\Department.QVD(qvd)
+WHERE (Подразделение = Подразделение2);
+
+InventRangeMap:
+MAPPING
+LOAD DISTINCT 
+     НоменклатураНаименованиеУровня2, 
+     НоменклатураКодУровня as НоменклатураСсылка
+FROM
+     ..\Data\Staged\IventTableAndCongig.QVD(qvd);
+
+//Замена на подразделение хранения
+Department2DepartmentRef:
+MAPPING LOAD Подразделение, ПодразделениеСсылка
+     FROM C:\QlikDocs\polovik_pilot\Data\Staged\Department.QVD(qvd);
+
+ExtDeparmentMap:
+MAPPING LOAD Подразделение2,
+    ApplyMap('Department2DepartmentRef', ПодразделениеХранения, 'Ссылка не найдена' ) as TargetDeparmentRef 
+FROM
+C:\QlikDocs\polovik_pilot\Data\Source\ПодразделениеХранения.xls
+(biff, embedded labels, table is [Лист1$]);
+
+PlanData:
+LOAD *,
+     //ApplyMap('DepartmentMap',Подразделение2) as ПодразделениеСсылка,
+     ApplyMap('InventRangeMap',НоменклатураНаименованиеУровня2) as НоменклатураСсылка,
+     ApplyMap('ExtDeparmentMap',Подразделение2,ApplyMap('DepartmentMap',Подразделение2)) as ПодразделениеСсылка,
+     Num(Num#(ДатаТекст,'####')) as Дата
+     RESIDENT PlanData1;
+
+DROP FIELDS НоменклатураНаименованиеУровня2 FROM PlanData; 
+DROP FIELD Подразделение2  FROM PlanData;
+
+STORE PlanData INTO ../Data/Staged/PlanData1.QVD(QVD);
+
+DROP TABLE PlanData1;
+
+PlanDataAll:
+NoConcatenate
+LOAD * RESIDENT PlanData;
+DROP TABLE PlanData;
+
+// //*************************************************************************************************************************
+
+PlanSource:
+LOAD F1 as НоменклатураНаименованиеУровня2, 
+     F2 as Подразделение2,
+     F3 as КаналСбыта,  
+     [41275], 
+     [41306], 
+     [41334], 
+     [41365], 
+     [41395], 
+     [41426], 
+     [41456], 
+     [41487], 
+     [41518], 
+     [41548], 
+     [41579], 
+     [41609]
+FROM
+[..\Data\Source\по ВП по подгруппе магазинам каналам сбыта.xls]
+(biff, embedded labels, header is 1 lines, table is [Sheet1$])
+WHERE(not IsNull(F1) AND F1 <> 'Total' AND F1 <> 'НоменклатураНаименованиеУровня2' AND F1 <> '-');
+
+STORE PlanSource INTO ../Data/Staged/PlanSource.qvx (qvx);
+PlanData1:
+CrossTable(ДатаТекст, ПланВПСумма, 3)
+LOAD НоменклатураНаименованиеУровня2, 
+     Подразделение2, 
+     КаналСбыта, 
+     [41275], 
+     [41306], 
+     [41334], 
+     [41365], 
+     [41395], 
+     [41426], 
+     [41456], 
+     [41487], 
+     [41518], 
+     [41548], 
+     [41579], 
+     [41609]
+FROM
+     ../Data/Staged/PlanSource.qvx (qvx);
+STORE PlanData1 INTO ../Data/Staged/PlanData0.QVD(QVD);     
+DROP Table PlanSource;
+DepartmentMap:
+MAPPING 
+LOAD Подразделение2, ПодразделениеСсылка
+FROM
+     ..\Data\Staged\Department.QVD(qvd)
+WHERE (Подразделение = Подразделение2);
+InventRangeMap:
+MAPPING
+LOAD DISTINCT 
+     НоменклатураНаименованиеУровня2, 
+     НоменклатураКодУровня as НоменклатураСсылка
+FROM
+     ..\Data\Staged\IventTableAndCongig.QVD(qvd);
+
+PlanData:
+LOAD *,
+     ApplyMap('ExtDeparmentMap',Подразделение2,ApplyMap('DepartmentMap',Подразделение2)) as ПодразделениеСсылка,
+     ApplyMap('InventRangeMap',НоменклатураНаименованиеУровня2) as НоменклатураСсылка,
+     Num(Num#(ДатаТекст,'####')) as Дата
+          RESIDENT PlanData1;
+STORE PlanData INTO ../Data/Staged/PlanData1.QVD(QVD);
+DROP TABLE PlanData1;
+DROP FIELD Подразделение2  FROM PlanData;
+DROP FIELD НоменклатураНаименованиеУровня2 FROM PlanData;
+Concatenate (PlanDataAll)
+LOAD * RESIDENT PlanData;
+DROP TABLE PlanData;
+
+// // ------------------------------------------------------ План по остаткам
+PlanSource:
+CrossTable(ДатаТекст, ПланОстаткиСумма, 3)
+LOAD НоменклатураНаименованиеУровня2, 
+     Подразделение2, 
+     ГодНеделя as ГодНеделяДамми, 
+     [2013/01], 
+     [2013/02], 
+     [2013/03], 
+     [2013/04], 
+     [2013/05], 
+     [2013/06], 
+     [2013/07], 
+     [2013/08], 
+     [2013/09], 
+     [2013/10], 
+     [2013/11],
+     [2013/12]
+FROM
+[..\Data\Source\Нормативы по остаткам в разрезе подразделений и товарных групп.xls]
+(biff, embedded labels, table is [Sheet1$], filters(
+Remove(Row, RowCnd(CellValue, 1, StrCnd(equal, 'Total')))
+));
+
+PlanData:
+LOAD *,
+     ApplyMap('ExtDeparmentMap',Подразделение2,ApplyMap('DepartmentMap',Подразделение2)) as ПодразделениеСсылка,
+     ApplyMap('InventRangeMap',НоменклатураНаименованиеУровня2) as НоменклатураСсылка;
+LOAD 
+     НоменклатураНаименованиеУровня2,
+     Подразделение2,
+     Num(Date#(ДатаТекст,'YYYY/MM')) as Дата,
+     ПланОстаткиСумма
+          RESIDENT PlanSource;
+DROP TABLE PlanSource;
+
+DROP FIELD Подразделение2, ДатаТекст  FROM PlanData;
+DROP FIELD НоменклатураНаименованиеУровня2 FROM PlanData;
+Concatenate (PlanDataAll)
+LOAD * RESIDENT PlanData;
+DROP TABLE PlanData;
+
+Concatenate(InventTrans)
+LOAD *,
+If(ApplyMap('CurrentDateRatio',Дата,0)=0,0,1) * ПланОстаткиСумма as ПланПрошлогоПериодаОстаткиСумма,
+ApplyMap('CurrentDateRatio',Дата,0) * ПланПродажиСумма as ПланПрошлогоПериодаПродажиСумма,
+ApplyMap('CurrentDateRatio',Дата,0) * ПланВПСумма as ПланПрошлогоПериодаВПСумма,
+Dual('ПланExcel',21) as ТипПроводки;
+LOAD * RESIDENT PlanDataAll;
+DROP TABLE PlanDataAll;
+ReglamentDaysInMonth:     
+MAPPING 
+LOAD Дата, [~ДнейПрошлогоПериодаВМесяце]
+     RESIDENT Календарь;
+
+InventInMatrix:
+MAPPING LOAD 
+[~КлючНоменклатураХарактеристика], МатричныйТовар
+     FROM ../Data/Staged/IventTableAndCongig.QVD(QVD);
+
+//Замена на подразделение хранения
+Department2DepartmentRef:
+MAPPING LOAD Подразделение, ПодразделениеСсылка
+     FROM C:\QlikDocs\polovik_pilot\Data\Staged\Department.QVD(qvd);
+
+ExtDeparmentMap:
+MAPPING LOAD Подразделение2,
+    ApplyMap('Department2DepartmentRef', ПодразделениеХранения, 'Ссылка не найдена' ) as TargetDeparmentRef 
+FROM
+C:\QlikDocs\polovik_pilot\Data\Source\ПодразделениеХранения.xls
+(biff, embedded labels, table is [Лист1$]);
+
+ExtDeparmentMapName:
+MAPPING LOAD Подразделение2,
+    ПодразделениеХранения 
+FROM
+C:\QlikDocs\polovik_pilot\Data\Source\ПодразделениеХранения.xls
+(biff, embedded labels, table is [Лист1$]);
+
+AggregationByDepartmentDayTrans:
+LOAD *,
+     If(ОстаткиКоличествоЗаДень + ПродажиКоличествоЗаДень > 0, 1, 0) as ТорговыеДниЗаДень,
+     If(ApplyMap('InventInMatrix',[~КлючНоменклатураХарактеристика], 0) = 0, 
+          0,1) as ТорговыеДниРегламентныеЗаДень,
+     [~КлючНоменклатураХарактеристика] & '|' & ПодразделениеХранения & '|' & Num(Дата) as КлючАггрегатаПоДням,
+     If(ОстаткиКоличествоЗаДень + ОстаткиСтоимостьЗаДень + ПродажиКоличествоЗаДень + ПродажиСуммаЗаДень + 
+      ПродажиНДСЗаДень + ПродажиСебестоимостьЗаДень + ПродажиВПЗаДень = 0, 0, 1)      as ФлагЕстьОстаткиИПродажи,
+     Dual('ДанныеСуммыЗаДень',31) as ТипПроводки;
+LOAD 
+          ApplyMap('ExtDeparmentMap',ПодразделениеХранения,ПодразделениеСсылка) as ПодразделениеСсылка,
+          ApplyMap('ExtDeparmentMapName',ПодразделениеХранения,ПодразделениеХранения) as ПодразделениеХранения,
+ //   ПодразделениеХранения,
+    Дата,
+ //   ПодразделениеСсылка,
+    [~КлючНоменклатураХарактеристика],
+    Sum(ОстаткиКоличество) as ОстаткиКоличествоЗаДень,
+    Sum(ОстаткиСтоимость) as ОстаткиСтоимостьЗаДень,
+    Sum(ПродажиКоличество) as ПродажиКоличествоЗаДень,
+    Sum(ПродажиСумма) as ПродажиСуммаЗаДень,
+    Sum(ПродажиНДС) as ПродажиНДСЗаДень,
+    Sum(ПродажиСебестоимость) as ПродажиСебестоимостьЗаДень,
+    Sum(ПродажиВП) as ПродажиВПЗаДень
+     FROM ../Data/Staged/InventTransAllDataNew.QVD(QVD)
+          Where IsNull([~КлючНоменклатураХарактеристика]) = 0
+               AND IsNull(ПодразделениеХранения) = 0             
+          GROUP BY ПодразделениеХранения,
+                     ПодразделениеСсылка,
+                     Дата,
+                     [~КлючНоменклатураХарактеристика];
+
+LEFT JOIN (AggregationByDepartmentDayTrans)
+LOAD Дата,
+           [~ФлагДействующаяДата] as ФлагДействующаяДатаTemp
+    RESIDENT Календарь 
+        WHERE [~ФлагДействующаяДата] = 1;
+
+AggregationByDepartmentDay:
+Noconcatenate
+LOAD * 
+     RESIDENT AggregationByDepartmentDayTrans 
+     WHERE ФлагЕстьОстаткиИПродажи = 1 AND
+                    ФлагДействующаяДатаTemp = 1;
+
+DROP FIELD ФлагДействующаяДатаTemp;
+
+DROP TABLE AggregationByDepartmentDayTrans;
+
+STORE AggregationByDepartmentDay INTO ../Data/Staged/AggregationByDepartmentDay.QVD(QVD);
+
+AbsentTrans:
+LOAD DISTINCT [~КлючНоменклатураХарактеристика]
+     FROM ../Data/Staged/IventTableAndCongig.QVD(QVD)
+          WHERE МатричныйТовар = 1;
+
+LEFT JOIN (AbsentTrans)
+LOAD Дата 
+    RESIDENT Календарь 
+        WHERE [~ФлагДействующаяДата] = 1;
+
+LEFT JOIN (AbsentTrans)
+LOAD 
+     ПодразделениеСсылка,
+     Подразделение2 as ПодразделениеХранения
+     RESIDENT Department
+     Where ПодразделениеТип = 'Магазин'
+     ;
+
+AbsentTrans1:      
+LOAD *, 
+     1 as ТорговыеДниРегламентныеЗаДень,
+     [~КлючНоменклатураХарактеристика] & '|' & ПодразделениеХранения & '|' & Num(Дата) as КлючАггрегатаПоДням,
+     0 as ФлагЕстьОстаткиИПродажи,
+     Dual('ДанныеСуммыЗаДень',31) as ТипПроводки
+          RESIDENT AbsentTrans;
+DROP TABLE AbsentTrans;
+
+STORE AbsentTrans1 INTO ../Data/Staged/AbsentTrans.QVD(QVD);
+DROP TABLE AbsentTrans1;
+
+Concatenate (AggregationByDepartmentDay)
+LOAD *
+     FROM ../Data/Staged/AbsentTrans.QVD(QVD)
+     WHERE NOT (EXISTS(КлючАггрегатаПоДням));
+
+LEFT JOIN (AggregationByDepartmentDay)
+LOAD [~КлючНоменклатураХарактеристика],
+           ПодразделениеХранения,
+           НоменклатураПродажиАБС,
+           НоменклатураМаржаАБС          
+ FROM ../Data/Staged/InventAbcXyz.QVD(QVD);  
+
+AggregationByDepartmentDay1:
+LOAD *,
+           IF(ТорговыеДниРегламентныеЗаДеньNew > 0 AND ТорговыеДниРегламентныеЗаДеньNew <> ТорговыеДниЗаДень,rangesum(ТорговыеДниРегламентныеЗаДеньNew,-ТорговыеДниЗаДень)) as ДниДефицитаРегламентные,
+           IF(ТорговыеДниРегламентныеЗаДеньNew > 0 AND ТорговыеДниРегламентныеЗаДеньNew <> ТорговыеДниЗаДень,ТорговыеДниРегламентныеЗаДеньNew) as НормаДниДефицитаРегламентые;       
+LOAD *,
+           IF(IsNull(НоменклатураМаржаАБС) AND IsNull(НоменклатураПродажиАБС), null(), ТорговыеДниРегламентныеЗаДень) as ТорговыеДниРегламентныеЗаДеньNew                  
+RESIDENT AggregationByDepartmentDay;
+
+DROP TABLE AggregationByDepartmentDay;
+
+DROP FIELD ТорговыеДниРегламентныеЗаДень, НоменклатураПродажиАБС, НоменклатураМаржаАБС;
+RENAME FIELD ТорговыеДниРегламентныеЗаДеньNew to ТорговыеДниРегламентныеЗаДень;
+RENAME TABLE AggregationByDepartmentDay1 to AggregationByDepartmentDay;
+
+STORE AggregationByDepartmentDay INTO ../Data/Staged/AggregationByDepartmentDayAbc.QVD(QVD);
+DROP TABLE AggregationByDepartmentDay;
+
+// //Убрать - пусть будут пустые ABC - потом заполним СС
+AggregationByDepartmentDay:
+LOAD * FROM ../Data/Staged/AggregationByDepartmentDayAbc.QVD(QVD)
+WHERE ФлагЕстьОстаткиИПродажи = 1 OR ТорговыеДниРегламентныеЗаДень = 1;
+
+DROP FIELD ФлагЕстьОстаткиИПродажи;
+
+DROP TABLE AggregationByDepartmentDay;
+
+//Убрать - пусть будут пустые ABC - потом заполним СС
+AggregationByDepartmentDay:
+LOAD * FROM ../Data/Staged/AggregationByDepartmentDayAbc.QVD(QVD)
+WHERE Not IsNull(НоменклатураПродажиАБС);
+
+DROP FIELDS НоменклатураПродажиАБС, НоменклатураМаржаАБС;
+AggregationByDepartmentDayTemp:
+LOAD *,
+       If(ПодразделениеХранения = Peek('ПодразделениеХранения') 
+      and [~КлючНоменклатураХарактеристика] = Peek('[~КлючНоменклатураХарактеристика]')
+      and Alt(ПродажиКоличествоЗаДень) <= 0,
+      RangeSum(Peek('ДнейБезПродаж'),1),0) as ДнейБезПродаж
+   RESIDENT AggregationByDepartmentDay    
+  ORDER BY ПодразделениеХранения,[~КлючНоменклатураХарактеристика],Дата;
+DROP TABLE AggregationByDepartmentDay;
+STORE AggregationByDepartmentDayTemp INTO ../Data/Staged/AggregationByDepartmentDay3.QVD(QVD);             
+InventTrans:
+LOAD * FROM ../Data/Staged/InventTransAllDataNew.QVD(QVD);
+
+Concatenate(InventTrans)
+LOAD * 
+      RESIDENT AggregationByDepartmentDay;   
+DROP TABLE AggregationByDepartmentDay;
+
+LEFT JOIN (InventTrans)
+LOAD [~КлючНоменклатураХарактеристика],
+           ПодразделениеХранения,
+           НоменклатураПродажиАБС as НоменклатураПродажиАБСTemp,
+           НоменклатураМаржаАБС as НоменклатураМаржаАБСTemp,
+           [~XyzНоменклатураКоэффВариации] as [~XyzНоменклатураКоэффВариацииTemp],
+           [~XYZКоэффициент] as [~XYZКоэффициентTemp]
+ FROM ../Data/Staged/InventAbcXyz.QVD(QVD);
+
+InventTrans1:
+LOAD *,
+     IF((ТипПроводки = 'Остатки' OR ТипПроводки = 'ПартииПоТовару' OR ТипПроводки = 'Чек' OR ТипПроводки = 'Продажа' OR ТипПроводки = 'Закупка' OR ТипПроводки = 'ДанныеСуммыЗаДень') And IsNull(НоменклатураПродажиАБСTemp), 'CC', НоменклатураПродажиАБСTemp) as НоменклатураПродажиАБС,
+     IF((ТипПроводки = 'Остатки' OR ТипПроводки = 'ПартииПоТовару' OR ТипПроводки = 'Чек' OR ТипПроводки = 'Продажа' OR ТипПроводки = 'Закупка' OR ТипПроводки = 'ДанныеСуммыЗаДень') And IsNull(НоменклатураМаржаАБСTemp), 'CC', НоменклатураМаржаАБСTemp) as НоменклатураМаржаАБС,
+     IF((ТипПроводки = 'Остатки' OR ТипПроводки = 'ПартииПоТовару' OR ТипПроводки = 'Чек' OR ТипПроводки = 'Продажа' OR ТипПроводки = 'Закупка' OR ТипПроводки = 'ДанныеСуммыЗаДень') And IsNull([~XyzНоменклатураКоэффВариацииTemp]), 'ZZ', [~XyzНоменклатураКоэффВариацииTemp]) as НоменклатураXYZ,
+//     IF(ТипПроводки = 'Остатки' OR ТипПроводки = 'ПартииПоТовару' OR ТипПроводки = 'Чек' OR ТипПроводки = 'Продажа' OR ТипПроводки = 'Закупка' OR ТипПроводки = 'ДанныеСуммыЗаДень', 'test', [~XyzНоменклатураКоэффВариацииTemp]) as [~Test],
+     IF((ТипПроводки = 'Остатки' OR ТипПроводки = 'ПартииПоТовару' OR ТипПроводки = 'Чек' OR ТипПроводки = 'Продажа' OR ТипПроводки = 'Закупка' OR ТипПроводки = 'ДанныеСуммыЗаДень') And IsNull([~XYZКоэффициентTemp]), Null(), [~XYZКоэффициентTemp]) as [~XYZКоэффициент]
+        RESIDENT InventTrans;
+
+DROP TABLE InventTrans;     
+RENAME TABLE InventTrans1 TO InventTrans;
+
+DROP FIELD НоменклатураМаржаАБСTemp, НоменклатураПродажиАБСTemp, [~XyzНоменклатураКоэффВариацииTemp], [~XYZКоэффициентTemp];
+
+STORE InventTrans INTO ../Data/Staged/InventTrans3.QVD(QVD);          
+PurchTrans:
+LOAD Num(DayStart(Дата)) as Дата,
+     Контрагент as ПоставщикСсылка,
+     ДокументЗакупки as ДокументЗакупки,
+     Номенклатура as НоменклатураСсылка, 
+     Количество * If(ВидПередачи = 'По ордеру',-1,1) as ЗакупкаКоличество, 
+     СтоимостьЗакупки * If(ВидОперации = 'По ордеру',-1,1) as ЗакупкаСтоимость, 
+     НДС * If(ВидОперации = 'По ордеру',-1,1) as ЗакупкаНДС, 
+     Проект as КаналСбыта,
+     //Склад as СкладСсылка, 
+     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка, 
+     Организация as ОрганизацияСсылка, 
+     Ответственный as ОтветственныйЗаЗакупку, 
+     Подразделение as ПодразделениеСсылка   
+FROM
+[..\Data\Source\Закупки.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+SalesData1:
+LOAD Num(DayStart(Дата)) as Дата, 
+     Num#(Text(Time(Дата,'HH'))) as Час,
+     Num#(Text(Time(Дата,'MM'))) as Минута,
+     Регистратор,   
+     Номенклатура as НоменклатураСсылка,
+     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка,
+     Количество as ПродажиКоличество, 
+     СтоимостьПродажи as ПродажиСумма,
+     НДС as ПродажиНДС,
+     СтоимостьБезСкидок as ПродажиСуммаБезСкидок,
+     Контрагент as КлиентСсылка,
+     Проект as КаналСбыта,
+     Подразделение as ПодразделениеСсылка,
+     Организация as ОрганизацияСсылка,
+     If(ВидОперации = 'ККМ',Null(),Ответственный)  as ОтветственныйЗаПродажу,
+     ДокументПродажи as ДокументПродажи,
+     ВидОперации as ВидОперации,
+     If(ВидОперации = 'ККМ',Null(),Регистратор) as  [~КодЗаказа],
+  //   ЗаказПокупателя as СсылкаЗаказПокупателя,
+     1 AS COUNTER,
+     If(ТипСкидки = '','без скидки',ТипСкидки) as ТипСкидки
+FROM
+[..\Data\Source\Продажи.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+SalesData:
+LOAD Дата,
+     Час,
+     Минута, 
+     Регистратор,
+     НоменклатураСсылка,
+     ХарактеристикаНоменклатурыСсылка,
+     КлиентСсылка,
+     КаналСбыта,
+     ПодразделениеСсылка,
+     ОрганизацияСсылка,
+     ОтветственныйЗаПродажу,
+     ДокументПродажи,
+     ВидОперации,
+     [~КодЗаказа],
+     Sum(ПродажиКоличество) as ПродажиКоличество,
+     Sum(ПродажиСумма) as ПродажиСумма,
+     Sum(ПродажиНДС) as ПродажиНДС,
+     Sum(ПродажиСуммаБезСкидок) as ПродажиСуммаБезСкидок,
+     ТипСкидки
+        RESIDENT SalesData1
+               GROUP BY Дата, 
+                    Час,
+                    Минута,
+                    Регистратор,
+                    НоменклатураСсылка,
+                    ХарактеристикаНоменклатурыСсылка,
+                    КлиентСсылка,
+                    КаналСбыта,
+                    ПодразделениеСсылка,
+                    ОрганизацияСсылка,
+                    ДокументПродажи,
+                    [~КодЗаказа],
+                    ВидОперации,
+                    ОтветственныйЗаПродажу,
+                    ТипСкидки;
+DROP TABLE SalesData1;           
+
+SalesCost1:
+LOAD Num(DayStart(Дата)) as Дата, 
+     Регистратор, 
+     Номенклатура as НоменклатураСсылка, 
+     ХарактеристикаНоменклатуры as ХарактеристикаНоменклатурыСсылка, 
+     Количество as ПродажиКоличествоПроверка, 
+     Себестоимость as ПродажиСебестоимость
+FROM
+[..\Data\Source\ПродажиСебестоимость.txt]
+(txt, utf8, embedded labels, delimiter is '\t', no quotes);
+
+SalesCost:
+NoConcatenate
+LOAD Дата, 
+     Регистратор, 
+     НоменклатураСсылка, 
+     ХарактеристикаНоменклатурыСсылка, 
+     Sum(ПродажиКоличествоПроверка) as ПродажиКоличествоПроверка, 
+     Sum(ПродажиСебестоимость) as ПродажиСебестоимость
+          RESIDENT SalesCost1
+               GROUP BY Дата, 
+                          Регистратор, 
+                          НоменклатураСсылка, 
+                         ХарактеристикаНоменклатурыСсылка;
+DROP TABLE SalesCost1;
+LEFT JOIN (SalesData)
+LOAD * RESIDENT SalesCost;
+DROP TABLE SalesCost;
+
+SalesData1:
+LOAD *,
+     RangeSum(ПродажиСумма, -ПродажиНДС, -ПродажиСебестоимость) as ПродажиВП
+          RESIDENT SalesData;
+DROP TABLE SalesData;
+RENAME TABLE SalesData1 TO SalesData; 
+STORE SalesData INTO ../Data/Staged/SalesData.QVD(QVD);
+DROP TABLE SalesData;
+
+InventRangeRefMap:
+MAPPING LOAD
+     [~КлючНоменклатураХарактеристика],
+     НоменклатураНаименованиеУровня2
+FROM ..\Data\Staged\IventTableAndCongig.QVD (qvd);
+ExtDeparmentMapName:
+MAPPING LOAD Подразделение2,
+    ПодразделениеХранения 
+FROM ..\Data\Source\ПодразделениеХранения.xls (biff, embedded labels, table is [Лист1$]);
+
+AggregateByDepartmentMonth:
+LOAD *, 
+     If(ПродажиКоличествоЗаМесяц = 0, 1000, ОстаткиКоличествоЗаМесяц / ПродажиКоличествоЗаМесяц) as ОборачиваемостьЗаМесяц;
+LOAD
+     ПодразделениеХранения,
+     MonthStart(Дата) as Дата,
+     [~КлючНоменклатураХарактеристика],
+     ApplyMap('InventRangeRefMap',[~КлючНоменклатураХарактеристика],Null()) as КодУровня,
+     Sum(RangeSum(ОстаткиКоличествоЗаДень,ПродажиКоличествоЗаДень)) as ОстаткиКоличествоЗаМесяц,
+     Sum(ПродажиКоличествоЗаДень) as ПродажиКоличествоЗаМесяц
+          FROM ..\Data\Staged\AggregationByDepartmentDay.QVD (qvd)
+               WHERE ТорговыеДниЗаДень = 1
+               GROUP BY  ПодразделениеХранения,
+                    MonthStart(Дата),
+                    [~КлючНоменклатураХарактеристика];
+STORE AggregateByDepartmentMonth INTO ..\Data\Staged\AggregationByDepartmentMonth.QVD (qvd);
+DROP TABLE AggregateByDepartmentMonth;
+
+AggregatePlanByDepartmentMonth:
+ LOAD *,
+     If(Alt(ПланПродажСебестоимостьБезНДСЗаМесяц) = 0, 1000, 
+               ПланОстаткиСуммаЗаМесяц/ПланПродажСебестоимостьБезНДСЗаМесяц) as ПланОборачиваемостьЗаМесяц;
+     LOAD *,
+          ПланОстаткиСреднедневныеЗаМесяц * КоличествоДнейВМесяце as ПланОстаткиСуммаЗаМесяц;
+ LOAD *,
+  DayStart(MonthEnd(Дата)) - Дата + 1 as КоличествоДнейВМесяце,
+     RangeSum(ПланПродажиСуммаЗаМесяц/1.18,-ПланВПСуммаЗаМесяц) as ПланПродажСебестоимостьБезНДСЗаМесяц;
+LOAD 
+          ApplyMap('ExtDeparmentMapName',ПодразделениеХранения,ПодразделениеХранения) as ПодразделениеХранения,
+     ApplyMap('InventRangeRefMap',[~КлючНоменклатураХарактеристика],Null()) as КодУровня,
+    MonthStart(Дата) as Дата,
+    [~КлючНоменклатураХарактеристика] as СсылкаНаУровень2,
+    Sum(ПланОстаткиСумма) as ПланОстаткиСреднедневныеЗаМесяц,
+    Sum(ПланПродажиСумма) as ПланПродажиСуммаЗаМесяц,
+    Sum(ПланВПСумма) as ПланВПСуммаЗаМесяц
+     FROM ../Data/Staged/InventTransAllDataNew.QVD(QVD)
+          Where IsNull([~КлючНоменклатураХарактеристика]) = 0
+               AND IsNull(ПодразделениеХранения) = 0
+                    AND (IsNull(ПланОстаткиСумма) = 0 OR IsNull(ПланПродажиСумма) = 0 OR IsNull(ПланВПСумма) = 0)
+          GROUP BY ПодразделениеХранения,
+                     MonthStart(Дата),
+                     [~КлючНоменклатураХарактеристика];
+
+STORE AggregatePlanByDepartmentMonth INTO ..\Data\Staged\AggregatePlanByDepartmentMonth.QVD (qvd);
+DROP TABLE AggregatePlanByDepartmentMonth;
+
+AggregateByDepartmentMonth:
+LOAD * FROM ..\Data\Staged\AggregationByDepartmentMonth.QVD (qvd);
+LEFT JOIN (AggregateByDepartmentMonth)
+LOAD * FROM ..\Data\Staged\AggregatePlanByDepartmentMonth.QVD (qvd); 
+AggregatePlanByDepartmentMonthPlanFact:
+LOAD *,
+      ОборачиваемостьЗаМесяц/ПланОборачиваемостьЗаМесяц as [~НоменклатураКоеффНеликвидности];
+LOAD * RESIDENT AggregateByDepartmentMonth;
+DROP TABLE AggregateByDepartmentMonth;
+STORE AggregatePlanByDepartmentMonthPlanFact INTO ..\Data\Staged\AggregatePlanByDepartmentMonthPlanFact.QVD (qvd);
+DROP TABLE AggregatePlanByDepartmentMonthPlanFact;
