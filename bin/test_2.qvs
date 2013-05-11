@@ -1,0 +1,206 @@
+SUB Calendar(_startDate, _endDate, _currentDate, _tableName)
+
+	LET _tableName = if(len('$(_tableName)')=0, 'Календарь','$(_tableName)');
+	$(_tableName):
+	LOAD *,
+		Autonumber(ГодМесяц,'ГодМесяц') as [~МесяцПоПорядку],
+		Autonumber(ГодКвартал,'ГодКвартал') as [~КварталПоПорядку],
+		Autonumber(ГодПолугодие,'ГодПолугодие') as [~ПолугодиеПоПорядку],
+		Autonumber(Год,'Год') as [~ГодПоПорядку],            	
+		Autonumber(Дата,'ДеньПоПорядку') as [~ДеньПоПорядку],			
+		Autonumber(ГодНеделя,'ГодНеделя') as [~НеделяПоПорядку];
+	LOAD 
+		Дата,
+		Year(Дата) as Год,
+		Month(Дата) as Месяц,
+		Text(Date(Дата,'MM')) as МесяцНомер,
+		Date(Monthstart([Дата]), 'YYYY-MM') as ГодМесяц,
+		'К' & Ceil(Month(Дата)/3) as Квартал,
+		'П' & Ceil(Month(Дата)/6) as Полугодие,
+		Text(Year(Дата)) & '-П' & Ceil(Month(Дата)/6) as ГодПолугодие,
+		Dual(Year(Дата) & '-Кв' & Ceil(Month(Дата)/3), Year(Дата) & Ceil(Month(Дата)/3)) as ГодКвартал,
+		WeekName(Дата) as [ГодНеделя],
+		Floor((WeekStart(Дата)-YearStart(Дата)) / 7 + 1) as [Неделя],
+		Day(Дата) as День,
+		WeekDay(Дата) as ДеньНедели,
+		DayNumberOfYear(Дата)-DayNumberOfYear(QuarterStart(Дата)) + 1 as [~ДеньКвартала],		
+		Day(MonthEnd(Дата)) as [~ДнейВМесяце],
+		If(WeekEnd(Дата)=DayEnd(Дата) or DayStart(Дата) = $(_endDate) , 1, 0) as [~КонецНедели],
+		If(MonthEnd(Дата)=DayEnd(Дата) or DayStart(Дата) = $(_endDate) , 1, 0) as [~КонецМесяца]	
+		;                                                                                       	
+	LOAD date($(_startDate) + IterNo()-1) as Дата
+		AUTOGENERATE 1
+	WHILE $(_startDate) + IterNo() <= $(_endDate)+1;
+
+	LEFT JOIN ($(_tableName))
+	LOAD Max([~МесяцПоПорядку]) as МаксМесяцПоПорядку,
+	     Max([~КварталПоПорядку]) as МаксКварталПоПорядку,
+	 	 Max([~ПолугодиеПоПорядку]) as МаксПолугодиеПоПорядку,
+	 	 Max([~ГодПоПорядку]) as МаксГодПоПорядку,
+	 	 Max([~НеделяПоПорядку]) as МаксНеделяПоПорядку
+	 		RESIDENT $(_tableName)
+	 			WHERE Дата <= $(_currentDate);
+
+	LEFT JOIN ($(_tableName))
+	LOAD 
+		Дата,
+		If(Дата < $(_currentDate), 1) as [~ФлагДействующаяДата],
+		If(МаксМесяцПоПорядку = [~МесяцПоПорядку], day($(_currentDate))/[~ДнейВМесяце],
+		  If(МаксМесяцПоПорядку > [~МесяцПоПорядку],1,0)) as [~МесяцПрогнозныйКоеффициент],
+		If(МаксМесяцПоПорядку = [~МесяцПоПорядку], day($(_currentDate)),[~ДнейВМесяце]) as [~ДнейПрошлогоПериодаВМесяце],
+		If(МаксМесяцПоПорядку = [~МесяцПоПорядку],1,0) as [~ФлагМесяцТекущий],
+		If(МаксМесяцПоПорядку - 1 = [~МесяцПоПорядку] ,1,0) as [~ФлагМесяцПредыдущий],
+		If(МаксНеделяПоПорядку = [~НеделяПоПорядку],1,0) as [~ФлагНеделяТекущий],
+		If(МаксНеделяПоПорядку - 1 = [~НеделяПоПорядку],1,0) as [~ФлагНеделяПредыдущий],
+		If(МаксКварталПоПорядку = [~КварталПоПорядку],1,0) as [~ФлагКварталТекущий],
+		If(МаксКварталПоПорядку - 1 = [~КварталПоПорядку],1,0) as [~ФлагКварталПредыдущий],
+		If(МаксГодПоПорядку = [~ГодПоПорядку],1,0) as [~ФлагГодТекущий],
+		If(МаксГодПоПорядку - 1 = [~ГодПоПорядку],1,0) as [~ФлагГодПредыдущий],
+		If(МаксПолугодиеПоПорядку = [~ПолугодиеПоПорядку],1,0) as [~ФлагПолугодиеТекущий],
+		If(МаксПолугодиеПоПорядку - 1 = [~ПолугодиеПоПорядку],1,0) as [~ФлагПолугодиеПредыдущий]
+		RESIDENT $(_tableName);
+			
+	DROP FIELDS МаксМесяцПоПорядку,МаксКварталПоПорядку,МаксПолугодиеПоПорядку,МаксГодПоПорядку,МаксНеделяПоПорядку;
+
+
+	SET _tableName = ;
+END SUB
+
+
+SUB PopulateVariables (_vartable)
+
+LET _varname_field = FieldName(1,'$(_vartable)');	// Get variable name
+LET _varvalue_field = FieldName(2,'$(_vartable)');
+
+FOR _i = 0 to NoOfRows('$(_vartable)')-1;
+	// Get the varname for this row
+	LET _varname = peek('$(_varname_field)',$(_i),'$(_vartable)');
+	// Get the value for this row
+	IF NOT IsNull(_varname)	THEN
+	// Set the variable value
+		LET _varvalue = Replace(peek('$(_varvalue_field)',$(_i),'$(_vartable)'),'$','~~~')	;
+		SET $(_varname)=$(_varvalue);
+		LET $(_varname)=Replace($(_varname),'~~~','$');
+	END IF;		
+NEXT _i;	
+
+SET _i=;
+SET _varname_field=;
+SET _varvalue_field=;
+SET _varname=;
+SET _varvalue=;
+
+END SUB
+
+
+SUB InQlik.GetFieldValues (_retvar, _field, _vTable)
+/**
+@version $Id: Qvc_Utility.qvs 207 2012-06-13 04:42:03Z rob@robwunderlich.com $
+Get min & max values for a Field. The values are set in compound variables names using parameter 1 as the prefix. For example, if parameter 1 is 'vStat', the set variables will be:
+
+	vStat.Min  =  the Min value of the field.
+	vStat.Max  =  the Max value of the field.
+    
+@syntax CALL Qvc.GetFieldValues('vStats', 'LastUpdate', ['Transactions.qvd']);
+
+@param 1 String. Variable stem name in which to return values. Variables created will stem.Max, stem.Min.
+@param 2 String. The field name.
+@param 3 String, Optional. Source that contains the field. If Source ends with '.qvd', source is assumed to be a QVD. If not, Source is a RESIDENT table. If omitted, all values of field are the source.
+*/
+UNQUALIFY "_qvctemp.*";	// UNQUALIFY all qvctemp fields
+
+IF len('$(_vTable)')=0 THEN
+	SET _vSource = ";LOAD FieldValue('$(_field)', recno()) as [$(_field)] AUTOGENERATE FieldValueCount('$(_field)')";
+ELSEIF index('$(_vTable)', '.') = 0 THEN
+	SET _vSource = 'RESIDENT $(_vTable)';
+ELSEIF '.qvd' = lower(right('$(_vTable)', 4)) THEN
+	SET _vSource = 'FROM $(_vTable) (qvd)';
+ELSE 
+	SET _vSource = 'FROM $(_vTable)';	// Assume text file
+ENDIF
+
+_qvctemp.temptab:
+LOAD 
+	// +0 is to fix a bug in V10 where max is getting truncated to 9 digits precision.
+	max([$(_field)])+0 as _qvctemp.maxval,
+	min([$(_field)])+0 as _qvctemp.minval	
+$(_vSource);
+// Replace of European DecimalSep ',' is required to assure returned value is proper decimal number, not formatted string
+LET $(_retvar).Max = replace(peek('_qvctemp.maxval'), ',', '.');
+LET $(_retvar).Min = replace(peek('_qvctemp.minval'), ',', '.');
+DROP table _qvctemp.temptab;
+
+SET _vSource=;
+END SUB
+
+
+SUB InQlik.JoinGenericTables (_targetTable, _genericTables)
+/**
+@version $Id: Qvc_JoinGenericTables.qvs 186 2012-04-07 23:36:07Z rob@robwunderlich.com $
+Join Generic loaded output tables to a target table. 
+
+@param 1 String. Table to be joined to. This is usually the table that was the source of the Generic load.
+@param 2 String. The table name prefix for the generic output tables. This is the tablename label assigned in the Generic load.
+
+@syntax CALL Qvc.JoinGeneric('TargetTable', 'GenericTablesPrefix'); 
+*/
+UNQUALIFY "_qvctemp.*";	// UNQUALIFY all qvctemp fields
+
+//  Do a JOIN & DROP loop to consolidate generated generic tables
+FOR _qvctemp.i = 0 to NoOfTables()
+	_qvctemp.temptable:
+	LOAD TableName($(_qvctemp.i)) as _qvctemp.Tablename AUTOGENERATE 1
+	WHERE WildMatch(TableName($(_qvctemp.i)), '$(_genericTables).*');
+NEXT _qvctemp.i
+
+FOR _qvctemp.i = 1 to FieldValueCount('_qvctemp.Tablename')
+	LET _qvctemp.vTable = FieldValue('_qvctemp.Tablename', $(_qvctemp.i));
+	LEFT JOIN ([$(_targetTable)]) LOAD * RESIDENT [$(_qvctemp.vTable)];
+	DROP TABLE [$(_qvctemp.vTable)];
+NEXT _qvctemp.i
+
+DROP TABLE _qvctemp.temptable;
+
+SET _qvctemp.i=;
+SET _qvctemp.vTable=;
+
+END SUB
+
+SUB Inqlik.LoadExpressionsFromYAML(_filePath, _tableName)
+	LET _tableName = if(len('$(_tableName)')=0, 'Expressions','$(_tableName)');
+	$(_tableName)_:
+	LOAD Null() as name
+		AUTOGENERATE 1;
+	NoConcatenate
+	$(_tableName):
+	LOAD
+	* RESIDENT $(_tableName)_;
+	// 	WHERE isnull(name) = 0;
+	// DROP TABLE $(_tableName)_;
+END SUB
+
+SUB Inqlik.LoadExpressionsFromYAML(_filePath, _tableName)
+	LET _tableName = if(len('$(_tableName)')=0, 'Expressions','$(_tableName)');
+	LET _concatenate = if(len(NoOfRows('$(_tableName)'))>0, 'CONCATENATE ([$(_tableName)])', '');
+	LET _name =  Null();
+	LET _label = Null();
+	LET _def = Null();
+	LET _description = Null();
+	Lines:
+	LOAD @1 as Line
+		FROM $(_filePath)
+			(txt, utf8, no labels, delimiter is \x1, no quotes, header is 1 lines);
+	LET count = NoOfRows('Lines'); 
+	FOR n = 0 TO $(count) - 1
+		LET line = Peek('Line',$(n),'Lines');
+		LET field1 = SubField('$(line)',': ',1);
+		LET field2 = SubField('$(line)',': ',2);
+		TRACE (field1);
+		IF '$(field1)' = 'name' THEN
+			LET _name = $(field2);
+		END IF;
+		IF '$(line)' = '---' THEN
+		    LOAD '$(_name)' as name	Autogenerate 1;
+		END IF;                    	
+	NEXT;
+END SUB
