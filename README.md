@@ -9,6 +9,12 @@ To ovverride this behaviour use command line switch --forceReload.
 By default parser expect QlikView executable on path C:\Program Files\QlikView\qv.exe
 This may be changed by command line parameter --qlikview 
 
+On syntax error parser output error in format
+
+    Parse error. File: Department.qvs row:  col: 7 message: FROM expected 
+
+
+
 ==Installation and usage
 
 Qvs_parser is written in Dart and requires Dart VM to run. Download dart-sdk from [Dartlang site](http://www.dartlang.org/tools/sdk/)

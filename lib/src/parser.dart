@@ -41,7 +41,7 @@ bool parseFile(String fileName, bool forceReload, String executable) {
       }
     }
     row = rowAndCol[0]+ deltaRow - 1;
-    print('Parse error File: $fileName row: $row col: $col message: $message');
+    print('Parse error. File: $fileName row: $row col: $col message: $message');
     if (forceReload) {
       runQlikView(input, executable);
     }
