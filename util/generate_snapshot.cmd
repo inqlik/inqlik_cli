@@ -1,1 +1,1 @@
-dart --generate-script-snapshot=../util/qvs.snapshot ../bin/qvs.dart
+dart --generate-script-snapshot=../util/qvs.dart.snapshot ../bin/qvs.dart

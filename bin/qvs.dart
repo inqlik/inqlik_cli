@@ -14,11 +14,11 @@ void main() {
 
   var args = ap.parse(new Options().arguments);
   if (args["help"] || args.rest.isEmpty) {
-    print('Usage: dart qvs.(dart|snapshot) [optionss] [fileToParse]');
+    print('Usage: dart qvs.(dart|snapshot) [options] fileToParse');
     print('options are:\n');
     print(ap.getUsage());
     print('\nExamples:\n');
-    print(r'dart qvs.snapshot --qlikView="c:\QlikView\qv.exe" --forceReload inventory.qvs');
+    print(r'dart qvs.dart.snapshot --qlikView="c:\QlikView\qv.exe" --forceReload inventory.qvs');
     print('or');
     print(r'c:\dart\dart-sdk\bin\dart.exe -f qvs.dart loadInventory.qvs');
     return;
