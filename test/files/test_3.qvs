@@ -1,0 +1,54 @@
+Load * from data1.csv;
+Load * from [c:\userfiles\data1.csv] (ansi, txt, delimiter is ',',
+embedded labels);
+Load * from 'c:\userfiles\data2.txt' (ansi, txt, delimiter is '\t',
+embedded labels);
+Load * from file2.dif (ansi, dif, embedded labels);
+Load * from C:\qdssamples\xyz.qvx (qvx);
+// Load @1:2 as ID, @3:25 as Name, @57:80 as City from data4.fix (ansi,
+// fix, no labels, header is 0, record is 80);
+Load FirstName, LastName, Number from data1.csv;
+Load FirstName&' '&LastName as Name from data1.csv;
+Load Quantity, Price, Quantity*Price as Value from data1.csv;
+
+//-------- WTF? It does not make sence anyway with it's dangling '
+// Load @1as A, @2 as B from data3.txt' (ansi, txt, delimiter is '\t', no
+// labels);
+
+Load distinct FirstName, LastName, Number from data1.csv;
+Load * from Consumption.csv where Litres>0;
+Load * Inline
+[CatID, Category
+0,Regular
+1,Occasional
+2,Permanent];
+Load * Inline [UserID, Password, Access
+A, ABC456, User
+B, VIP789, Admin];
+Load RecNo( ) as A, rand( ) as B autogenerate(10000);
+tab1:
+Select A,B,C,D from transtable;
+Load A,B,month(C),A*B+D as E resident tab1;
+Load A,A+B+C resident tab1 where A>B;
+Load A,B*C as E resident tab1 order by A;
+//Load A,B*C as E resident tab1 order by 1,2;
+//Load A,B*C as E resident tab1 order by C desc, B asc, 1 desc;
+
+
+//Works by accident?
+Load a from_field (Characters, Types);
+
+Load A, B, if(C>0,'positive','negative') as X, weekday(D) as Y;
+Select A,B,C,D from Table1;
+
+Load ArtNo, round(Sum(TransAmount),0.05) as ArtNoTotal from table.csv
+group by ArtNo;
+Load Week, ArtNo, round(Avg(TransAmount),0.05) as WeekArtNoAverages
+from table.csv group by Week, ArtNo;
+
+[My Tab]:
+Load Student,
+mid(Grades,IterNo( ),1) as Grade,
+pick(IterNo( ), 'Math', 'English', 'Science', 'History') as Subject
+from Tab1.csv
+while mid(Grades,IterNo( ),1)<>' ';

@@ -2,7 +2,7 @@
 
 library simple_tests;
 
-import 'package:qvs_parser/qvs_parser.dart';
+import 'package:qvs_parser/src/parser.dart';
 import 'package:unittest/unittest.dart';
 import 'package:petitparser/petitparser.dart';
 
@@ -23,7 +23,9 @@ dynamic shouldPass(String source, String production) {
 }
 
 void main() {
-
+  var s = r'''RecNo( ) as Af''';
+  print(_parse(s,'field').value);
+return;
   test('testIdentifier1', () {
     return shouldPass('SimpleName', 'identifier');
   });

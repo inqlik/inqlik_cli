@@ -32,9 +32,8 @@ class QvsGrammar extends CompositeParser {
         .or(ref('drop table'))
         .or(ref('rename table'))
         .or(ref('rename field'))
+        .or(ref('qualify'))
         .or(ref('store table')) 
-        .or(ref('load inline'))
-        .or(ref('load autogenerate'))        
         .or(ref('assignment')));
     def('rename table',
         _token('RENAME')
@@ -61,11 +60,7 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('preload func').optional())
         .seq(_token('LOAD').or(_token('SELECT')))
         .seq(ref('selectList').trim(trimmer))
-        .seq(_token('RESIDENT').or(_token('FROM')))
-        .seq(ref('tableOrFilename'))
-        .seq(ref('whereClause').optional())
-        .seq(ref('group by').optional())
-        .seq(ref('order by').optional())
+        .seq(ref('loadSource').trim(trimmer))
         .seq(char(';'))
           .trim(trimmer).flatten());
     def('preceding load',
@@ -73,7 +68,25 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('selectList').trim(trimmer))
         .seq(char(';'))
           .trim(trimmer).flatten());
-   
+    def('loadSource',
+        ref('loadSourceAutogenerate')
+        .or(ref('loadSourceInline'))
+        .or(ref('loadSourceStandart')));
+    def('loadSourceStandart',
+        _token('RESIDENT').or(_token('FROM'))
+        .seq(ref('tableOrFilename'))
+        .seq(ref('whereClause').optional())
+        .seq(ref('group by').optional())
+        .seq(ref('order by').optional()));
+    def('loadSourceInline',
+          _token('INLINE')
+          .seq(_token('['))
+          .seq(_token(']').neg().plus())
+          .seq(_token(']')));
+    def('loadSourceAutogenerate',
+        _token('autogenerate')
+        .seq(ref('expression'))
+        .seq(ref('while clause').optional()));
     def('from',
         _token('FROM')
         .seq(ref('fieldref')));
@@ -115,27 +128,6 @@ class QvsGrammar extends CompositeParser {
         _token('Hierarchy').or(_token('IntervalMatch')).or(_token('CrossTable'))
         .seq(ref('simpleParens'))
         .flatten());
-    def('load inline',
-        ref('tableDesignator').optional()
-          .seq(_token('LOAD'))
-          .seq(_token('*'))
-          .seq(_token('INLINE'))
-          .seq(_token('['))
-          .seq(_token(']').neg().plus())
-          .seq(_token(']'))
-          .seq(char(';'))
-          .trim(trimmer).flatten());
-    def('load autogenerate',
-        ref('tableDesignator').optional()
-        .seq(_token('Noconcatenate').optional())
-        .seq(_token('LOAD'))
-        .seq(_token('DISTINCT').optional())
-        .seq(ref('selectList').trim(trimmer))
-        .seq(_token('autogenerate'))
-        .seq(ref('expression'))
-        .seq(ref('while clause').optional())
-        .seq(char(';'))
-          .trim(trimmer).flatten());
     def('while clause',
         _token('while')
         .seq(ref('expression'))
@@ -173,7 +165,7 @@ class QvsGrammar extends CompositeParser {
         .seq(_token('DESC').optional()));
     
     def('tableDesignator',
-        ref('fieldref').or(ref('macro')).seq(char(':'))
+        ref('fieldref').seq(char(':'))
         .or(ref('join'))
         .or(ref('concatenate')).plus()
         .trim(trimmer).flatten()
@@ -197,6 +189,8 @@ class QvsGrammar extends CompositeParser {
     def('tableOrFilename',
         word().or(anyIn(r'./\:').or(localLetter())).plus()
         .or(ref('fieldrefInBrackets'))
+        .or(ref('macro'))
+        .or(ref('string'))
         .seq(ref('fileModifier').optional())
         .trim(trimmer));
 //    def('fileName',
@@ -207,7 +201,7 @@ class QvsGrammar extends CompositeParser {
         .trim(trimmer));
     def('assignment',
         _token('SET').or(_token('LET')).trim(trimmer)
-        .seq(ref('identifier').trim(trimmer))
+        .seq(ref('identifier').or(ref('macro')).trim(trimmer))
         .seq(char('=').trim(trimmer))
         .seq(ref('expression').optional())
         .seq(char(';')).trim(trimmer).flatten()
@@ -264,6 +258,10 @@ class QvsGrammar extends CompositeParser {
         );
     def('controlStatement',
         ref('subStart')
+        .or(ref('forNextStart'))
+        .or(ref('forEachStart'))
+        .or(ref('ifStart'))
+        .or(_token('ELSE'))
         .or(ref('controlStatementFinish')));
     def('controlStatementFinish',
         _token('END')
@@ -275,10 +273,38 @@ class QvsGrammar extends CompositeParser {
         _token('SUB')
         .seq(ref('identifier').or(ref('function')))
         .seq(_token(';').optional()));
-    def('paramInParens',
-        _token('(')
-        .seq(ref('params'))
-        .seq(_token(')')));
+    def('forNextStart',
+        _token('FOR')
+        .seq(ref('expression'))
+        .seq(_token('to'))
+        .seq(ref('expression'))
+        .seq(_token(';').optional()));
+    def('ifStart',
+        _token('IF').or(_token('ELSEIF'))
+        .seq(ref('expression'))
+        .seq(_token('THEN'))
+        .seq(_token(';').optional()));
+    def('forEachStart',
+        _token('FOR')
+        .seq(_token('each'))
+        .seq(ref('expression'))
+        .seq(_token('each'))
+        .seq(ref('expression'))
+        .seq(_token(';').optional()));
+    def('qualify',
+        _token('UNQUALIFY').or(_token('QUALIFY'))
+        .seq(ref('fieldrefOrStringList'))
+        .seq(_token(';')).flatten());
+    
+    def('fieldrefOrStringList',
+        ref('fieldrefOrString').separatedBy(char(',').trim(trimmer), includeSeparators: false));
+
+    def('fieldrefOrString',
+        ref('identifier')
+        .or(ref('fieldrefInBrackets'))
+        .or(ref('string')));
+ 
+    
   }
   
   
@@ -313,9 +339,11 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('primaryExpression')));
     def('fieldref',
           ref('identifier')
+          .or(ref('macro'))
           .or(ref('fieldrefInBrackets')));
     def('identifier',letter().or(char('_').or(char('@')).or(localLetter()))
         .seq(word().or(char('.')).or(char('_')).or(localLetter()).plus())
+        .or(letter())
         .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(trimmer));
     def('fieldrefInBrackets', _token('[')
@@ -323,14 +351,17 @@ class QvsGrammar extends CompositeParser {
         .seq(_token(']')).trim(trimmer).flatten());
     def('string',
             char("'")
-            .seq(char("'").neg().star())
-            .seq(char("'")).flatten());
+              .seq(char("'").neg().star())
+              .seq(char("'"))
+            .or(char('"')
+                .seq(char('"').neg().star())
+                .seq(char('"'))).flatten());
    
     def('constant',
         ref('number').or(ref('string')));
     def('function',
         letter()
-        .seq(word().plus())
+        .seq(word().or(char('.')).plus())
         .seq(char('#').optional())
         .trim(trimmer)
         .seq(char('(').trim(trimmer))
