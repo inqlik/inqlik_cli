@@ -31,6 +31,7 @@ Example:
     //#!c:\QlikDocs\CurrentProject\EtlApps\DataModelDebug.qvw
  
  This tool is fully integrated in [Sublime Text 2 plugin for QlikView scripts](http://vadimtsushko.github.io/sublime-qlikview/) 
- Alternatively it may be download from [Inqlik download page] (http://inqlik.ru/downloads)
+ 
+ Alternatively it may be downloaded from [Inqlik download page] (http://inqlik.ru/downloads)
 
    
