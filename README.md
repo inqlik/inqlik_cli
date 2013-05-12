@@ -3,6 +3,8 @@ qvs_parser (v0.1.0)
 
 Command line parser for QlikView load scripts.
 
+#### Features
+
 Checks the syntacs of script. Optionally may reload QlikView document. 
 By default if parser get error while parsing script reload does not start. 
 To override this behaviour use command line switch --forceReload.
@@ -28,3 +30,7 @@ Example:
 
     //#!c:\QlikDocs\CurrentProject\EtlApps\DataModelDebug.qvw
  
+ This tool is fully integrated in [Sublime Text 2 plugin for QlikView scripts](http://vadimtsushko.github.io/sublime-qlikview/) 
+ Alternatively it may be download from [Inqlik download page] (http://inqlik.ru/downloads)
+
+   
