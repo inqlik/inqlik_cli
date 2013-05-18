@@ -33,6 +33,8 @@ class QvsGrammar extends CompositeParser {
         .or(ref('rename table'))
         .or(ref('rename field'))
         .or(ref('qualify'))
+        .or(ref('alias'))
+        .or(ref('binaryStatement'))
         .or(ref('store table')) 
         .or(ref('assignment')));
     def('rename table',
@@ -54,7 +56,7 @@ class QvsGrammar extends CompositeParser {
 
     def('load',
         ref('tableDesignator').optional()
-        .seq(_token('Noconcatenate').optional())
+        .seq(ref('load perfix').star())
         .seq(_token('MAPPING').optional())
         .seq(ref('preceding load').star())
         .seq(ref('preload func').optional())
@@ -68,6 +70,10 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('selectList').trim(trimmer))
         .seq(char(';'))
           .trim(trimmer).flatten());
+    def('load perfix',
+      _token('NOCONCATENATE')
+      .or(_token('ADD').seq(_token('ONLY').optional())));
+
     def('loadSource',
         ref('loadSourceAutogenerate')
         .or(ref('loadSourceInline'))
@@ -303,8 +309,21 @@ class QvsGrammar extends CompositeParser {
         ref('identifier')
         .or(ref('fieldrefInBrackets'))
         .or(ref('string')));
- 
-    
+    def('fieldrefAs',
+      ref('fieldref')
+      .seq(_token('as')).
+      seq(ref('fieldref')));
+    def('fieldrefsAs',
+      ref('fieldrefAs').separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def('alias',
+      _token('ALIAS')
+      .seq(ref('fieldrefsAs'))
+      .seq(_token(';')));
+    def('binaryStatement',
+    _token('binary')
+    .seq(ref('tableOrFilename'))
+    .seq(_token(';')));
+
   }
   
   
@@ -388,7 +407,7 @@ class QvsGrammar extends CompositeParser {
   
   /** Defines a token parser that ignore case and consumes whitespace. */
   Parser _token(dynamic input) {
-    var parser = input is Parser ? parser :
+    var parser = input is Parser ? input :
         input.length == 1 ? char(input) :
         stringIgnoreCase(input);
     return parser.token().trim(trimmer);

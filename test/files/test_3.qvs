@@ -52,3 +52,17 @@ mid(Grades,IterNo( ),1) as Grade,
 pick(IterNo( ), 'Math', 'English', 'Science', 'History') as Subject
 from Tab1.csv
 while mid(Grades,IterNo( ),1)<>' ';
+Tab1:
+select Name, Number from Persons.csv;
+add load Name, Number from NewPersons.csv where not exists(Name);
+Tab1:
+load Name, Number from Persons.csv;
+add only load Name, Number from NewPersons.csv where not exists(Name);
+Alias ID_N as NameID;
+Alias A as Name, B as Number, C as Date;
+Binary customer.qvw;
+Binary c:\qv\customer.qvw;
+
+buffer select * from MyTable;
+buffer (stale after 7 days) select * from MyTable;
+buffer (incremental) load * from MyLog.log;

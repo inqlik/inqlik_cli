@@ -15,44 +15,44 @@ Result _parse(String source, String production) {
 }
 
 dynamic shouldFail(String source, String production) {
-  return expect(_parse(source, production).isFailure,isTrue);
+  expect(_parse(source, production).isFailure,isTrue);
 }
 
 dynamic shouldPass(String source, String production) {
-  return expect(_parse(source, production).isSuccess,isTrue);
+  expect(_parse(source, production).isSuccess,isTrue);
 }
 
 void main() {
   var s = r'''RecNo( ) as Af''';
   print(_parse(s,'field').value);
-return;
+//return;
   test('testIdentifier1', () {
-    return shouldPass('SimpleName', 'identifier');
+    shouldPass('SimpleName', 'identifier');
   });
   test('testIdentifier2', () {
-    return shouldPass('_SimpleNameWithUnderscore', 'identifier');
+    shouldPass('_SimpleNameWithUnderscore', 'identifier');
   });
   test('testIdentifier3', () {
-    return shouldPass('@4', 'identifier');
+    shouldPass('@4', 'identifier');
   });
   test('testIdentifier4', () {
-    return shouldPass('_КодНоменклатуры', 'identifier');
+    shouldPass('_КодНоменклатуры', 'identifier');
   });
   test('testIdentifier5', () {
     return shouldFail('~КодНоменклатуры', 'identifier');
   });
   test('testDropTable1',() {
-    return shouldPass('DROP TABLES WeeklySales;', 'drop table');    
+    shouldPass('DROP TABLES WeeklySales;', 'drop table');    
   });
   
   test('testDropTable2',() {
-    return shouldPass('DROP TABLE WeeklySales, InventTableDepartment, WeeklyZeroSales;', 'drop table');    
+    shouldPass('DROP TABLE WeeklySales, InventTableDepartment, WeeklyZeroSales;', 'drop table');    
   });
   test('tableOrFilename1', () {
-    return shouldPass('[..\Data\Source\план по подгруппам магазинам и каналам сбыта.xls]','tableOrFilename');   
+    shouldPass('[..\Data\Source\план по подгруппам магазинам и каналам сбыта.xls]','tableOrFilename');   
   });
   test('fieldref1', () {
-    return shouldPass(' [41275]','fieldref');   
+    shouldPass(' [41275]','fieldref');   
   });
   test('fileOptions1', () {
   String fileOptionsStr = r'''
@@ -62,7 +62,7 @@ filters(
 Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
 )
     )''';
-    return shouldPass(fileOptionsStr,'fileModifier');
+    shouldPass(fileOptionsStr,'fileModifier');
   });
   
   test('fileOptions2', () {
@@ -71,7 +71,7 @@ Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
   Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
   ))
 ''';
-    return shouldPass(fileOptionsStr,'fileModifier');
+    shouldPass(fileOptionsStr,'fileModifier');
   });
   
   test('tableOrFilename1', () {
@@ -80,7 +80,7 @@ Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
   Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
   ))
 ''';
-    return shouldPass(fileOptionsStr,'tableOrFilename');
+    shouldPass(fileOptionsStr,'tableOrFilename');
   });
   
   test('connect1', () {
@@ -89,11 +89,28 @@ ODBC CONNECT TO 'Nwind;
 DBQ=C:\Program Files\Access\Samples\Northwind.mdb' (UserID is sa, Pass-
 word is admin)
  ''';
-    _parse(fileOptionsStr,'connect').value;
-    return shouldPass(fileOptionsStr,'connect');
+    shouldPass(fileOptionsStr,'connect');
   });
   
   test('sub start', () {
-    return shouldPass('SUB Calendar(_startDate, _endDate, _currentDate, _tableName) ','controlStatement');
+    shouldPass('SUB Calendar(_startDate, _endDate, _currentDate, _tableName) ','controlStatement');
+  });
+
+  test('add load', () {
+    shouldPass('add load Name, Number from NewPersons.csv where not exists(Name);','load');
+    shouldPass('add only load Name, Number from NewPersons.csv where not exists(Name);','load');
+  });
+  test('alias', () {
+    shouldPass('Alias ID_N as NameID ;','alias');
+    shouldPass('Alias A as Name, B as Number, C as Date;','alias');
+  });
+  test('binaryStatement', () {
+    shouldPass('Binary customer.qvw;','binaryStatement');
+    shouldPass('Binary c:\qv\customer.qvw;','binaryStatement');
+  });
+  test('buffer', () {
+    shouldPass('buffer select * from MyTable;','load');
+    shouldPass('buffer (stale after 7 days) select * from MyTable;','load');
+    shouldPass('buffer (incremental) load * from MyLog.log;','load');
   });
 }
