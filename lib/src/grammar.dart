@@ -44,7 +44,7 @@ class QvsGrammar extends CompositeParser {
         .seq(_token('TO'))
         .seq(ref('fieldref'))
         .seq(char(';'))
-        .trim(trimmer).flatten());
+        .trim(trimmer));
     def('rename field',
         _token('RENAME')
         .seq(_token('FIELD'))
@@ -64,7 +64,7 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('selectList').trim(trimmer))
         .seq(ref('loadSource').trim(trimmer))
         .seq(char(';'))
-          .trim(trimmer).flatten());
+          .trim(trimmer));
     def('preceding load',
         _token('LOAD')
         .seq(ref('selectList').trim(trimmer))
@@ -110,7 +110,7 @@ class QvsGrammar extends CompositeParser {
         .seq(_token('S').or(_token('s')).optional())
         .seq(ref('fieldrefs'))
         .seq(char(';'))
-        .trim(trimmer).flatten());
+        .trim(trimmer));
     def('store table',
         _token('STORE')
         .seq(ref('fieldref'))
@@ -128,8 +128,7 @@ class QvsGrammar extends CompositeParser {
     def('join',
         _token('LEFT').or(_token('RIGHT')).or(_token('INNER')).optional()
         .seq(_token('JOIN').or(_token('KEEP')))
-        .seq(ref('table in parens').optional())
-        .flatten());
+        .seq(ref('table in parens').optional()));
     def('preload func',
         _token('Hierarchy').or(_token('IntervalMatch')).or(_token('CrossTable'))
         .seq(ref('simpleParens'))
@@ -171,11 +170,14 @@ class QvsGrammar extends CompositeParser {
         .seq(_token('DESC').optional()));
     
     def('tableDesignator',
-        ref('fieldref').seq(char(':'))
+        ref('tableIdentifier')
         .or(ref('join'))
         .or(ref('concatenate')).plus()
-        .trim(trimmer).flatten()
+        .trim(trimmer)
         );
+    def('tableIdentifier',
+      ref('fieldref').seq(char(':').trim(trimmer))
+    );
     def('subRoutine',
         word().or(char('.')).plus().trim(trimmer)
         .seq(char('(').trim(trimmer))
@@ -264,6 +266,7 @@ class QvsGrammar extends CompositeParser {
         );
     def('controlStatement',
         ref('subStart')
+        .or(ref('exit script'))
         .or(ref('forNextStart'))
         .or(ref('forEachStart'))
         .or(ref('ifStart'))
@@ -279,6 +282,11 @@ class QvsGrammar extends CompositeParser {
         _token('SUB')
         .seq(ref('identifier').or(ref('function')))
         .seq(_token(';').optional()));
+    def('exit script',
+    _token('exit')
+    .seq(_token('script'))
+    .seq(_token(';').optional()));
+
     def('forNextStart',
         _token('FOR')
         .seq(ref('expression'))
@@ -357,9 +365,9 @@ class QvsGrammar extends CompositeParser {
     def('binaryPart', ref('binaryOperator')
         .seq(ref('primaryExpression')));
     def('fieldref',
-          ref('identifier')
+          _token(ref('identifier')
           .or(ref('macro'))
-          .or(ref('fieldrefInBrackets')));
+          .or(ref('fieldrefInBrackets'))));
     def('identifier',letter().or(char('_').or(char('@')).or(localLetter()))
         .seq(word().or(char('.')).or(char('_')).or(localLetter()).plus())
         .or(letter())

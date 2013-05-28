@@ -1529,3 +1529,10 @@ LOAD * RESIDENT AggregateByDepartmentMonth;
 DROP TABLE AggregateByDepartmentMonth;
 STORE AggregatePlanByDepartmentMonthPlanFact INTO ..\Data\Staged\AggregatePlanByDepartmentMonthPlanFact.QVD (qvd);
 DROP TABLE AggregatePlanByDepartmentMonthPlanFact;
+LOAD * RESIDENT AggregationByDepartmentDay
+WHERE [~КлючНоменклатураХарактеристика] = 3933
+	ORDER BY 
+		[~КлючНоменклатураХарактеристика],
+		ПодразделениеСсылка,
+		ПодразделениеХранения,
+		Дата;

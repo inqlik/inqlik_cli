@@ -1,0 +1,2 @@
+STORE AggregationByDepartmentDay INTO 
+	...\Data\Staged\AggregationByDepartmentDay3393.qvd(qvd);

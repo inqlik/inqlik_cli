@@ -2,8 +2,32 @@ library qvs_parser;
 import 'package:petitparser/petitparser.dart';
 import 'dart:io';
 part 'grammar.dart';
+class QvsParser extends QvsGrammar {
+  static final Set<String> tables = new Set<String>();
+  void initialize() {
+    super.initialize();
+//    action('tableIdentifier', (v) {
+////      print(v);
+//      tables.add(v.value.first.value);
+//    });
+//    action('drop table', (v) {
+////      print(v);
+//      for(var each in v[3]) {
+//        tables.remove(each.value);
+//      }
+//    });
+//    action('rename table', (v) {
+////      print(v);
+//      tables.remove(v[2].value);
+//      tables.add(v[4].value);
+//    });
+//    action('load', (v){
+//      print(v);
+//      print(' ${v[5].value}');
+//    });
 
-
+  }
+}
 
 bool parseFile(String fileName, bool forceReload, String executable) {
   String input = '';
@@ -18,7 +42,7 @@ bool parseFile(String fileName, bool forceReload, String executable) {
         return false;
       }
 
-  var qvs = new QvsGrammar().ref('start');
+  var qvs = new QvsParser().ref('start');
     
   var id1 = qvs.parse(input);
 
@@ -43,15 +67,16 @@ bool parseFile(String fileName, bool forceReload, String executable) {
     row = rowAndCol[0]+ deltaRow - 1;
     print('Parse error. File: $fileName row: $row col: $col message: $message');
     if (forceReload) {
-      runQlikView(input, executable);
+      runQlikView(input, executable, fileName);
     }
   } else {
     print('Parsing OK');
-    runQlikView(input, executable);
+    //print('Tables in memory: ${QvsParser.tables}');
+    runQlikView(input, executable, fileName);
   }  
 }
 
-void runQlikView(String buffer, String executable) {
+void runQlikView(String buffer, String executable, String scriptName) {
   var lines = buffer.split('\n');
   var firstLine = lines[0];
   if (firstLine.startsWith('//#!')) {
@@ -69,7 +94,8 @@ void runQlikView(String buffer, String executable) {
       exit(2);
     }
     print('Reloading file $fileName');
-    var arguments = ['/r', '/Nodata', '/Nosecurity', fileName];
+    var arguments = ['/r', '/Nodata', '/Nosecurity', '/vss=$scriptName', fileName];
+    print('$executable $arguments');
     Process.run(executable, arguments)
     .then((ProcessResult res) {
       var message = 'QlikView reload process finished. ${res.stderr}'; 

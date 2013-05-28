@@ -1,5 +1,3 @@
-// Copyright (c) 2013, Lukas Renggli <renggli@gmail.com>
-
 library simple_tests;
 
 import 'package:qvs_parser/src/parser.dart';
@@ -112,5 +110,16 @@ word is admin)
     shouldPass('buffer select * from MyTable;','load');
     shouldPass('buffer (stale after 7 days) select * from MyTable;','load');
     shouldPass('buffer (incremental) load * from MyLog.log;','load');
+  });
+  test('load resident where', () {
+    var str = '''
+    LOAD * RESIDENT AggregationByDepartmentDay
+WHERE [~КлючНоменклатураХарактеристика] = 3933
+	ORDER BY
+		[~КлючНоменклатураХарактеристика],
+		ПодразделениеСсылка,
+		ПодразделениеХранения,
+		Дата;''';
+    shouldPass(str,'load');
   });
 }

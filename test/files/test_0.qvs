@@ -1,4 +1,4 @@
-//#!c:\QlikDocs\Polovik_pilot\EtlApps\DataModelDebug.qvw
+//#!c:\QlikDocs\Polovik_pilot\EtlApps\DataModelDebug1.qvw
 InventTableBase:
 LOAD ЗначениеСубконто as НоменклатураСсылка,
      КодНоменклатуры as НоменклатураКод, 
