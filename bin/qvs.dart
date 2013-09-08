@@ -7,7 +7,7 @@ JOIN (   [asdf]  )
 ''';
 void main() {
   var ap = new ArgParser();
-  ap.addFlag('forceReload', abbr: 'f', help: 'Reload document even if parse was unsuccessful', defaultsTo: true, negatable: false);
+  ap.addFlag('forceReload', abbr: 'f', help: 'Reload document even if parse was unsuccessful', defaultsTo: false, negatable: false);
   ap.addFlag('verbose', abbr: 'v', negatable: false, defaultsTo: false);
   ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
   ap.addOption('qlikview', abbr: 'q', defaultsTo: r'C:\Program Files\QlikView\qv.exe', help: "Full path to QlikView executable");
