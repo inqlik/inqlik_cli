@@ -72,8 +72,19 @@ class QvsGrammar extends CompositeParser {
           .trim(trimmer).flatten());
     def('load perfix',
       _token('NOCONCATENATE')
-      .or(_token('ADD').seq(_token('ONLY').optional())));
-
+      .or(_word('BUFFER').seq(ref('buffer modifier').optional()))
+      .or(_word('BUNDLE').seq(_word('INFO').optional()))
+      .or(_word('ADD').seq(_word('ONLY').optional())));
+    def('buffer modifier',
+        _token('(')
+        .seq(
+          _token('INCREMENTAL')
+          .or(
+              _token('STALE')
+              .seq(_token('AFTER').optional())
+              .seq(ref('number'))
+              .seq(_token('DAYS').or(_token('HOURS')).optional())))
+        .seq(_token(')')));
     def('loadSource',
         ref('loadSourceAutogenerate')
         .or(ref('loadSourceInline'))
@@ -83,7 +94,8 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('tableOrFilename'))
         .seq(ref('whereClause').optional())
         .seq(ref('group by').optional())
-        .seq(ref('order by').optional()));
+        .seq(ref('order by').optional())
+        );
     def('loadSourceInline',
           _token('INLINE')
           .seq(_token('['))
@@ -156,7 +168,6 @@ class QvsGrammar extends CompositeParser {
         _token('ORDER')
         .seq(_token('BY'))
         .seq(ref('fieldrefsOrderBy'))
-        .flatten()
         );
 
     def('fieldrefs',
@@ -167,7 +178,7 @@ class QvsGrammar extends CompositeParser {
     def('fieldrefOrderBy',
         ref('identifier')
         .or(ref('fieldrefInBrackets'))
-        .seq(_token('DESC').optional()));
+        .seq(_token('DESC').or(_token('ASC')).optional()));
     
     def('tableDesignator',
         ref('tableIdentifier')
@@ -395,20 +406,20 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('params').optional())
         .seq(char(')').trim(trimmer)).flatten());
     def('unaryExpression',
-        _token('NOT').or(_token('-').or(_token('DISTINCT'))).trim(trimmer)
+        _word('NOT').or(_token('-').or(_word('DISTINCT'))).trim(trimmer)
             .seq(ref('expression'))
             .trim(trimmer).flatten());
     def('binaryOperator',
-        _token('and')
-        .or(_token('or'))
-        .or(_token('xor'))
-        .or(_token('like'))
+        _word('and')
+        .or(_word('or'))
+        .or(_word('xor'))
+        .or(_word('like'))
         .or(_token('<='))
         .or(_token('<>'))
         .or(_token('!='))
         .or(_token('>='))
         .or(anyIn('+-/*<>=&'))
-        .or(_token('precedes'))
+        .or(_word('precedes'))
         .trim(trimmer).flatten()
         );
   }
@@ -420,6 +431,14 @@ class QvsGrammar extends CompositeParser {
         stringIgnoreCase(input);
     return parser.token().trim(trimmer);
   }
+ 
+  Parser _word(dynamic input) {
+    var parser = input is Parser ? input :
+        input.length == 1 ? char(input) :
+        stringIgnoreCase(input);
+    return parser.seq(whitespace()).trim(trimmer);
+  }
+ 
   
   void _number() {
     // Implementation borrowed from Smalltalk parser

@@ -35,7 +35,7 @@ bool parseFile(String fileName, bool forceReload, String executable) {
       if (file.existsSync())
       {
         if (input == '') {
-          input = file.readAsStringSync(encoding: Encoding.SYSTEM);
+          input = file.readAsStringSync(encoding: const SystemEncoding());
         }  
       } else {
         print('File not found: $fileName');

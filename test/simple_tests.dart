@@ -17,12 +17,12 @@ dynamic shouldFail(String source, String production) {
 }
 
 dynamic shouldPass(String source, String production) {
-  expect(_parse(source, production).isSuccess,isTrue);
+  expect(_parse(source, production).isSuccess,isTrue, reason: '"$source" did not parse as "$production"' );
 }
 
 void main() {
-  var s = r'''RecNo( ) as Af''';
-  print(_parse(s,'field').value);
+//  var s = r'''RecNo( ) as Af''';
+//  print(_parse(s,'field').value);
 //return;
   test('testIdentifier1', () {
     shouldPass('SimpleName', 'identifier');
@@ -109,17 +109,113 @@ word is admin)
   test('buffer', () {
     shouldPass('buffer select * from MyTable;','load');
     shouldPass('buffer (stale after 7 days) select * from MyTable;','load');
+    shouldPass('buffer (stale after 7 hours) select * from MyTable;','load');
+    shouldPass('buffer (stale 7 hours) select * from MyTable;','load');
+    shouldPass('buffer (stale 7) select * from MyTable;','load');
     shouldPass('buffer (incremental) load * from MyLog.log;','load');
   });
-  test('load resident where', () {
+  test('load resident with where clause', () {
+    var str = '''
+    LOAD * RESIDENT AggregationByDepartmentDay
+WHERE [~КлючНоменклатураХарактеристика] = 3933;''';
+    shouldPass(str,'load');
+  });
+  
+  test('load resident with where clause with groupBy', () {
     var str = '''
     LOAD * RESIDENT AggregationByDepartmentDay
 WHERE [~КлючНоменклатураХарактеристика] = 3933
-	ORDER BY
+	GROUP BY
 		[~КлючНоменклатураХарактеристика],
 		ПодразделениеСсылка,
 		ПодразделениеХранения,
 		Дата;''';
     shouldPass(str,'load');
   });
+  
+  
+  test('load resident with where clause and orderBy', () {
+    var str = '''
+    LOAD * RESIDENT AggregationByDepartmentDay
+WHERE [~КлючНоменклатураХарактеристика] = 3933
+  ORDER BY 
+    [~КлючНоменклатураХарактеристика],
+    ПодразделениеСсылка ASC,
+    ПодразделениеХранения DESC,
+    Дата;''';
+    shouldPass(str,'load');
+  });
+  
+  test('breaking case 1', () {
+    var str = '''
+LOAD *
+,
+     company, 
+     itemId,
+     city,
+     date, 
+     if(company = 'kerama' and category = 'Ламинат', price / 0.24,price) as price,
+     unitId, 
+     category, 
+     nameorder 
+FROM
+C:\QlikDocs\PriceComparision\Data\Source\inventtable.txt
+    (txt, utf8, embedded labels, delimiter is '\t', msq)
+WHERE (company = 'agora' or itemId = '0101077031');
+''';
+    shouldPass(str,'load');
+  });
+  
+  test('breaking case 2', () {
+    var str = '''
+InventTable1:
+LOAD *
+  ,If(isNull(Менеджер),'РТН не назначен',Менеджер) as Менеджер1
+  ,If(isNull(НоменклатураБренд) OR НоменклатураБренд = '','Бренд неопределен',НоменклатураБренд) as НоменклатураБренд1
+  ,If(Not IsNull(НоменклатураНаименованиеУровня2), НоменклатураНаименованиеУровня2,
+          If(Peek('НоменклатураНаименованиеУровня1')=НоменклатураНаименованиеУровня1 and
+             Peek('_НоменклатураНаименованиеУровня2')<>НоменклатураНаименованиеУровня2,
+               '^^' & НоменклатураНаименованиеУровня1)) as _НоменклатураНаименованиеУровня2
+,     If(Not IsNull(НоменклатураНаименованиеУровня3), НоменклатураНаименованиеУровня3,
+          If(Peek('НоменклатураНаименованиеУровня2')=НоменклатураНаименованиеУровня2 and
+             Peek('_НоменклатураНаименованиеУровня3')<>НоменклатураНаименованиеУровня3,
+               '^^' & НоменклатураНаименованиеУровня2)) as _НоменклатураНаименованиеУровня3,
+     If(Not IsNull(НоменклатураНаименованиеУровня4), НоменклатураНаименованиеУровня4,
+          If(Peek('НоменклатураНаименованиеУровня3')=НоменклатураНаименованиеУровня3 and
+             Peek('_НоменклатураНаименованиеУровня4')<>НоменклатураНаименованиеУровня4,
+               '^^' & НоменклатураНаименованиеУровня3)) as _НоменклатураНаименованиеУровня4,  
+     If(Not IsNull(НоменклатураНаименованиеУровня5), НоменклатураНаименованиеУровня5,
+          If(Peek('НоменклатураНаименованиеУровня4')=НоменклатураНаименованиеУровня4 and
+             Peek('_НоменклатураНаименованиеУровня5')<>НоменклатураНаименованиеУровня5,
+               '^^' & НоменклатураНаименованиеУровня4)) as _НоменклатураНаименованиеУровня5,
+    If(Not IsNull(НоменклатураНаименованиеУровня6), НоменклатураНаименованиеУровня6,
+          If(Peek('НоменклатураНаименованиеУровня5')=НоменклатураНаименованиеУровня5 and
+             Peek('_НоменклатураНаименованиеУровня6')<>НоменклатураНаименованиеУровня6,
+               '^^' & НоменклатураНаименованиеУровня5)) as _НоменклатураНаименованиеУровня6
+           RESIDENT InventTable
+               ORDER BY
+                    НоменклатураНаименованиеУровня1 DESC,
+                    НоменклатураНаименованиеУровня2 DESC,
+                    НоменклатураНаименованиеУровня3 DESC,
+                    НоменклатураНаименованиеУровня4 DESC,
+                    НоменклатураНаименованиеУровня5 DESC,
+                    НоменклатураНаименованиеУровня6 DESC;
+''';
+    shouldPass(str,'load');
+  });
+  
+ test('Expressions',() {
+    var str = '''If(Not IsNull(НоменклатураНаименованиеУровня2), НоменклатураНаименованиеУровня2,
+          If(Peek('НоменклатураНаименованиеУровня1')=НоменклатураНаименованиеУровня1 and
+             Peek('_НоменклатураНаименованиеУровня2')<>НоменклатураНаименованиеУровня2,
+               '^^' & НоменклатураНаименованиеУровня1))''';
+    shouldPass(str,'expression');
+  });
+ 
+ test('Bundle', () {
+   var str = 'Bundle info Load * from flagoecd.csv;';
+   shouldPass(str,'load');
+   str = 'Bundle Select * from infotable;';
+   shouldPass(str,'load');
+ });
 }
