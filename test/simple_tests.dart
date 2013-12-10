@@ -218,4 +218,35 @@ LOAD *
    str = 'Bundle Select * from infotable;';
    shouldPass(str,'load');
  });
+ test('Comment FIELD/TABLE WITH',() {
+   var str = 'Comment Field Dim1 With "This is a field comment";';
+   shouldPass(str,'commentWith');
+   str = 'Comment Field Dim1 With This is a field comment;';
+//   shouldPass(str,'commentWith');
+//   print(_parse(str,'stringOrNotColon').value);
+ });
+ test('Tag FIELD/TABLE WITH',() {
+   var str = r'Tag Field Dim1 With "$date";';
+   shouldPass(str,'commentWith');
+   str = r'Tag Fields Dim1 With "$date";';
+   shouldPass(str,'commentWith');
+   
+//   shouldPass(str,'commentWith');
+//   print(_parse(str,'stringOrNotColon').value);
+ });
+ solo_test('HierarchyBelongsTo', () {
+   var str = '''
+BdrLinksTemp:
+HierarchyBelongsTo(СтатьяБДР, РодительСтатьиБДР, СтатьяНаименование, AncestorId, АИ_СтатьяБДР)
+LOAD РодительСтатьиБДР, 
+     СтатьяБДР,
+     СтатьяБДР as СтатьяНаименование,
+     _АИ_БДР_ФлагКонсолидации
+FROM
+C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархияБДР.xlsx
+(ooxml, embedded labels, table is Лист2);''';
+   shouldPass(str,'load');
+ });
+ 
+ 
 }

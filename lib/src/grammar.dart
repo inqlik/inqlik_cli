@@ -36,6 +36,7 @@ class QvsGrammar extends CompositeParser {
         .or(ref('alias'))
         .or(ref('binaryStatement'))
         .or(ref('store table')) 
+        .or(ref('commentWith'))
         .or(ref('assignment')));
     def('rename table',
         _token('RENAME')
@@ -104,6 +105,7 @@ class QvsGrammar extends CompositeParser {
     def('loadSourceAutogenerate',
         _token('autogenerate')
         .seq(ref('expression'))
+        .seq(ref('whereClause').optional())
         .seq(ref('while clause').optional()));
     def('from',
         _token('FROM')
@@ -137,12 +139,27 @@ class QvsGrammar extends CompositeParser {
         ref('expression').seq(_token('as')).seq(ref('fieldref'))
         .or(ref('expression'))
         .trim(trimmer).flatten());
+    def('commentWith',
+        _word('COMMENT').or(_word('TAG')).or(_word('UNTAG'))
+        .seq(_word('FIELD').or(_word('FIELDS')))
+        .seq(ref('fieldrefs'))
+        .seq(_word('WITH'))
+        .seq(ref('string').or(char(';').not().plus()))
+        .seq(char(';')).trim(trimmer).flatten()
+        );
+    def('stringOrNotColon',
+        ref('string')
+        .or(char(';').neg().plusLazy(char(';')))
+        );
     def('join',
         _token('LEFT').or(_token('RIGHT')).or(_token('INNER')).optional()
         .seq(_token('JOIN').or(_token('KEEP')))
         .seq(ref('table in parens').optional()));
     def('preload func',
-        _token('Hierarchy').or(_token('IntervalMatch')).or(_token('CrossTable'))
+        _token('Hierarchy')
+          .or(_token('HierarchyBelongsTo'))
+          .or(_token('IntervalMatch'))
+          .or(_token('CrossTable'))
         .seq(ref('simpleParens'))
         .flatten());
     def('while clause',
