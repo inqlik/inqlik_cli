@@ -35,7 +35,8 @@ class QvsGrammar extends CompositeParser {
         .or(ref('qualify'))
         .or(ref('alias'))
         .or(ref('binaryStatement'))
-        .or(ref('store table')) 
+        .or(ref('store table'))
+        .or(ref('trace'))
         .or(ref('assignment')));
     def('rename table',
         _token('RENAME')

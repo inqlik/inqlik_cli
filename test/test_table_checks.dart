@@ -1,8 +1,8 @@
 library simple_tests;
 
 import 'package:qvs_parser/src/parser.dart';
-import 'package:unittest/unittest.dart';
-import 'package:petitparser/petitparser.dart';
+//import 'package:unittest/unittest.dart';
+//import 'package:petitparser/petitparser.dart';
 
 const input1 = r'''
 Table1:
