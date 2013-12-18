@@ -297,7 +297,10 @@ class QvsGrammar extends CompositeParser {
     _token('exit')
     .seq(_token('script'))
     .seq(_token(';').optional()));
-
+    def('trace',
+        _token('TRACE')
+        .seq(ref('expression'))
+        .seq(_token(';')));
     def('forNextStart',
         _token('FOR')
         .seq(ref('expression'))
