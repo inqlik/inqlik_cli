@@ -94,9 +94,9 @@ void runQlikView(String buffer, String executable, String scriptName) {
       exit(2);
     }
     print('Reloading file $fileName');
-    var arguments = ['/r', '/Nodata', '/Nosecurity', '/vss=$scriptName', fileName];
-    print('$executable $arguments');
-    Process.run(executable, arguments)
+    var arguments = ['/c',executable,'/r', '/Nodata', '/Nosecurity', '/vss=$scriptName', fileName];
+    print('cmd $arguments');
+    Process.run('cmd', arguments)
     .then((ProcessResult res) {
       var message = 'QlikView reload process finished. ${res.stderr}'; 
       print(message);
