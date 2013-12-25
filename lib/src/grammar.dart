@@ -192,11 +192,14 @@ class QvsGrammar extends CompositeParser {
     );
     def('subRoutine',
         word().or(char('.')).plus().trim(trimmer)
-        .seq(char('(').trim(trimmer))
-        .seq(ref('params').optional())
-        .seq(char(')').trim(trimmer)).flatten());
+        .seq(ref('paramsWithinParens').optional()).flatten());
     def('params',
         ref('expression').separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def('paramsWithinParens',
+        char('(').trim(trimmer)
+        .seq(ref('params'))
+        .seq(char(')').trim(trimmer)));
+
     def('parens',
         char('(').trim(trimmer)
             .seq(ref('expression'))
@@ -270,7 +273,7 @@ class QvsGrammar extends CompositeParser {
          .seq(_token(')')));
     def('connect',
         _token('ODBC').or(_token('OLEDB')).or(_token('CUSTOM')).optional()
-        .seq(_token('CONNECT'))
+        .seq(_token('CONNECT').or(_token('CONNECT32')))
         .seq(_token('TO'))
         .seq(ref('string').trim(trimmer))
         .seq(ref('simpleParens').optional())

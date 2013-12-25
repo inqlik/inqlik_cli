@@ -89,7 +89,14 @@ word is admin)
  ''';
     shouldPass(fileOptionsStr,'connect');
   });
-  
+  solo_test('connect32', () {
+    String connectStr = r'''
+ODBC CONNECT TO 'Nwind;DBQ=C:\Program Files\Access\Samples\Northwind.mdb (UserID is sa, Pass-
+word is admin)'
+''';
+    shouldPass(connectStr,'connect');
+
+  });
   test('sub start', () {
     shouldPass('SUB Calendar(_startDate, _endDate, _currentDate, _tableName) ','controlStatement');
   });
