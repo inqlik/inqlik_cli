@@ -73,7 +73,8 @@ bool parseFile(String fileName, bool forceReload, String executable) {
     print('Parsing OK');
     //print('Tables in memory: ${QvsParser.tables}');
     runQlikView(input, executable, fileName);
-  }  
+  }
+  return true;
 }
 
 void runQlikView(String buffer, String executable, String scriptName) {

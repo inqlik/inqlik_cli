@@ -1,0 +1,3 @@
+TRACE simple header;
+$(must_include=file_included.qvs);
+TRACE simple footer;

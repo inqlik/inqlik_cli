@@ -12,11 +12,11 @@ Result _parse(String source, String production) {
   return parser.parse(source);
 }
 
-dynamic shouldFail(String source, String production) {
+shouldFail(String source, String production) {
   expect(_parse(source, production).isFailure,isTrue);
 }
 
-dynamic shouldPass(String source, String production) {
+shouldPass(String source, String production) {
   expect(_parse(source, production).isSuccess,isTrue, reason: '"$source" did not parse as "$production"' );
 }
 
@@ -234,7 +234,7 @@ LOAD *
 //   shouldPass(str,'commentWith');
 //   print(_parse(str,'stringOrNotColon').value);
  });
- solo_test('HierarchyBelongsTo', () {
+ skip_test('HierarchyBelongsTo', () {
    var str = '''
 BdrLinksTemp:
 HierarchyBelongsTo(СтатьяБДР, РодительСтатьиБДР, СтатьяНаименование, AncestorId, АИ_СтатьяБДР)
