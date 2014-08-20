@@ -4,7 +4,7 @@ import 'package:qvs_parser/src/qvs_reader.dart';
 import 'package:unittest/unittest.dart';
 
 void main() {
-  test('test_simple_1', () {
+  test('test_simplest', () {
     var code = '''
         LOAD * 
         RESIDENT Table1
@@ -88,12 +88,91 @@ void main() {
   });
   test('Test file with not-existent must_include file', () {
     var reader = newReader();
-    reader.readFile('files/file_with_not_existent_must_included.qvs');
+    reader.readFile('files/file_with_not_existent_must_include.qvs');
     expect(reader.hasErrors, isTrue);
     expect(reader.entries.length, 3);
-    expect(reader.entries[0].sourceFileName,endsWith('file_with_not_existent_must_included.qvs'));
-    expect(reader.entries[1].sourceFileName,endsWith('file_with_not_existent_must_included.qvs'));
-    expect(reader.entries[2].sourceFileName,endsWith('file_with_not_existent_must_included.qvs'));
+    expect(reader.entries[0].sourceFileName,endsWith('file_with_not_existent_must_include.qvs'));
+    expect(reader.entries[1].sourceFileName,endsWith('file_with_not_existent_must_include.qvs'));
+    expect(reader.entries[2].sourceFileName,endsWith('file_with_not_existent_must_include.qvs'));
   });
 
+  test('Test file with not-existent include file', () {
+    var reader = newReader();
+    reader.readFile('files/file_with_not_existent_include.qvs');
+    expect(reader.hasErrors, isFalse);
+    expect(reader.entries.length, 3);
+    expect(reader.entries[0].sourceFileName,endsWith('file_with_not_existent_include.qvs'));
+    expect(reader.entries[1].sourceFileName,endsWith('file_with_not_existent_include.qvs'));
+    expect(reader.entries[2].sourceFileName,endsWith('file_with_not_existent_include.qvs'));
+  });
+
+  test('Test with simplest subroutine', () {
+    var reader = newReader();
+    var code = '''
+      TRACE START;
+      SUB test
+        TRACE IN SUB test;
+      END SUB
+      TRACE FINISH;
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 5);
+    expect(reader.subMap.containsKey('test'),isTrue);
+    expect(reader.subMap['test'], 2);
+  });
+
+  test('Test with subroutine with dotted name', () {
+    var reader = newReader();
+    var code = '''
+      TRACE START;
+      SUB myLib.test(param1,param2)
+        TRACE IN SUB test;
+      END SUB
+      TRACE FINISH;
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 5);
+    expect(reader.subMap.containsKey('myLib.test'),isTrue);
+    expect(reader.subMap['myLib.test'], 2);
+  });
+
+  test('Test simplest expansion', () {
+    var reader = newReader();
+    var code = r'''
+      TRACE $(var1);
+    ''';  
+    reader.data.variables['var1']='11';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.entries[0].expandedText.trim(),'TRACE 11;');
+  });
+  test('Test recursive expansion', () {
+    var reader = newReader();
+    var code = r'''
+      TRACE $(var$(var1))$(var1);
+    ''';  
+    reader.data.variables['var1']='1';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.entries[0].expandedText.trim(),'TRACE 11;');
+  });
+
+  solo_test('Test variable creation', () {
+    var reader = newReader();
+    var code = r'''
+      LET var1 = 1;
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.data.variables.containsKey('var1'), isTrue);
+    expect(reader.data.variables['var1'], 1);
+  });
+
+  
+  
 }
