@@ -240,7 +240,7 @@ class QvsGrammar extends CompositeParser {
         .seq(ref('identifier').or(ref('macro')).trim(trimmer))
         .seq(char('=').trim(trimmer))
         .seq(ref('expression').optional())
-        .seq(char(';')).trim(trimmer).flatten()
+        .seq(char(';')).trim(trimmer)
         );
     def('call',
         _token('call').trim(trimmer)

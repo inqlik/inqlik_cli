@@ -161,7 +161,7 @@ void main() {
     expect(reader.entries[0].expandedText.trim(),'TRACE 11;');
   });
 
-  solo_test('Test variable creation', () {
+  test('Test variable creation (simple numeric)', () {
     var reader = newReader();
     var code = r'''
       LET var1 = 1;
@@ -170,7 +170,31 @@ void main() {
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 1);
     expect(reader.data.variables.containsKey('var1'), isTrue);
-    expect(reader.data.variables['var1'], 1);
+    expect(reader.data.variables['var1'], '1');
+  });
+
+  test('Test variable creation (String quoted)', () {
+    var reader = newReader();
+    var code = r'''
+      LET vL.var1 = 'Abc';
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.data.variables.containsKey('vL.var1'), isTrue);
+    expect(reader.data.variables['vL.var1'], "Abc");
+  });
+
+  solo_test('Test variable creation and expansion (String quoted)', () {
+    var reader = newReader();
+    var code = r'''
+      LET vL.var1 = 'Abc';
+      TRACE $(vL.var1)$(vL.var1);
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 2);
+    expect(reader.entries[1].expandedText.trim(), 'TRACE AbcAbc;');
   });
 
   

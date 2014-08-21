@@ -2,6 +2,8 @@ library qvs_reader;
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
+import 'package:petitparser/petitparser.dart';
+import 'parser.dart';
 
 class QvsCommandEntry {
   String sourceFileName;
@@ -51,6 +53,7 @@ class QvsFileReader {
   static final commandTerminationPattern = new RegExp(r'^.*;\s*$');
   static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;\s*$'); 
   static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;\s*$'); 
+  static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]+)\s*=',caseSensitive: false); 
   static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9]+)',caseSensitive: false);
   static final variablePattern = new RegExp(r'\$\((\w[A-Za-z.0-9]+)\)');
   static final controlStructurePatterns = [
@@ -130,10 +133,26 @@ class QvsFileReader {
       m = variablePattern.firstMatch(entry.expandedText);
     }
   }
-  
+  void processSetVariableCommand(QvsCommandEntry entry) {
+    var m = variableSetPattern.firstMatch(entry.expandedText);
+    if (m == null) {
+      return;
+    }
+    Result r = new QvsParser()['assignment'].end().parse(entry.expandedText);
+    if (r.isFailure) {
+      return;
+    }
+    String varName = r.value[1];
+    String varValue = r.value[3].trim();
+    if (varValue.startsWith("'") && varValue.endsWith("'")) {
+      varValue = varValue.replaceAll("'",'');
+    }
+    data.variables[varName] = varValue;
+  }
   void addCommand(QvsCommandEntry entry) {
     expandCommand(entry);
     data.entries.add(entry);
+    processSetVariableCommand(entry);
     var m = mustIncludePattern.firstMatch(entry.expandedText);
     if (m != null) {
       entry.commandType = QvsCommandType.MUST_INCLUDE;
@@ -155,12 +174,6 @@ class QvsFileReader {
       }
       
     }
-  }
-  void expand(QvsCommandEntry entry) {
-    
-  }
-  void walk() {
-    
   }
   QvsLineType testLineType(line) {
     if (commandTerminationPattern.hasMatch(line)) {

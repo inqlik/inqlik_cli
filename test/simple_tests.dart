@@ -21,9 +21,12 @@ shouldPass(String source, String production) {
 }
 
 void main() {
-//  var s = r'''RecNo( ) as Af''';
-//  print(_parse(s,'field').value);
-//return;
+//  var str = r'    LET vL.Ma= = tch = -1  ;';
+//  //shouldPass(str,'assignment');
+//  var parser = new ActionParser(qvs['assignment'].end(),(v) => [v.length,v]);
+//  print(parser.parse(str).value);
+//  
+//  return;
   test('testIdentifier1', () {
     shouldPass('SimpleName', 'identifier');
   });
@@ -247,6 +250,13 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
 (ooxml, embedded labels, table is Лист2);''';
    shouldPass(str,'load');
  });
- 
+
+ solo_test('variable assignment (LET) ',() {
+   var str = r'    LET vL.Match= -1  ;';
+   //shouldPass(str,'assignment');
+   var parser = new ActionParser(qvs['assignment'],(v) => print);
+   parser.parse(str); 
+ });
+
  
 }
