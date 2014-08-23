@@ -1,260 +1,261 @@
 part of qvs_parser;
 
-/**
- * Smalltalk grammar definition.
- */
-class QvsGrammar extends CompositeParser {
 
+
+class QvsGrammar extends CompositeParser {
+//  void def(String name, Parser parser) {
+//    super.def(name,parser);
+//    print("const String $name = '$name';");
+//  }
   void initialize() {
     _whitespace();
     _number();
     _expression();
     _qvs();
-//    action('table', (v) {
-//      print(v);
-//      print(v.join(''));
-//    });
-    
   }
   /**
    * Russian letters
    */
   localLetter() => range(1024,1273);
-  Parser get trimmer => ref('whitespace');
+  Parser get trimmer => ref(p.whitespace);
   void _qvs() {
-    def('start', ref('command').plus().end().flatten());
-    def('command',
-        ref('macroLine')
-        .or(ref('load'))
-        .or(ref('controlStatement'))
-        .or(ref('call'))
-        .or(ref('drop fields'))
-        .or(ref('drop table'))
-        .or(ref('rename table'))
-        .or(ref('rename field'))
-        .or(ref('qualify'))
-        .or(ref('alias'))
-        .or(ref('binaryStatement'))
-        .or(ref('store table')) 
-        .or(ref('commentWith'))
-        .or(ref('assignment')));
-    def('rename table',
+    def(p.start, ref(p.command).plus().end().flatten());
+    def(p.command,
+        ref(p.macroLine)
+        .or(ref(p.load))
+        .or(ref(p.controlStatement))
+        .or(ref(p.call))
+        .or(ref(p.dropFields))
+        .or(ref(p.dropTable))
+        .or(ref(p.renameTable))
+        .or(ref(p.renameField))
+        .or(ref(p.qualify))
+        .or(ref(p.alias))
+        .or(ref(p.binaryStatement))
+        .or(ref(p.storeTable)) 
+        .or(ref(p.commentWith))
+        .or(ref(p.trace))
+        .or(ref(p.assignment)));
+    def(p.renameTable,
         _token('RENAME')
         .seq(_token('TABLE'))
-        .seq(ref('fieldref'))
+        .seq(ref(p.fieldref))
         .seq(_token('TO'))
-        .seq(ref('fieldref'))
+        .seq(ref(p.fieldref))
         .seq(char(';'))
         .trim(trimmer));
-    def('rename field',
+    def(p.renameField,
         _token('RENAME')
         .seq(_token('FIELD'))
-        .seq(ref('fieldref'))
+        .seq(ref(p.fieldref))
         .seq(_token('TO'))
-        .seq(ref('fieldref'))
+        .seq(ref(p.fieldref))
         .seq(char(';'))
         .trim(trimmer).flatten());
 
-    def('load',
-        ref('tableDesignator').optional()
-        .seq(ref('load perfix').star())
+    def(p.load,
+        ref(p.tableDesignator).optional()
+        .seq(ref(p.loadPerfix).star())
         .seq(_token('MAPPING').optional())
-        .seq(ref('preceding load').star())
-        .seq(ref('preload func').optional())
+        .seq(ref(p.precedingLoad).star())
+        .seq(ref(p.preloadFunc).optional())
         .seq(_token('LOAD').or(_token('SELECT')))
-        .seq(ref('selectList').trim(trimmer))
-        .seq(ref('loadSource').trim(trimmer))
+        .seq(ref(p.selectList).trim(trimmer))
+        .seq(ref(p.loadSource).trim(trimmer))
         .seq(char(';'))
           .trim(trimmer));
-    def('preceding load',
+    def(p.precedingLoad,
         _token('LOAD')
-        .seq(ref('selectList').trim(trimmer))
+        .seq(ref(p.selectList).trim(trimmer))
         .seq(char(';'))
           .trim(trimmer).flatten());
-    def('load perfix',
+    def(p.loadPerfix,
       _token('NOCONCATENATE')
-      .or(_word('BUFFER').seq(ref('buffer modifier').optional()))
+      .or(_word('BUFFER').seq(ref(p.bufferModifier).optional()))
       .or(_word('BUNDLE').seq(_word('INFO').optional()))
       .or(_word('ADD').seq(_word('ONLY').optional())));
-    def('buffer modifier',
+    def(p.bufferModifier,
         _token('(')
         .seq(
           _token('INCREMENTAL')
           .or(
               _token('STALE')
               .seq(_token('AFTER').optional())
-              .seq(ref('number'))
+              .seq(ref(p.number))
               .seq(_token('DAYS').or(_token('HOURS')).optional())))
         .seq(_token(')')));
-    def('loadSource',
-        ref('loadSourceAutogenerate')
-        .or(ref('loadSourceInline'))
-        .or(ref('loadSourceStandart')));
-    def('loadSourceStandart',
+    def(p.loadSource,
+        ref(p.loadSourceAutogenerate)
+        .or(ref(p.loadSourceInline))
+        .or(ref(p.loadSourceStandart)));
+    def(p.loadSourceStandart,
         _token('RESIDENT').or(_token('FROM'))
-        .seq(ref('tableOrFilename'))
-        .seq(ref('whereClause').optional())
-        .seq(ref('group by').optional())
-        .seq(ref('order by').optional())
+        .seq(ref(p.tableOrFilename))
+        .seq(ref(p.whereClause).optional())
+        .seq(ref(p.groupBy).optional())
+        .seq(ref(p.orderBy).optional())
         );
-    def('loadSourceInline',
+    def(p.loadSourceInline,
           _token('INLINE')
           .seq(_token('['))
           .seq(_token(']').neg().plus())
           .seq(_token(']')));
-    def('loadSourceAutogenerate',
+    def(p.loadSourceAutogenerate,
         _token('autogenerate')
-        .seq(ref('expression'))
-        .seq(ref('whereClause').optional())
-        .seq(ref('while clause').optional()));
-    def('from',
+        .seq(ref(p.expression))
+        .seq(ref(p.whereClause).optional())
+        .seq(ref(p.whileClause).optional()));
+    def(p.from,
         _token('FROM')
-        .seq(ref('fieldref')));
-    def('drop fields',
+        .seq(ref(p.fieldref)));
+    def(p.dropFields,
         _token('DROP')
         .seq(_token('FIELD'))
         .seq(_token('S').optional())
-        .seq(ref('fieldrefs'))
-        .seq(ref('from').optional())
+        .seq(ref(p.fieldrefs))
+        .seq(ref(p.from).optional())
         .seq(char(';'))
         .trim(trimmer).flatten());
-    def('drop table',
+    def(p.dropTable,
         _token('DROP')
         .seq(_token('TABLE'))
         .seq(_token('S').or(_token('s')).optional())
-        .seq(ref('fieldrefs'))
+        .seq(ref(p.fieldrefs))
         .seq(char(';'))
         .trim(trimmer));
-    def('store table',
+    def(p.storeTable,
         _token('STORE')
-        .seq(ref('fieldref'))
+        .seq(ref(p.fieldref))
         .seq(_token('INTO'))
-        .seq(ref('tableOrFilename'))
+        .seq(ref(p.tableOrFilename))
         .seq(char(';'))
         .trim(trimmer).flatten());
     
-    def('selectList',
-        ref('field').or(char('*')).separatedBy(char(',').trim(trimmer), includeSeparators: false));
-    def('field',
-        ref('expression').seq(_token('as')).seq(ref('fieldref'))
-        .or(ref('expression'))
+    def(p.selectList,
+        ref(p.field).or(_word('*')).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.field,
+        ref(p.expression).seq(_token('as')).seq(ref(p.fieldref))
+        .or(ref(p.expression))
         .trim(trimmer).flatten());
-    def('commentWith',
+    def(p.commentWith,
         _word('COMMENT').or(_word('TAG')).or(_word('UNTAG'))
         .seq(_word('FIELD').or(_word('FIELDS')))
-        .seq(ref('fieldrefs'))
+        .seq(ref(p.fieldrefs))
         .seq(_word('WITH'))
-        .seq(ref('string').or(char(';').not().plus()))
+        .seq(ref(p.str).or(char(';').not().plus()))
         .seq(char(';')).trim(trimmer).flatten()
         );
-    def('stringOrNotColon',
-        ref('string')
+    def(p.stringOrNotColon,
+        ref(p.str)
         .or(char(';').neg().plusLazy(char(';')))
         );
-    def('join',
+    def(p.join,
         _token('LEFT').or(_token('RIGHT')).or(_token('INNER')).optional()
         .seq(_token('JOIN').or(_token('KEEP')))
-        .seq(ref('table in parens').optional()));
-    def('preload func',
+        .seq(ref(p.tableInParens).optional()));
+    def(p.preloadFunc,
         _token('Hierarchy')
           .or(_token('HierarchyBelongsTo'))
           .or(_token('IntervalMatch'))
           .or(_token('CrossTable'))
-        .seq(ref('simpleParens'))
+        .seq(ref(p.simpleParens))
         .flatten());
-    def('while clause',
+    def(p.whileClause,
         _token('while')
-        .seq(ref('expression'))
+        .seq(ref(p.expression))
         .flatten());
     
-    def('concatenate',
+    def(p.concatenate,
         _token('concatenate')
-        .seq(ref('table in parens').optional())
+        .seq(ref(p.tableInParens).optional())
         .flatten());
-    def('table in parens',
+    def(p.tableInParens,
         _token('(')
-        .seq(ref('fieldref'))
+        .seq(ref(p.fieldref))
         .seq(_token(')'))
         );
-    def('group by',
+    def(p.groupBy,
         _token('GROUP')
         .seq(_token('BY'))
-        .seq(ref('params'))
+        .seq(ref(p.params))
         );
-    def('order by',
+    def(p.orderBy,
         _token('ORDER')
         .seq(_token('BY'))
-        .seq(ref('fieldrefsOrderBy'))
+        .seq(ref(p.fieldrefsOrderBy))
         );
 
-    def('fieldrefs',
-        ref('fieldref').separatedBy(char(',').trim(trimmer), includeSeparators: false));
-    def('fieldrefsOrderBy',
-        ref('fieldrefOrderBy').separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.fieldrefs,
+        ref(p.fieldref).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.fieldrefsOrderBy,
+        ref(p.fieldrefOrderBy).separatedBy(char(',').trim(trimmer), includeSeparators: false));
 
-    def('fieldrefOrderBy',
-        ref('identifier')
-        .or(ref('fieldrefInBrackets'))
+    def(p.fieldrefOrderBy,
+        ref(p.identifier)
+        .or(ref(p.fieldrefInBrackets))
         .seq(_token('DESC').or(_token('ASC')).optional()));
     
-    def('tableDesignator',
-        ref('tableIdentifier')
-        .or(ref('join'))
-        .or(ref('concatenate')).plus()
+    def(p.tableDesignator,
+        ref(p.tableIdentifier)
+        .or(ref(p.join))
+        .or(ref(p.concatenate)).plus()
         .trim(trimmer)
         );
-    def('tableIdentifier',
-      ref('fieldref').seq(char(':').trim(trimmer))
+    def(p.tableIdentifier,
+      ref(p.fieldref).seq(char(':').trim(trimmer))
     );
-    def('subRoutine',
+    def(p.subRoutine,
         word().or(char('.')).plus().trim(trimmer)
         .seq(char('(').trim(trimmer))
-        .seq(ref('params').optional())
+        .seq(ref(p.params).optional())
         .seq(char(')').trim(trimmer)).flatten());
-    def('params',
-        ref('expression').separatedBy(char(',').trim(trimmer), includeSeparators: false));
-    def('parens',
+    def(p.params,
+        ref(p.expression).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.parens,
         char('(').trim(trimmer)
-            .seq(ref('expression'))
+            .seq(ref(p.expression))
             .seq(char(')').trim(trimmer)).flatten());
-    def('macro',
+    def(p.macro,
         _token(r'$(')
             .seq(word().or(anyIn(r'./\[]=')).plus().trim(trimmer))
             .seq(char(')').trim(trimmer)).flatten());
     
-    def('tableOrFilename',
+    def(p.tableOrFilename,
         word().or(anyIn(r'./\:').or(localLetter())).plus()
-        .or(ref('fieldrefInBrackets'))
-        .or(ref('macro'))
-        .or(ref('string'))
-        .seq(ref('fileModifier').optional())
+        .or(ref(p.fieldrefInBrackets))
+        .or(ref(p.macro))
+        .or(ref(p.str))
+        .seq(ref(p.fileModifier).optional())
         .trim(trimmer));
-//    def('fileName',
+//    def(p.fileName,
 //        );
-    def('whereClause',
+    def(p.whereClause,
         _token('where').or(_token('while')).trim(trimmer)
-        .seq(ref('binaryExpression'))
+        .seq(ref(p.binaryExpression))
         .trim(trimmer));
-    def('assignment',
+    def(p.assignment,
         _token('SET').or(_token('LET')).trim(trimmer)
-        .seq(ref('identifier').or(ref('macro')).trim(trimmer))
+        .seq(ref(p.identifier).or(ref(p.macro)).trim(trimmer))
         .seq(char('=').trim(trimmer))
-        .seq(ref('expression').optional())
-        .seq(char(';')).trim(trimmer)
+        .seq(ref(p.expression).optional())
+        .seq(char(';'))
         );
-    def('call',
-        _token('call').trim(trimmer)
-        .seq(ref('subRoutine').trim(trimmer))
+    def(p.call,
+        _word('call').trim(trimmer)
+        .seq(word().or(char('.')).plus().trim(trimmer))
+                    .seq(char('(').trim(trimmer)
+                    .seq(ref(p.params).plus())
+                    .seq(char(')').trim(trimmer)).optional())
         .seq(char(';')).trim(trimmer).flatten()
         );
-    def('simpleParens',
+    def(p.simpleParens,
         char("(")
         .seq(char(")").neg().star())
         .seq(char(")")).trim(trimmer).flatten());
-    def('macroLine',
-        ref('macro').trim(trimmer)
+    def(p.macroLine,
+        ref(p.macro).trim(trimmer)
         .seq(char(';')).trim(trimmer).flatten());
-    def('fileModifierTokens',
+    def(p.fileModifierTokens,
         _token('embedded labels')
         .or(_token('explicit labels'))
         .or(_token('no')
@@ -262,103 +263,108 @@ class QvsGrammar extends CompositeParser {
                 or(_token('labels')).
                 or(_token('eof'))))
         .or(_token('codepage is')
-            .seq(ref('decimalInteger').plus())
+            .seq(ref(p.decimalInteger).plus())
             .or(_token('unicode'))
             .or(_token('ansi'))
             .or(_token('oem'))
             .or(_token('mac'))
             .or(_token('UTF').seq(char('-').optional().seq(char('8')))))
-        .or(_token('table is').seq(ref('fieldref')))
+        .or(_token('table is').seq(ref(p.fieldref)))
         .or(_token('header').or(_token('record'))
             .seq(_token('is'))
-            .seq(ref('decimalInteger'))
+            .seq(ref(p.decimalInteger))
             .seq(_token('lines')))
-        .or(_token('delimiter is').seq(ref('string')))
+        .or(_token('delimiter is').seq(ref(p.str)))
         .flatten());
-    def('fileModifierElement',
-        ref('fileModifierTokens')
-        .or(ref('expression')));
-    def('fileModifierElements',
-        ref('fileModifierElement').separatedBy(char(',').trim(trimmer), includeSeparators: false));
-    def('fileModifier',
+    def(p.fileModifierElement,
+        ref(p.fileModifierTokens)
+        .or(ref(p.expression)));
+    def(p.fileModifierElements,
+        ref(p.fileModifierElement).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.fileModifier,
         _token('(')
-         .seq(ref('fileModifierElements'))
+         .seq(ref(p.fileModifierElements))
          .seq(_token(')')));
-    def('connect',
+    def(p.connect,
         _token('ODBC').or(_token('OLEDB')).or(_token('CUSTOM')).optional()
         .seq(_token('CONNECT'))
         .seq(_token('TO'))
-        .seq(ref('string').trim(trimmer))
-        .seq(ref('simpleParens').optional())
+        .seq(ref(p.str).trim(trimmer))
+        .seq(ref(p.simpleParens).optional())
         .flatten()
         );
-    def('controlStatement',
-        ref('subStart')
-        .or(ref('exit script'))
-        .or(ref('forNextStart'))
-        .or(ref('forEachStart'))
-        .or(ref('ifStart'))
+    def(p.controlStatement,
+        ref(p.subStart)
+        .or(ref(p.exitScript))
+        .or(ref(p.forNextStart))
+        .or(ref(p.forEachStart))
+        .or(ref(p.ifStart))
         .or(_token('ELSE'))
-        .or(ref('controlStatementFinish')));
-    def('controlStatementFinish',
+        .or(ref(p.controlStatementFinish)));
+    def(p.controlStatementFinish,
         _token('END')
           .seq(_token('SUB').or(_token('IF')))
         .or(_token('NEXT')
-          .seq(ref('identifier').optional()))
+          .seq(ref(p.identifier).optional()))
         .seq(_token(';').optional()));
-    def('subStart',
+    def(p.subStart,
         _token('SUB')
-        .seq(ref('identifier').or(ref('function')))
+        .seq(ref(p.identifier).or(ref(p.function)))
         .seq(_token(';').optional()));
-    def('exit script',
+    def(p.exitScript,
     _token('exit')
     .seq(_token('script'))
     .seq(_token(';').optional()));
 
-    def('forNextStart',
+    def(p.forNextStart,
         _token('FOR')
-        .seq(ref('expression'))
+        .seq(ref(p.expression))
         .seq(_token('to'))
-        .seq(ref('expression'))
+        .seq(ref(p.expression))
         .seq(_token(';').optional()));
-    def('ifStart',
+    def(p.ifStart,
         _token('IF').or(_token('ELSEIF'))
-        .seq(ref('expression'))
+        .seq(ref(p.expression))
         .seq(_token('THEN'))
         .seq(_token(';').optional()));
-    def('forEachStart',
+    def(p.forEachStart,
         _token('FOR')
         .seq(_token('each'))
-        .seq(ref('expression'))
+        .seq(ref(p.expression))
         .seq(_token('each'))
-        .seq(ref('expression'))
+        .seq(ref(p.expression))
         .seq(_token(';').optional()));
-    def('qualify',
+    def(p.qualify,
         _token('UNQUALIFY').or(_token('QUALIFY'))
-        .seq(ref('fieldrefOrStringList'))
+        .seq(ref(p.fieldrefOrStringList))
         .seq(_token(';')).flatten());
     
-    def('fieldrefOrStringList',
-        ref('fieldrefOrString').separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.fieldrefOrStringList,
+        ref(p.fieldrefOrString).separatedBy(char(',').trim(trimmer), includeSeparators: false));
 
-    def('fieldrefOrString',
-        ref('identifier')
-        .or(ref('fieldrefInBrackets'))
-        .or(ref('string')));
-    def('fieldrefAs',
-      ref('fieldref')
+    def(p.fieldrefOrString,
+        ref(p.identifier)
+        .or(ref(p.fieldrefInBrackets))
+        .or(ref(p.str)));
+    def(p.fieldrefAs,
+      ref(p.fieldref)
       .seq(_token('as')).
-      seq(ref('fieldref')));
-    def('fieldrefsAs',
-      ref('fieldrefAs').separatedBy(char(',').trim(trimmer), includeSeparators: false));
-    def('alias',
+      seq(ref(p.fieldref)));
+    def(p.fieldrefsAs,
+      ref(p.fieldrefAs).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.alias,
       _token('ALIAS')
-      .seq(ref('fieldrefsAs'))
+      .seq(ref(p.fieldrefsAs))
       .seq(_token(';')));
-    def('binaryStatement',
+    def(p.binaryStatement,
     _token('binary')
-    .seq(ref('tableOrFilename'))
+    .seq(ref(p.tableOrFilename))
     .seq(_token(';')));
+   def(p.trace,
+     _word('TRACE')
+     .seq(char(';').neg().plus())
+     .seq(char(';'))
+   );
 
   }
   
@@ -366,45 +372,45 @@ class QvsGrammar extends CompositeParser {
   /** Defines the whitespace and comments. */
   void _whitespace() {
     
-    def('whitespace', whitespace()
-      .or(ref('singe line comment'))
-      .or(ref('multi line comment')));
-    def('singe line comment', string('//')
+    def(p.whitespace, whitespace()
+      .or(ref(p.singeLineComment))
+      .or(ref(p.multiLineComment)));
+    def(p.singeLineComment, string('//')
       .seq(Token.newlineParser().neg().star()));
-    def('multi line comment', string('/*')
+    def(p.multiLineComment, string('/*')
       .seq(string('*/').neg().star())
       .seq(string('*/')));
   }
  
   _expression() {
-    def('expression',
-        ref('binaryExpression').trim(trimmer)
+    def(p.expression,
+        ref(p.binaryExpression).trim(trimmer)
         );   
-    def('primaryExpression',
-        ref('string')
-        .or(ref('unaryExpression'))
-        .or(ref('function'))
-        .or(ref('number'))
-        .or(ref('fieldref'))
-        .or(ref('macro'))
-        .or(ref('parens')));
-    def('binaryExpression', ref('primaryExpression')
-        .seq(ref('binaryPart').star()).trim(trimmer).flatten());
-    def('binaryPart', ref('binaryOperator')
-        .seq(ref('primaryExpression')));
-    def('fieldref',
-          _token(ref('identifier')
-          .or(ref('macro'))
-          .or(ref('fieldrefInBrackets'))));
-    def('identifier',letter().or(char('_').or(char('@')).or(localLetter()))
+    def(p.primaryExpression,
+        ref(p.str)
+        .or(ref(p.unaryExpression))
+        .or(ref(p.function))
+        .or(ref(p.number))
+        .or(ref(p.fieldref))
+        .or(ref(p.macro))
+        .or(ref(p.parens)));
+    def(p.binaryExpression, ref(p.primaryExpression)
+        .seq(ref(p.binaryPart).star()).trim(trimmer).flatten());
+    def(p.binaryPart, ref(p.binaryOperator)
+        .seq(ref(p.primaryExpression)));
+    def(p.fieldref,
+          _token(ref(p.identifier)
+          .or(ref(p.macro))
+          .or(ref(p.fieldrefInBrackets))));
+    def(p.identifier,letter().or(char('_').or(char('@')).or(localLetter()))
         .seq(word().or(char('.')).or(char('_')).or(localLetter()).plus())
         .or(letter())
         .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(trimmer));
-    def('fieldrefInBrackets', _token('[')
+    def(p.fieldrefInBrackets, _token('[')
         .seq(_token(']').neg().plus())
         .seq(_token(']')).trim(trimmer).flatten());
-    def('string',
+    def(p.str,
             char("'")
               .seq(char("'").neg().star())
               .seq(char("'"))
@@ -412,21 +418,21 @@ class QvsGrammar extends CompositeParser {
                 .seq(char('"').neg().star())
                 .seq(char('"'))).flatten());
    
-    def('constant',
-        ref('number').or(ref('string')));
-    def('function',
+    def(p.constant,
+        ref(p.number).or(ref(p.str)));
+    def(p.function,
         letter()
         .seq(word().or(char('.')).plus())
         .seq(char('#').optional())
         .trim(trimmer)
         .seq(char('(').trim(trimmer))
-        .seq(ref('params').optional())
+        .seq(ref(p.params).optional())
         .seq(char(')').trim(trimmer)).flatten());
-    def('unaryExpression',
+    def(p.unaryExpression,
         _word('NOT').or(_token('-').or(_word('DISTINCT'))).trim(trimmer)
-            .seq(ref('expression'))
+            .seq(ref(p.expression))
             .trim(trimmer).flatten());
-    def('binaryOperator',
+    def(p.binaryOperator,
         _word('and')
         .or(_word('or'))
         .or(_word('xor'))
@@ -453,45 +459,53 @@ class QvsGrammar extends CompositeParser {
     var parser = input is Parser ? input :
         input.length == 1 ? char(input) :
         stringIgnoreCase(input);
-    return parser.seq(whitespace()).trim(trimmer);
+    return parser.seq(ref(p.whitespace)).trim(trimmer);
   }
  
   
   void _number() {
     // Implementation borrowed from Smalltalk parser
-    def('number', char('-').optional()
-        .seq(ref('positiveNumber')).flatten());
-    def('positiveNumber', ref('scaledDecimal')
-        .or(ref('float'))
-        .or(ref('integer')));
+    def(p.number, char('-').optional()
+        .seq(ref(p.positiveNumber)).flatten());
+    def(p.positiveNumber, ref(p.scaledDecimal)
+        .or(ref(p.float))
+        .or(ref(p.integer)));
 
-    def('integer', ref('radixInteger')
-        .or(ref('decimalInteger')));
-    def('decimalInteger', ref('digits'));
-    def('digits', digit().plus());
-    def('radixInteger', ref('radixSpecifier')
+    def(p.integer, ref(p.radixInteger)
+        .or(ref(p.decimalInteger)));
+    def(p.decimalInteger, ref(p.digits));
+    def(p.digits, digit().plus());
+    def(p.radixInteger, ref(p.radixSpecifier)
         .seq(char('r'))
-        .seq(ref('radixDigits')));
-    def('radixSpecifier', ref('digits'));
-    def('radixDigits', pattern('0-9A-Z').plus());
+        .seq(ref(p.radixDigits)));
+    def(p.radixSpecifier, ref(p.digits));
+    def(p.radixDigits, pattern('0-9A-Z').plus());
 
-    def('float', ref('mantissa')
-        .seq(ref('exponentLetter')
-            .seq(ref('exponent'))
+    def(P.float, ref(p.mantissa)
+        .seq(ref(p.exponentLetter)
+            .seq(ref(p.exponent))
             .optional()));
-    def('mantissa', ref('digits')
+    def(P.mantissa, ref(p.digits)
         .seq(char('.'))
-        .seq(ref('digits')));
-    def('exponent', char('-')
-        .seq(ref('decimalInteger')));
-    def('exponentLetter', pattern('edq'));
+        .seq(ref(p.digits)));
+    def(p.exponent, char('-')
+        .seq(ref(p.decimalInteger)));
+    def(p.exponentLetter, pattern('edq'));
 
-    def('scaledDecimal', ref('scaledMantissa')
+    def(p.scaledDecimal, ref(p.scaledMantissa)
         .seq(char('s'))
-        .seq(ref('fractionalDigits').optional()));
-    def('scaledMantissa', ref('decimalInteger')
-        .or(ref('mantissa')));
-    def('fractionalDigits', ref('decimalInteger'));
+        .seq(ref(p.fractionalDigits).optional()));
+    def(p.scaledMantissa, ref(p.decimalInteger)
+        .or(ref(p.mantissa)));
+    def(p.fractionalDigits, ref(p.decimalInteger));
   }
 
 }
+
+class P {
+  static const String mantissa = 'mantissa';
+  static const String float = 'float';
+
+}
+
+const String qualify = 'qualify';

@@ -1,7 +1,9 @@
 library qvs_parser;
 import 'package:petitparser/petitparser.dart';
 import 'dart:io';
+import 'productions.dart' as p;
 part 'grammar.dart';
+
 
 class QvsParser extends QvsGrammar {
   static final Set<String> tables = new Set<String>();

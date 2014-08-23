@@ -81,6 +81,7 @@ void main() {
     var reader = newReader();
     reader.readFile('files/file_with_include.qvs');
     expect(reader.hasErrors, isFalse);
+    print(reader.entries);
     expect(reader.entries.length, 4);
     expect(reader.entries[0].sourceFileName,endsWith('file_with_include.qvs'));
     expect(reader.entries[2].sourceFileName,endsWith('file_included.qvs'));
@@ -185,7 +186,7 @@ void main() {
     expect(reader.data.variables['vL.var1'], "Abc");
   });
 
-  solo_test('Test variable creation and expansion (String quoted)', () {
+  test('Test variable creation and expansion (String quoted)', () {
     var reader = newReader();
     var code = r'''
       LET vL.var1 = 'Abc';
@@ -195,6 +196,57 @@ void main() {
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 2);
     expect(reader.entries[1].expandedText.trim(), 'TRACE AbcAbc;');
+  });
+
+  test('Test error for unclosed subroutine declaration', () {
+    var reader = newReader();
+    var code = r'''
+      SUB test
+        TRACE 1
+      END SUB
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 2);
+    expect(reader.hasErrors, isTrue,reason: 'Script shoud have error abour unclosed subroutine declaration');
+  });
+  test('Test skip parsing in subroutine declaration', () {
+    var reader = newReader();
+    var code = r'''
+      SUB test
+        TRACE 1;
+      END SUB
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 3);
+    expect(reader.hasErrors, isFalse);
+    expect(reader.entries[1].parsed,isFalse);
+    expect(reader.entries[0].parsed,isTrue);
+    expect(reader.entries[2].parsed,isFalse);
+  });
+ 
+  test('Test simple parse error', () {
+    var reader = newReader();
+    var code = r'''
+       TRACE asdf; string with single quote;
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 1);
+    expect(reader.hasErrors, isTrue);
+  });
+
+  skip_test('Test simple subroutine call', () {
+    var reader = newReader();
+    var code = r'''
+SUB dummy
+  LET x =  1;
+END SUB
+CALL dummy;
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 4);
+    expect(reader.hasErrors, isFalse);
+    expect(reader.entries[1].expandedText.trim(),'LET x =  1;');
+    expect(reader.entries[1].parsed, isTrue);
   });
 
   

@@ -5,6 +5,8 @@ import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
 import 'parser.dart';
 
+
+QvsFileReader newReader() => new QvsFileReader(new QvsReaderData());
 class QvsCommandEntry {
   String sourceFileName;
   int sourceLineNum;
@@ -12,6 +14,8 @@ class QvsCommandEntry {
   String sourceText;
   String expandedText;
   QvsCommandType commandType;
+  bool parsed = false;
+  bool hasError = false;
   //QvsCommandEntry(this.sourceFileName,this.sourceLineNum, this.internalLineNum, this.sourceText, this.expandedText);
   String toString() => 'QvsCommandEntry($sourceFileName,sourceLineNum=$sourceLineNum, internalLineNum=$internalLineNum,$sourceText)'; 
 }
@@ -28,6 +32,7 @@ class QvsReaderData {
   String rootFile;
   final List<QvsErrorDescriptor> errors = [];
   final Map<String, String> variables = {};
+  String inSubDeclaration = '';
 }
 class QvsLineType {
   final int _val;
@@ -47,14 +52,15 @@ class QvsCommandType {
   static const SUB_DECLARATION = const QvsCommandType._internal(5);
 }
 
-
-QvsFileReader newReader() => new QvsFileReader(new QvsReaderData()); 
+ 
 class QvsFileReader {
+  static final grammar = new QvsGrammar();
   static final commandTerminationPattern = new RegExp(r'^.*;\s*$');
   static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;\s*$'); 
   static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;\s*$'); 
   static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]+)\s*=',caseSensitive: false); 
   static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9]+)',caseSensitive: false);
+  static final endSubroutinePattern = new RegExp(r'^\s*END\s+SUB\s*;?\s*$',caseSensitive: false);
   static final variablePattern = new RegExp(r'\$\((\w[A-Za-z.0-9]+)\)');
   static final controlStructurePatterns = [
     new RegExp(r'^\s*IF.*THEN\s*$',caseSensitive: false),                                     
@@ -62,16 +68,22 @@ class QvsFileReader {
     new RegExp(r'^\s*ELSE\s*$',caseSensitive: false),                                     
     new RegExp(r'^\s*END\s?IF\s*$',caseSensitive: false),
     new RegExp(r'^\s*END\s?SUB\s*$',caseSensitive: false),
-    startSubroutinePattern
+    startSubroutinePattern,
+    endSubroutinePattern
     ];
   String sourceFileName;
+  bool skipParse = false;
   final QvsReaderData data;
   QvsFileReader(this.data); 
   List<QvsCommandEntry> get entries => data.entries; 
   Map<String, int> get subMap => data.subMap; 
+  List<QvsErrorDescriptor> get errors => data.errors; 
   String toString() => 'QvsReader(${data.entries})';
   bool get hasErrors => data.errors.isNotEmpty;
-  QvsFileReader createNestedReader() => new QvsFileReader(data);
+  void addError(QvsCommandEntry entry, String message) {
+    data.errors.add(new QvsErrorDescriptor(entry, message));  
+  } 
+  QvsFileReader createNestedReader() => new QvsFileReader(data)..skipParse = skipParse;
   
   void readFile(String fileName, [String fileContent = null, QvsCommandEntry entry = null]) {
     List<String> lines = [];
@@ -87,7 +99,7 @@ class QvsFileReader {
     } else {
       if (! new File(sourceFileName).existsSync()) {
         if (entry != null && entry.commandType == QvsCommandType.MUST_INCLUDE) {
-          data.errors.add(new QvsErrorDescriptor(null,'File not found: $sourceFileName'));
+          addError(entry,'File not found: $sourceFileName');
         }  
       } else {
         lines = new File(sourceFileName).readAsLinesSync();
@@ -100,12 +112,14 @@ class QvsFileReader {
     int lineCounter = 0;
     int sourceLineNum = 1;
     String command = '';
+    List<String> commandLines = [];
     for (var line in lines) {
-      command = line + command;
+      commandLines.add(line);
       lineCounter++;
       QvsLineType lineType = testLineType(line);
       if (lineType != QvsLineType.SIMPLE_LINE) {
         data.internalLineNum++;
+        command = commandLines.join('\n');
         var entry = new QvsCommandEntry()
         ..sourceFileName = sourceFileName
         ..sourceLineNum = sourceLineNum
@@ -114,7 +128,11 @@ class QvsFileReader {
         addCommand(entry);
         sourceLineNum = lineCounter + 1;
         command = '';
+        commandLines = [];
       }
+    }
+    if (data.inSubDeclaration != '') {
+      addError(data.entries.last,'SUB ${data.inSubDeclaration} has not been closed propery');
     }
   }
 
@@ -127,7 +145,7 @@ class QvsFileReader {
       if (data.variables.containsKey(varName)) {
         varValue = data.variables[varName];
       } else {
-        data.errors.add(new QvsErrorDescriptor(entry,'Variable $varName not defined'));
+        addError(entry,'Variable $varName not defined');
       }
       entry.expandedText = entry.expandedText.replaceAll('\$($varName)',varValue);
       m = variablePattern.firstMatch(entry.expandedText);
@@ -149,9 +167,9 @@ class QvsFileReader {
     }
     data.variables[varName] = varValue;
   }
-  void addCommand(QvsCommandEntry entry) {
+  void processEntry(QvsCommandEntry entry) {
     expandCommand(entry);
-    data.entries.add(entry);
+    parseCommand(entry);  
     processSetVariableCommand(entry);
     var m = mustIncludePattern.firstMatch(entry.expandedText);
     if (m != null) {
@@ -165,14 +183,44 @@ class QvsFileReader {
         createNestedReader().readFile(m.group(1),null,entry);
       }
     }
+  }
+  void addCommand(QvsCommandEntry entry) {
+    data.entries.add(entry);
+    if (data.inSubDeclaration == '') {
+      processEntry(entry);
+    }
+    var m = startSubroutinePattern.firstMatch(entry.sourceText);
+    if (m != null) {
+      entry.commandType = QvsCommandType.SUB_DECLARATION;
+      String debug = m.group(1).trim();
+      subMap[m.group(1)] = entry.internalLineNum;
+      data.inSubDeclaration = m.group(1);
+    }
     if (m == null) {
-      m = startSubroutinePattern.firstMatch(entry.expandedText);
+      m = endSubroutinePattern.firstMatch(entry.sourceText);
       if (m != null) {
-        entry.commandType = QvsCommandType.SUB_DECLARATION;
-        String debug = m.group(1);
-        subMap[m.group(1)] = entry.internalLineNum;
+        data.inSubDeclaration = '';
       }
-      
+    }
+  }
+  void parseCommand(QvsCommandEntry entry) {
+    Result res = grammar.ref('command').end().parse(entry.expandedText);
+    entry.parsed = true;
+    if (res.isFailure) {
+      int maxPosition = -1;
+      int row;
+      var rowAndCol;
+      String message;
+      for (Parser p in new QvsGrammar().ref('command').children) {
+        res = p.end().parse(entry.expandedText);
+        if (maxPosition < res.position) {
+          maxPosition = res.position;
+          rowAndCol = Token.lineAndColumnOf(entry.expandedText, res.position);
+          row = entry.sourceLineNum + rowAndCol[0] - 1;
+          message = 'Parse error. File: ${entry.sourceFileName} row: $row col: ${rowAndCol[1]} message: ${res.message}';
+        }
+      }  
+      addError(entry,message);
     }
   }
   QvsLineType testLineType(line) {

@@ -1,6 +1,7 @@
 library simple_tests;
 
 import 'package:qvs_parser/src/parser.dart';
+import 'package:qvs_parser/src/productions.dart' as p;
 import 'package:unittest/unittest.dart';
 import 'package:petitparser/petitparser.dart';
 
@@ -43,11 +44,11 @@ void main() {
     return shouldFail('~КодНоменклатуры', 'identifier');
   });
   test('testDropTable1',() {
-    shouldPass('DROP TABLES WeeklySales;', 'drop table');    
+    shouldPass('DROP TABLES WeeklySales;', 'dropTable');    
   });
   
   test('testDropTable2',() {
-    shouldPass('DROP TABLE WeeklySales, InventTableDepartment, WeeklyZeroSales;', 'drop table');    
+    shouldPass('DROP TABLE WeeklySales, InventTableDepartment, WeeklyZeroSales;', 'dropTable');    
   });
   test('tableOrFilename1', () {
     shouldPass('[..\Data\Source\план по подгруппам магазинам и каналам сбыта.xls]','tableOrFilename');   
@@ -228,14 +229,20 @@ LOAD *
 //   shouldPass(str,'commentWith');
 //   print(_parse(str,'stringOrNotColon').value);
  });
+
+ test('fieldrefs',() {
+   var str = r'Dim1 ';
+   shouldPass(str,p.fieldrefs);
+   str = r'Dim1, [Dim2] ';
+   shouldPass(str,p.fieldrefs);
+   
+ });
+
  test('Tag FIELD/TABLE WITH',() {
    var str = r'Tag Field Dim1 With "$date";';
-   shouldPass(str,'commentWith');
+   shouldPass(str,p.commentWith);
    str = r'Tag Fields Dim1 With "$date";';
-   shouldPass(str,'commentWith');
-   
-//   shouldPass(str,'commentWith');
-//   print(_parse(str,'stringOrNotColon').value);
+   shouldPass(str,p.commentWith);
  });
  skip_test('HierarchyBelongsTo', () {
    var str = '''
@@ -251,12 +258,36 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
    shouldPass(str,'load');
  });
 
- solo_test('variable assignment (LET) ',() {
+ test('variable assignment (LET) ',() {
    var str = r'    LET vL.Match= -1  ;';
-   //shouldPass(str,'assignment');
-   var parser = new ActionParser(qvs['assignment'],(v) => print);
-   parser.parse(str); 
+   shouldPass(str,'assignment');
  });
 
+ test('Test trace ',() {
+   var str = r"TRACE string ABRAKADABRA;";
+   shouldPass(str,p.start);
+ });
+ 
+ test('Test sub without param declaration ',() {
+   var str = r"SUB dummy";
+   shouldPass(str,p.start);
+ });
+ test('Test sub with param declaration ',() {
+   var str = r"SUB dummy(p1, fieldName, table);";
+   shouldPass(str,p.start);
+ });
+ test('Call sub with param',() {
+   var str = r"call dummy(p1, fieldName, table);";
+   shouldPass(str,p.start);
+ });
+ test('Call sub without param',() {
+   var str = r"call dummy;";
+   shouldPass(str,p.call);
+ });
+ test('Call sub without param with parens',() {
+   var str = r"call dummy();";
+   shouldFail(str,p.call);
+ });
+ 
  
 }
