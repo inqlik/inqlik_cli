@@ -81,7 +81,6 @@ void main() {
     var reader = newReader();
     reader.readFile('files/file_with_include.qvs');
     expect(reader.hasErrors, isFalse);
-    print(reader.entries);
     expect(reader.entries.length, 4);
     expect(reader.entries[0].sourceFileName,endsWith('file_with_include.qvs'));
     expect(reader.entries[2].sourceFileName,endsWith('file_included.qvs'));
@@ -120,7 +119,7 @@ void main() {
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 5);
     expect(reader.subMap.containsKey('test'),isTrue);
-    expect(reader.subMap['test'], 2);
+    expect(reader.subMap['test'], 1);
   });
 
   test('Test with subroutine with dotted name', () {
@@ -136,7 +135,7 @@ void main() {
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 5);
     expect(reader.subMap.containsKey('myLib.test'),isTrue);
-    expect(reader.subMap['myLib.test'], 2);
+    expect(reader.subMap['myLib.test'], 1);
   });
 
   test('Test simplest expansion', () {
@@ -264,9 +263,6 @@ CALL dummy;
     ''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse);
-//    print(reader.subMap);
-//    print(reader.data.variables);
-//    print(reader.entries);
     expect(reader.entries.length, 8);
     expect(reader.data.variables.length,2);
   });
@@ -277,12 +273,11 @@ CALL dummy;
 CALL dummy('y');
     ''';  
     reader.readFile('test.qvs',code);
-    print(reader.errors);
     expect(reader.hasErrors, isTrue);
   });
 
   
-  solo_test('Test subroutine with parameter call (parameter use)', () {
+  test('Test subroutine with parameter call (parameter use)', () {
     var reader = newReader();
     var code = r'''
 SUB dummy (param1)
@@ -292,13 +287,47 @@ CALL dummy('y');
     ''';  
     reader.readFile('test.qvs',code);
     expect(reader.entries.length, 4);
-    print(reader.errors);
     expect(reader.hasErrors, isFalse);
     expect(reader.entries[1].expandedText.trim(),"LET x =  'y';");
     expect(reader.entries[1].parsed, isTrue);
     expect(reader.data.variables.length,1);
     expect(reader.data.variables['x'],'y');
   });
+  
+  test('Test read file with default_include.qvs in directory', () {
+    var reader = newReader();
+    reader.readFile(r'files1\test.qvs');
+    expect(reader.entries.length, 2);
+    expect(reader.hasErrors, isFalse);
+    expect(reader.data.variables.containsKey('x'), isTrue);
+    expect(reader.entries[1].expandedText.trim(),"TRACE 1;");
+  });
+
+  test('Test variable clearing', () {
+    var reader = newReader();
+    var code = r'''
+      SET var1 = ;
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.data.variables.containsKey('var1'), isTrue);
+    expect(reader.data.variables['var1'], '');
+  });
+
+  test('Supress expansion in one-line commented blocks ', () {
+    var reader = newReader();
+    var code = r'''
+      // TRACE $(x);
+      SET var1 = ;
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 2);
+    expect(reader.data.variables.containsKey('var1'), isTrue);
+    expect(reader.data.variables['var1'], '');
+  });
+
   
   
 }

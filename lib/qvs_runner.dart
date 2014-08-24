@@ -1,7 +1,11 @@
 library qvs_runner;
-import 'src/parser.dart';
+import 'src/qvs_reader.dart';
 
 
-void run(String fileName, bool forceReload, String executable) {
-  parseFile(fileName, forceReload, executable);
+void run(String fileName) {
+  QvsFileReader reader = newReader()..readFile(fileName);
+  for (var error in reader.errors) {
+    print(error.errorMessage);
+  }
+  print('Finished.');
 }

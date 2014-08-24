@@ -35,20 +35,21 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.storeTable)) 
         .or(ref(p.commentWith))
         .or(ref(p.trace))
+        .or(ref(p.doWhile))
         .or(ref(p.assignment)));
     def(p.renameTable,
-        _token('RENAME')
-        .seq(_token('TABLE'))
+        _keyword('RENAME')
+        .seq(_keyword('TABLE'))
         .seq(ref(p.fieldref))
-        .seq(_token('TO'))
+        .seq(_keyword('TO'))
         .seq(ref(p.fieldref))
         .seq(char(';'))
         .trim(trimmer));
     def(p.renameField,
-        _token('RENAME')
-        .seq(_token('FIELD'))
+        _keyword('RENAME')
+        .seq(_keyword('FIELD'))
         .seq(ref(p.fieldref))
-        .seq(_token('TO'))
+        .seq(_keyword('TO'))
         .seq(ref(p.fieldref))
         .seq(char(';'))
         .trim(trimmer).flatten());
@@ -56,85 +57,87 @@ class QvsGrammar extends CompositeParser {
     def(p.load,
         ref(p.tableDesignator).optional()
         .seq(ref(p.loadPerfix).star())
-        .seq(_token('MAPPING').optional())
+        .seq(_keyword('MAPPING').optional())
         .seq(ref(p.precedingLoad).star())
         .seq(ref(p.preloadFunc).optional())
-        .seq(_token('LOAD').or(_token('SELECT')))
+        .seq(_keyword('LOAD').or(_keyword('SELECT')))
         .seq(ref(p.selectList).trim(trimmer))
         .seq(ref(p.loadSource).trim(trimmer))
         .seq(char(';'))
           .trim(trimmer));
     def(p.precedingLoad,
-        _token('LOAD')
+        _keyword('LOAD')
         .seq(ref(p.selectList).trim(trimmer))
         .seq(char(';'))
           .trim(trimmer).flatten());
     def(p.loadPerfix,
-      _token('NOCONCATENATE')
+      _keyword('NOCONCATENATE')
       .or(_word('BUFFER').seq(ref(p.bufferModifier).optional()))
       .or(_word('BUNDLE').seq(_word('INFO').optional()))
       .or(_word('ADD').seq(_word('ONLY').optional())));
     def(p.bufferModifier,
-        _token('(')
+        _keyword('(')
         .seq(
-          _token('INCREMENTAL')
+          _keyword('INCREMENTAL')
           .or(
-              _token('STALE')
-              .seq(_token('AFTER').optional())
+              _keyword('STALE')
+              .seq(_keyword('AFTER').optional())
               .seq(ref(p.number))
-              .seq(_token('DAYS').or(_token('HOURS')).optional())))
-        .seq(_token(')')));
+              .seq(_keyword('DAYS').or(_keyword('HOURS')).optional())))
+        .seq(_keyword(')')));
     def(p.loadSource,
         ref(p.loadSourceAutogenerate)
         .or(ref(p.loadSourceInline))
         .or(ref(p.loadSourceStandart)));
     def(p.loadSourceStandart,
-        _token('RESIDENT').or(_token('FROM'))
+        _keyword('RESIDENT').or(_keyword('FROM'))
         .seq(ref(p.tableOrFilename))
         .seq(ref(p.whereClause).optional())
         .seq(ref(p.groupBy).optional())
         .seq(ref(p.orderBy).optional())
         );
     def(p.loadSourceInline,
-          _token('INLINE')
-          .seq(_token('['))
-          .seq(_token(']').neg().plus())
-          .seq(_token(']')));
+          _keyword('INLINE')
+          .seq(_keyword('['))
+          .seq(_keyword(']').neg().plus())
+          .seq(_keyword(']')));
     def(p.loadSourceAutogenerate,
-        _token('autogenerate')
+        _keyword('autogenerate')
         .seq(ref(p.expression))
         .seq(ref(p.whereClause).optional())
         .seq(ref(p.whileClause).optional()));
     def(p.from,
-        _token('FROM')
+        _keyword('FROM')
         .seq(ref(p.fieldref)));
     def(p.dropFields,
-        _token('DROP')
-        .seq(_token('FIELD'))
-        .seq(_token('S').optional())
+        _keyword('DROP')
+        .seq(_keyword('FIELD'))
+        .seq(_keyword('S').optional())
         .seq(ref(p.fieldrefs))
         .seq(ref(p.from).optional())
         .seq(char(';'))
         .trim(trimmer).flatten());
     def(p.dropTable,
-        _token('DROP')
-        .seq(_token('TABLE'))
-        .seq(_token('S').or(_token('s')).optional())
+        _keyword('DROP')
+        .seq(_keyword('TABLE'))
+        .seq(_keyword('S').or(_keyword('s')).optional())
         .seq(ref(p.fieldrefs))
         .seq(char(';'))
         .trim(trimmer));
     def(p.storeTable,
-        _token('STORE')
+        _keyword('STORE')
         .seq(ref(p.fieldref))
-        .seq(_token('INTO'))
+        .seq(_keyword('INTO'))
         .seq(ref(p.tableOrFilename))
         .seq(char(';'))
         .trim(trimmer).flatten());
     
     def(p.selectList,
-        ref(p.field).or(_word('*')).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+        ref(p.field).or(_keyword('*')).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.trimFromStart,
+        trim(trimmer));
     def(p.field,
-        ref(p.expression).seq(_token('as')).seq(ref(p.fieldref))
+        ref(p.expression).seq(_keyword('as')).seq(ref(p.fieldref))
         .or(ref(p.expression))
         .trim(trimmer).flatten());
     def(p.commentWith,
@@ -145,43 +148,49 @@ class QvsGrammar extends CompositeParser {
         .seq(ref(p.str).or(char(';').not().plus()))
         .seq(char(';')).trim(trimmer).flatten()
         );
+    def(p.doWhile,
+        _word('DO')
+        .seq(_word('WHILE').or(_word('UNTIL')))
+        .seq(ref(p.expression))
+        .seq(char(';').optional()).trim(trimmer).flatten()
+        );
     def(p.stringOrNotColon,
         ref(p.str)
         .or(char(';').neg().plusLazy(char(';')))
         );
     def(p.join,
-        _token('LEFT').or(_token('RIGHT')).or(_token('INNER')).optional()
-        .seq(_token('JOIN').or(_token('KEEP')))
+        _keyword('LEFT').or(_keyword('RIGHT')).or(_keyword('INNER')).optional()
+        .seq(_keyword('JOIN').or(_keyword('KEEP')))
         .seq(ref(p.tableInParens).optional()));
     def(p.preloadFunc,
-        _token('Hierarchy')
-          .or(_token('HierarchyBelongsTo'))
-          .or(_token('IntervalMatch'))
-          .or(_token('CrossTable'))
+        _keyword('Hierarchy')
+          .or(_keyword('HierarchyBelongsTo'))
+          .or(_keyword('IntervalMatch'))
+          .or(_keyword('CrossTable'))
         .seq(ref(p.simpleParens))
         .flatten());
     def(p.whileClause,
-        _token('while')
+        _keyword('while')
         .seq(ref(p.expression))
         .flatten());
     
     def(p.concatenate,
-        _token('concatenate')
+        _keyword('concatenate')
         .seq(ref(p.tableInParens).optional())
         .flatten());
     def(p.tableInParens,
-        _token('(')
+        _keyword('(')
         .seq(ref(p.fieldref))
-        .seq(_token(')'))
+        .seq(_keyword(')'))
         );
     def(p.groupBy,
-        _token('GROUP')
-        .seq(_token('BY'))
+        _keyword('GROUP')
+        .seq(_keyword('BY'))
         .seq(ref(p.params))
         );
     def(p.orderBy,
-        _token('ORDER')
-        .seq(_token('BY'))
+        _keyword('ORDER')
+        .seq(_keyword('BY'))
         .seq(ref(p.fieldrefsOrderBy))
         );
 
@@ -193,7 +202,7 @@ class QvsGrammar extends CompositeParser {
     def(p.fieldrefOrderBy,
         ref(p.identifier)
         .or(ref(p.fieldrefInBrackets))
-        .seq(_token('DESC').or(_token('ASC')).optional()));
+        .seq(_keyword('DESC').or(_keyword('ASC')).optional()));
     
     def(p.tableDesignator,
         ref(p.tableIdentifier)
@@ -216,7 +225,7 @@ class QvsGrammar extends CompositeParser {
             .seq(ref(p.expression))
             .seq(char(')').trim(trimmer)).flatten());
     def(p.macro,
-        _token(r'$(')
+        _keyword(r'$(')
             .seq(word().or(anyIn(r'./\[]=')).plus().trim(trimmer))
             .seq(char(')').trim(trimmer)).flatten());
     
@@ -230,11 +239,11 @@ class QvsGrammar extends CompositeParser {
 //    def(p.fileName,
 //        );
     def(p.whereClause,
-        _token('where').or(_token('while')).trim(trimmer)
+        _keyword('where').or(_keyword('while')).trim(trimmer)
         .seq(ref(p.binaryExpression))
         .trim(trimmer));
     def(p.assignment,
-        _token('SET').or(_token('LET')).trim(trimmer)
+        _keyword('SET').or(_keyword('LET')).trim(trimmer)
         .seq(ref(p.identifier).or(ref(p.macro)).trim(trimmer))
         .seq(char('=').trim(trimmer))
         .seq(ref(p.expression).optional())
@@ -256,25 +265,25 @@ class QvsGrammar extends CompositeParser {
         ref(p.macro).trim(trimmer)
         .seq(char(';')).trim(trimmer).flatten());
     def(p.fileModifierTokens,
-        _token('embedded labels')
-        .or(_token('explicit labels'))
-        .or(_token('no')
-            .seq(_token('quotes').
-                or(_token('labels')).
-                or(_token('eof'))))
-        .or(_token('codepage is')
+        _keyword('embedded labels')
+        .or(_keyword('explicit labels'))
+        .or(_keyword('no')
+            .seq(_keyword('quotes').
+                or(_keyword('labels')).
+                or(_keyword('eof'))))
+        .or(_keyword('codepage is')
             .seq(ref(p.decimalInteger).plus())
-            .or(_token('unicode'))
-            .or(_token('ansi'))
-            .or(_token('oem'))
-            .or(_token('mac'))
-            .or(_token('UTF').seq(char('-').optional().seq(char('8')))))
-        .or(_token('table is').seq(ref(p.fieldref)))
-        .or(_token('header').or(_token('record'))
-            .seq(_token('is'))
+            .or(_keyword('unicode'))
+            .or(_keyword('ansi'))
+            .or(_keyword('oem'))
+            .or(_keyword('mac'))
+            .or(_keyword('UTF').seq(char('-').optional().seq(char('8')))))
+        .or(_keyword('table is').seq(ref(p.fieldref)))
+        .or(_keyword('header').or(_keyword('record'))
+            .seq(_keyword('is'))
             .seq(ref(p.decimalInteger))
-            .seq(_token('lines')))
-        .or(_token('delimiter is').seq(ref(p.str)))
+            .seq(_keyword('lines')))
+        .or(_keyword('delimiter is').seq(ref(p.str)))
         .flatten());
     def(p.fileModifierElement,
         ref(p.fileModifierTokens)
@@ -282,13 +291,13 @@ class QvsGrammar extends CompositeParser {
     def(p.fileModifierElements,
         ref(p.fileModifierElement).separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def(p.fileModifier,
-        _token('(')
+        _keyword('(')
          .seq(ref(p.fileModifierElements))
-         .seq(_token(')')));
+         .seq(_keyword(')')));
     def(p.connect,
-        _token('ODBC').or(_token('OLEDB')).or(_token('CUSTOM')).optional()
-        .seq(_token('CONNECT'))
-        .seq(_token('TO'))
+        _keyword('ODBC').or(_keyword('OLEDB')).or(_keyword('CUSTOM')).optional()
+        .seq(_keyword('CONNECT'))
+        .seq(_keyword('TO'))
         .seq(ref(p.str).trim(trimmer))
         .seq(ref(p.simpleParens).optional())
         .flatten()
@@ -299,45 +308,45 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.forNextStart))
         .or(ref(p.forEachStart))
         .or(ref(p.ifStart))
-        .or(_token('ELSE'))
+        .or(_keyword('ELSE'))
         .or(ref(p.controlStatementFinish)));
     def(p.controlStatementFinish,
-        _token('END')
-          .seq(_token('SUB').or(_token('IF')))
-        .or(_token('NEXT')
+        _keyword('END')
+          .seq(_keyword('SUB').or(_keyword('IF')))
+        .or(_keyword('NEXT')
           .seq(ref(p.identifier).optional()))
-        .seq(_token(';').optional()));
+        .seq(_keyword(';').optional()));
     def(p.subStart,
-        _token('SUB')
+        _keyword('SUB')
         .seq(ref(p.identifier).or(ref(p.function)))
-        .seq(_token(';').optional()));
+        .seq(_keyword(';').optional()));
     def(p.exitScript,
-    _token('exit')
-    .seq(_token('script'))
-    .seq(_token(';').optional()));
+    _keyword('exit')
+    .seq(_keyword('script'))
+    .seq(_keyword(';').optional()));
 
     def(p.forNextStart,
-        _token('FOR')
+        _keyword('FOR')
         .seq(ref(p.expression))
-        .seq(_token('to'))
+        .seq(_keyword('to'))
         .seq(ref(p.expression))
-        .seq(_token(';').optional()));
+        .seq(_keyword(';').optional()));
     def(p.ifStart,
-        _token('IF').or(_token('ELSEIF'))
+        _keyword('IF').or(_keyword('ELSEIF'))
         .seq(ref(p.expression))
-        .seq(_token('THEN'))
-        .seq(_token(';').optional()));
+        .seq(_keyword('THEN'))
+        .seq(_keyword(';').optional()));
     def(p.forEachStart,
-        _token('FOR')
-        .seq(_token('each'))
+        _keyword('FOR')
+        .seq(_keyword('each'))
         .seq(ref(p.expression))
-        .seq(_token('each'))
+        .seq(_keyword('each'))
         .seq(ref(p.expression))
-        .seq(_token(';').optional()));
+        .seq(_keyword(';').optional()));
     def(p.qualify,
-        _token('UNQUALIFY').or(_token('QUALIFY'))
+        _keyword('UNQUALIFY').or(_keyword('QUALIFY'))
         .seq(ref(p.fieldrefOrStringList))
-        .seq(_token(';')).flatten());
+        .seq(_keyword(';')).flatten());
     
     def(p.fieldrefOrStringList,
         ref(p.fieldrefOrString).separatedBy(char(',').trim(trimmer), includeSeparators: false));
@@ -348,22 +357,22 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.str)));
     def(p.fieldrefAs,
       ref(p.fieldref)
-      .seq(_token('as')).
+      .seq(_keyword('as')).
       seq(ref(p.fieldref)));
     def(p.fieldrefsAs,
       ref(p.fieldrefAs).separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def(p.alias,
-      _token('ALIAS')
+      _keyword('ALIAS')
       .seq(ref(p.fieldrefsAs))
-      .seq(_token(';')));
+      .seq(_keyword(';')));
     def(p.binaryStatement,
-    _token('binary')
+    _keyword('binary')
     .seq(ref(p.tableOrFilename))
-    .seq(_token(';')));
+    .seq(_keyword(';')));
    def(p.trace,
      _word('TRACE')
      .seq(char(';').neg().plus())
-     .seq(char(';'))
+     .seq(_keyword(';'))
    );
 
   }
@@ -399,7 +408,7 @@ class QvsGrammar extends CompositeParser {
     def(p.binaryPart, ref(p.binaryOperator)
         .seq(ref(p.primaryExpression)));
     def(p.fieldref,
-          _token(ref(p.identifier)
+          _keyword(ref(p.identifier)
           .or(ref(p.macro))
           .or(ref(p.fieldrefInBrackets))));
     def(p.identifier,letter().or(char('_').or(char('@')).or(localLetter()))
@@ -407,9 +416,9 @@ class QvsGrammar extends CompositeParser {
         .or(letter())
         .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(trimmer));
-    def(p.fieldrefInBrackets, _token('[')
-        .seq(_token(']').neg().plus())
-        .seq(_token(']')).trim(trimmer).flatten());
+    def(p.fieldrefInBrackets, _keyword('[')
+        .seq(_keyword(']').neg().plus())
+        .seq(_keyword(']')).trim(trimmer).flatten());
     def(p.str,
             char("'")
               .seq(char("'").neg().star())
@@ -429,7 +438,7 @@ class QvsGrammar extends CompositeParser {
         .seq(ref(p.params).optional())
         .seq(char(')').trim(trimmer)));
     def(p.unaryExpression,
-        _word('NOT').or(_token('-').or(_word('DISTINCT'))).trim(trimmer)
+        _word('NOT').or(_keyword('-').or(_word('DISTINCT'))).trim(trimmer)
             .seq(ref(p.expression))
             .trim(trimmer).flatten());
     def(p.binaryOperator,
@@ -437,10 +446,10 @@ class QvsGrammar extends CompositeParser {
         .or(_word('or'))
         .or(_word('xor'))
         .or(_word('like'))
-        .or(_token('<='))
-        .or(_token('<>'))
-        .or(_token('!='))
-        .or(_token('>='))
+        .or(_keyword('<='))
+        .or(_keyword('<>'))
+        .or(_keyword('!='))
+        .or(_keyword('>='))
         .or(anyIn('+-/*<>=&'))
         .or(_word('precedes'))
         .trim(trimmer).flatten()
@@ -448,11 +457,11 @@ class QvsGrammar extends CompositeParser {
   }
   
   /** Defines a token parser that ignore case and consumes whitespace. */
-  Parser _token(dynamic input) {
+  Parser _keyword(dynamic input) {
     var parser = input is Parser ? input :
         input.length == 1 ? char(input) :
         stringIgnoreCase(input);
-    return parser.token().trim(trimmer);
+    return parser.trim(trimmer);
   }
  
   Parser _word(dynamic input) {

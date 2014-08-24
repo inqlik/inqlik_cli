@@ -31,7 +31,6 @@ class QvsParser extends QvsGrammar {
 
   }
 }
-
 bool parseFile(String fileName, bool forceReload, String executable) {
   String input = '';
       var file = new File(fileName);

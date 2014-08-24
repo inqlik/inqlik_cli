@@ -23,6 +23,6 @@ void main(arguments) {
     return;
   }
   
-  run(args.rest[0], args['forceReload'], args['qlikview']);
+  run(args.rest[0]);
 }
 

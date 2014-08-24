@@ -3,6 +3,8 @@ library qvs_productions;
 const String whitespace = 'whitespace';
 const String singeLineComment = 'singeLineComment';
 const String multiLineComment = 'multiLineComment';
+const String trimFromStart = 'trimFromStart';
+const String doWhile = 'doWhile';
 const String number = 'number';
 const String positiveNumber = 'positiveNumber';
 const String integer = 'integer';

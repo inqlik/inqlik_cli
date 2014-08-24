@@ -309,6 +309,58 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
    expect(res.value[1][2][1],'param2');
  });
 
+ test('Sub declaration without params parsing ',() {
+   var str = r"SUB dummy";
+   Result res = _parse(str,p.subStart);
+   print(res.value);
+   expect(res.value.length,3);
+   expect(res.value[1],"dummy");
+ });
  
+ skip_test('Another SET ',() {
+   var str = r"SET CD = E:;";
+   shouldPass(str,p.assignment);
+ });
+
+ test('TRACE with comments on both sides ',() {
+   var str = r"""
+// dsdfg sdfg sdfgs df
+TRACE  1; //adf asdf asdf asdf""";
+   shouldPass(str,p.trace);
+ });
+
+ test('Trim input from beginning',() {
+    var str = r"""
+// dsdfg sdfg sdfgs df
+TRACE 1;""";
+    Result res = _parse(str, p.trimFromStart);
+    print(res.value);
+  });
  
+ test('Typical load',() {
+     var str = r"""
+OnHandEom:
+LOAD *,
+  'EoM_06' as ТипПроводки  
+     FROM [C:\QlikDocs\Spar\2.Transform\2.QVD\OnHandMonths\ONHAND_EOM_2014_06.QVD](QVD);
+""";
+     shouldPass(str,p.load);
+   });
+ test('Field (Expression as fieldName)',() {
+     var str = r"""*, 'EoM_06' as ТипПроводки""";
+     shouldPass(str,p.selectList);
+   });
+
+ test('DO WHILE',() {
+     var str = r"""
+DO WHILE Purchase.ProcessDate <= Num(MakeDate(2014,01))
+""";
+     shouldPass(str,p.start);
+   });
+
 }
+
+
+
+
+
