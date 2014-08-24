@@ -242,11 +242,11 @@ class QvsGrammar extends CompositeParser {
         );
     def(p.call,
         _word('call').trim(trimmer)
-        .seq(word().or(char('.')).plus().trim(trimmer))
+        .seq(word().or(char('.')).plus().trim(trimmer).flatten())
                     .seq(char('(').trim(trimmer)
                     .seq(ref(p.params).plus())
                     .seq(char(')').trim(trimmer)).optional())
-        .seq(char(';')).trim(trimmer).flatten()
+        .seq(char(';')).trim(trimmer)
         );
     def(p.simpleParens,
         char("(")
@@ -422,12 +422,12 @@ class QvsGrammar extends CompositeParser {
         ref(p.number).or(ref(p.str)));
     def(p.function,
         letter()
-        .seq(word().or(char('.')).plus())
+        .seq(word().or(char('.')).plus()).flatten()
         .seq(char('#').optional())
         .trim(trimmer)
         .seq(char('(').trim(trimmer))
         .seq(ref(p.params).optional())
-        .seq(char(')').trim(trimmer)).flatten());
+        .seq(char(')').trim(trimmer)));
     def(p.unaryExpression,
         _word('NOT').or(_token('-').or(_word('DISTINCT'))).trim(trimmer)
             .seq(ref(p.expression))

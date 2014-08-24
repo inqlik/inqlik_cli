@@ -234,7 +234,7 @@ void main() {
     expect(reader.hasErrors, isTrue);
   });
 
-  skip_test('Test simple subroutine call', () {
+  test('Test simple subroutine call', () {
     var reader = newReader();
     var code = r'''
 SUB dummy
@@ -247,8 +247,58 @@ CALL dummy;
     expect(reader.hasErrors, isFalse);
     expect(reader.entries[1].expandedText.trim(),'LET x =  1;');
     expect(reader.entries[1].parsed, isTrue);
+    expect(reader.data.variables.length,1);
   });
 
+  test('Test simple subroutine call', () {
+    var reader = newReader();
+    var code = r'''
+SUB dummy
+  LET x =  1;
+  call dummy_internal;
+END SUB
+SUB dummy_internal
+  LET y = 1;
+END SUB
+CALL dummy;
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse);
+//    print(reader.subMap);
+//    print(reader.data.variables);
+//    print(reader.entries);
+    expect(reader.entries.length, 8);
+    expect(reader.data.variables.length,2);
+  });
+
+  test('Test call of undeclared subroutine', () {
+    var reader = newReader();
+    var code = r'''
+CALL dummy('y');
+    ''';  
+    reader.readFile('test.qvs',code);
+    print(reader.errors);
+    expect(reader.hasErrors, isTrue);
+  });
+
+  
+  solo_test('Test subroutine with parameter call (parameter use)', () {
+    var reader = newReader();
+    var code = r'''
+SUB dummy (param1)
+  LET x =  '$(param1)';
+END SUB
+CALL dummy('y');
+    ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 4);
+    print(reader.errors);
+    expect(reader.hasErrors, isFalse);
+    expect(reader.entries[1].expandedText.trim(),"LET x =  'y';");
+    expect(reader.entries[1].parsed, isTrue);
+    expect(reader.data.variables.length,1);
+    expect(reader.data.variables['x'],'y');
+  });
   
   
 }

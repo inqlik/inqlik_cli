@@ -288,6 +288,27 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
    var str = r"call dummy();";
    shouldFail(str,p.call);
  });
+ test('Call sub with params parsing ',() {
+   var str = r"call dummy('qwe',Dual('123123',23));";
+   Result res = _parse(str,p.call);
+   expect(res.value.length,4);
+   expect(res.value[1],"dummy");
+   expect(res.value[2].length,3);
+   expect(res.value[2][1][0].length,2);
+   expect(res.value[2][1][0][0],"'qwe'");
+   expect(res.value[2][1][0][1],"Dual('123123',23)");
+ });
+ test('Sub declaration with params parsing ',() {
+   var str = r"SUB dummy(param1,param2)";
+   Result res = _parse(str,p.subStart);
+   print(res.value);
+   expect(res.value.length,3);
+   expect(res.value[1][0][0],"dummy");
+   expect(res.value[1][2].length,2);
+   expect(res.value[1][2][0],'param1');
+   expect(res.value[1][2][1],'param2');
+ });
+
  
  
 }

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
 import 'parser.dart';
-
+import 'productions.dart';
 
 QvsFileReader newReader() => new QvsFileReader(new QvsReaderData());
 class QvsCommandEntry {
@@ -50,6 +50,7 @@ class QvsCommandType {
   static const INCLUDE = const QvsCommandType._internal(3);
   static const BASE_COMMAND = const QvsCommandType._internal(4);
   static const SUB_DECLARATION = const QvsCommandType._internal(5);
+  static const SUB_DECLARATION_END = const QvsCommandType._internal(6);
 }
 
  
@@ -58,10 +59,11 @@ class QvsFileReader {
   static final commandTerminationPattern = new RegExp(r'^.*;\s*$');
   static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;\s*$'); 
   static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;\s*$'); 
-  static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]+)\s*=',caseSensitive: false); 
-  static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9]+)',caseSensitive: false);
+  static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]*)\s*=',caseSensitive: false); 
+  static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9_]+)',caseSensitive: false);
   static final endSubroutinePattern = new RegExp(r'^\s*END\s+SUB\s*;?\s*$',caseSensitive: false);
   static final variablePattern = new RegExp(r'\$\((\w[A-Za-z.0-9]+)\)');
+  static final callSubroutinePattern = new RegExp(r'^\s*CALL\s+(\w[A-Za-z.0-9]+)',caseSensitive: false); 
   static final controlStructurePatterns = [
     new RegExp(r'^\s*IF.*THEN\s*$',caseSensitive: false),                                     
     new RegExp(r'^\s*ELSEIF.*THEN\s*$',caseSensitive: false),                                     
@@ -69,7 +71,8 @@ class QvsFileReader {
     new RegExp(r'^\s*END\s?IF\s*$',caseSensitive: false),
     new RegExp(r'^\s*END\s?SUB\s*$',caseSensitive: false),
     startSubroutinePattern,
-    endSubroutinePattern
+    endSubroutinePattern,
+    callSubroutinePattern
     ];
   String sourceFileName;
   bool skipParse = false;
@@ -156,7 +159,7 @@ class QvsFileReader {
     if (m == null) {
       return;
     }
-    Result r = new QvsParser()['assignment'].end().parse(entry.expandedText);
+    Result r = new QvsParser()[assignment].end().parse(entry.expandedText);
     if (r.isFailure) {
       return;
     }
@@ -183,6 +186,39 @@ class QvsFileReader {
         createNestedReader().readFile(m.group(1),null,entry);
       }
     }
+    if (m == null) {
+      m = callSubroutinePattern.firstMatch(entry.sourceText);
+      if (m != null) {
+        walkIntoSubroutine(entry);
+      }
+    }
+  }
+  void walkIntoSubroutine(QvsCommandEntry entry) {
+    Result r = new QvsParser()[call].end().parse(entry.expandedText);
+    String subName = r.value[1];
+    if (!subMap.containsKey(subName)) {
+      addError(entry,'Parse error. File: ${entry.sourceFileName} row: ${entry.sourceLineNum} col: 1} message: Call of undefined subroutine [$subName]');
+      return;
+    }
+    List<String> actualParams = [];
+    if (r.value[2] != null) {
+      actualParams.addAll(r.value[2][1][0]);
+    }
+    int idx = subMap[subName];
+    QvsCommandEntry currentEntry = entries[idx];
+    r = new QvsParser()[subStart].end().parse(entry.expandedText);
+    List<String> formalParams = [];
+    if (r.value[2] != null) {
+      actualParams.addAll(r.value[2][1][0]);
+    }
+    while (currentEntry.commandType != QvsCommandType.SUB_DECLARATION_END) {
+      processEntry(currentEntry);
+      idx++;
+      if (idx == entries.length) {
+        throw new Exception('Walked past of list boundary in walkIntoSubroutine');
+      }
+      currentEntry = entries[idx];
+    }
   }
   void addCommand(QvsCommandEntry entry) {
     data.entries.add(entry);
@@ -193,25 +229,26 @@ class QvsFileReader {
     if (m != null) {
       entry.commandType = QvsCommandType.SUB_DECLARATION;
       String debug = m.group(1).trim();
-      subMap[m.group(1)] = entry.internalLineNum;
+      subMap[m.group(1)] = entry.internalLineNum -1;
       data.inSubDeclaration = m.group(1);
     }
     if (m == null) {
       m = endSubroutinePattern.firstMatch(entry.sourceText);
       if (m != null) {
+        entry.commandType = QvsCommandType.SUB_DECLARATION_END;
         data.inSubDeclaration = '';
       }
     }
   }
   void parseCommand(QvsCommandEntry entry) {
-    Result res = grammar.ref('command').end().parse(entry.expandedText);
+    Result res = grammar.ref(command).end().parse(entry.expandedText);
     entry.parsed = true;
     if (res.isFailure) {
       int maxPosition = -1;
       int row;
       var rowAndCol;
       String message;
-      for (Parser p in new QvsGrammar().ref('command').children) {
+      for (Parser p in new QvsGrammar().ref(command).children) {
         res = p.end().parse(entry.expandedText);
         if (maxPosition < res.position) {
           maxPosition = res.position;
