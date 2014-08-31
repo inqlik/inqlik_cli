@@ -208,7 +208,6 @@ class QvsGrammar extends CompositeParser {
         ref(p.identifier)
         .or(ref(p.fieldrefInBrackets))
         .seq(_keyword('DESC').or(_keyword('ASC')).optional()));
-    
     def(p.tableDesignator,
         ref(p.tableIdentifier)
         .or(ref(p.join))

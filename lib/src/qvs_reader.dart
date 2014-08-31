@@ -16,8 +16,15 @@ class QvsCommandEntry {
   QvsCommandType commandType;
   bool parsed = false;
   bool hasError = false;
+  int errorPosition = 0;
   //QvsCommandEntry(this.sourceFileName,this.sourceLineNum, this.internalLineNum, this.sourceText, this.expandedText);
-  String toString() => 'QvsCommandEntry($sourceFileName,sourceLineNum=$sourceLineNum, internalLineNum=$internalLineNum,$sourceText)'; 
+  String toString() => 'QvsCommandEntry($sourceFileName,sourceLineNum=$sourceLineNum, internalLineNum=$internalLineNum,$sourceText)';
+  String commandWithError() {
+    if (errorPosition != 0) {
+      return expandedText.substring(0,errorPosition) + ' ^^^ ' + expandedText.substring(errorPosition);
+    }
+    return expandedText;
+  }
 }
 class QvsErrorDescriptor {
   final QvsCommandEntry entry;
@@ -59,7 +66,7 @@ class QvsCommandType {
  
 class QvsFileReader {
   static final grammar = new QvsGrammar();
-  static final commandTerminationPattern = new RegExp(r'^.*;\s*$');
+  static final commandTerminationPattern = new RegExp(r'^.*;\s*($|//)');
   static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;\s*$'); 
   static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;\s*$'); 
   static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]*)\s*=',caseSensitive: false); 
@@ -321,6 +328,7 @@ class QvsFileReader {
         res = p.end().parse(entry.expandedText);
         if (maxPosition < res.position) {
           maxPosition = res.position;
+          entry.errorPosition = maxPosition;
           rowAndCol = Token.lineAndColumnOf(entry.expandedText, res.position);
           row = entry.sourceLineNum + rowAndCol[0] - 1;
           col = rowAndCol[1];

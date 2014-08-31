@@ -90,7 +90,7 @@ Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
     String fileOptionsStr = r'''
 ODBC CONNECT TO 'Nwind;
 DBQ=C:\Program Files\Access\Samples\Northwind.mdb' (UserID is sa, Pass-
-word is admin)
+word is admin);
  ''';
     shouldPass(fileOptionsStr,'connect');
   });
@@ -414,13 +414,16 @@ FROM
       shouldPass(str,p.start);
   });
 
- solo_test('Connect statement',() {
+ test('Connect statement',() {
        var str = r"""
 CONNECT32 TO [Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\QlikDocs\Spar\2.Transform\8.Import\НормативыОборачиваемости.xls;Extended Properties="Excel 8.0"];
 """;
        shouldPass(str,p.start);
    });
+
+ 
 }
+
 
 
 

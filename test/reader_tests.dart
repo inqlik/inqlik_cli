@@ -507,5 +507,26 @@ LOAD
     expect(reader.data.variables['var1'], "var1_ASSIGNED_VALUE");
   });
 
+  test('Test command with trailing one-line comment', () {
+    var reader = newReader();
+    var code = r'UNQUALIFY "_qvctemp.*"; // UNQUALIFY all qvctemp field';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+  });
+  
+  solo_test('FOR NEXT loop create variable', () {
+    var reader = newReader();
+    var code = r'''
+FOR i = 1 to 3
+  TRACE $(i);
+NEXT i;
+TRACE $(i);
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 5);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+
   
 }
