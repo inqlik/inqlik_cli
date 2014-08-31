@@ -18,7 +18,8 @@ shouldFail(String source, String production) {
 }
 
 shouldPass(String source, String production) {
-  expect(_parse(source, production).isSuccess,isTrue, reason: '"$source" did not parse as "$production"' );
+  Result res = _parse(source, production);
+  expect(res.isSuccess,isTrue, reason: '"$source" did not parse as "$production". Message: ${res.message}' );
 }
 
 void main() {
@@ -358,8 +359,68 @@ DO WHILE Purchase.ProcessDate <= Num(MakeDate(2014,01))
      shouldPass(str,p.start);
    });
 
-}
+ skip_test('Must include with dot in pathname and preceding comments',() {
+      var str = r"""
+/*as asdf asdf*/
+// asdfasdfasdf
+/*  asdf*/  $(must_include=C:\QlikDocs\Spar\2.Transform\3.Include\4.Sub\InQlik.qvs);""";
+      shouldPass(str,p.start);
+    });
+ test('SQL SELECT', () {
+   var str = '''
+SQL SELECT 
+        [PURCHID]
+    ,   [INVOICEID]
+    ,   [INTERNALINVOICEID]
+    ,   [INVOICEDATE]
+    ,   [INVOICEACCOUNT]
+    ,   [ORDERACCOUNT]
+    ,   [PMR_PAPERINVOICEDATE]
+FROM [dbo.VENDINVOICEJOUR] WITH (NOLOCK)
+WHERE DATAAREAID = 'dat';
+''';
+   shouldPass(str,p.load);
+ });
+ 
+ test('SLEEP',() {
+      var str = r"""
+SLEEP 500;
+""";
+      shouldPass(str,p.start);
+  });
+ test('Preceding load with table identifier',() {
+      var str = r"""
+Calendar:  
+   LOAD If(_ПоследнийДеньПериода = Дата,1,0) AS _ФлагПоследнийДеньПериода;
+""";
+      shouldPass(str,p.load);
+  });
 
+ test('SET with trailing spaces',() {
+      var str = r"""
+SET vMinDate = Num(MakeDate(2013,01));
+""";
+      shouldPass(str,p.start);
+  });
+
+ test('Load from Excel file with dollar sign in table name',() {
+      var str = r"""
+LOAD 
+  Лист, 
+  КодМагазина
+FROM
+  НормативыОборачиваемости_ПривязкаСкладов.xls (biff, embedded labels, table is Лист1$);
+""";
+      shouldPass(str,p.start);
+  });
+
+ solo_test('Connect statement',() {
+       var str = r"""
+CONNECT32 TO [Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\QlikDocs\Spar\2.Transform\8.Import\НормативыОборачиваемости.xls;Extended Properties="Excel 8.0"];
+""";
+       shouldPass(str,p.start);
+   });
+}
 
 
 

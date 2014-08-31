@@ -9,8 +9,7 @@ void main() {
         LOAD * 
         RESIDENT Table1
           ORDER BY Field1;
-      TRACE FINISH;
-   ''';  
+      TRACE FINISH;''';  
     var reader = newReader()..readFile('test.qvs',code);
     expect(reader.entries.length, 2);
     expect(reader.entries[1].sourceLineNum,4);
@@ -25,8 +24,7 @@ void main() {
         LOAD * as ';'
         RESIDENT Table1
           ORDER BY Field1;
-      TRACE FINISH;
-   ''';  
+      TRACE FINISH;''';  
     var reader = newReader()..readFile('test.qvs',code);
     expect(reader.entries.length, 2);
     expect(reader.entries[1].sourceLineNum,4);
@@ -43,8 +41,7 @@ void main() {
         RESIDENT Table1
           ORDER BY Field1;
       END IF
-      TRACE FINISH;
-   ''';  
+      TRACE FINISH;''';  
     var reader = newReader()..readFile('test.qvs',code);
     expect(reader.entries.length, 4);
     expect(reader.entries[2].sourceText.trim(),'END IF');
@@ -113,8 +110,7 @@ void main() {
       SUB test
         TRACE IN SUB test;
       END SUB
-      TRACE FINISH;
-    ''';  
+      TRACE FINISH;''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 5);
@@ -129,8 +125,7 @@ void main() {
       SUB myLib.test(param1,param2)
         TRACE IN SUB test;
       END SUB
-      TRACE FINISH;
-    ''';  
+      TRACE FINISH;''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 5);
@@ -141,8 +136,7 @@ void main() {
   test('Test simplest expansion', () {
     var reader = newReader();
     var code = r'''
-      TRACE $(var1);
-    ''';  
+      TRACE $(var1);''';  
     reader.data.variables['var1']='11';
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
@@ -152,8 +146,7 @@ void main() {
   test('Test recursive expansion', () {
     var reader = newReader();
     var code = r'''
-      TRACE $(var$(var1))$(var1);
-    ''';  
+      TRACE $(var$(var1))$(var1);''';  
     reader.data.variables['var1']='1';
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
@@ -164,8 +157,7 @@ void main() {
   test('Test variable creation (simple numeric)', () {
     var reader = newReader();
     var code = r'''
-      LET var1 = 1;
-    ''';  
+      LET var1 = 1;''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 1);
@@ -176,8 +168,7 @@ void main() {
   test('Test variable creation (String quoted)', () {
     var reader = newReader();
     var code = r'''
-      LET vL.var1 = 'Abc';
-    ''';  
+      LET vL.var1 = 'Abc';''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 1);
@@ -189,8 +180,7 @@ void main() {
     var reader = newReader();
     var code = r'''
       LET vL.var1 = 'Abc';
-      TRACE $(vL.var1)$(vL.var1);
-    ''';  
+      TRACE $(vL.var1)$(vL.var1);''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 2);
@@ -202,8 +192,7 @@ void main() {
     var code = r'''
       SUB test
         TRACE 1
-      END SUB
-    ''';  
+      END SUB''';  
     reader.readFile('test.qvs',code);
     expect(reader.entries.length, 2);
     expect(reader.hasErrors, isTrue,reason: 'Script shoud have error abour unclosed subroutine declaration');
@@ -213,8 +202,7 @@ void main() {
     var code = r'''
       SUB test
         TRACE 1;
-      END SUB
-    ''';  
+      END SUB''';  
     reader.readFile('test.qvs',code);
     expect(reader.entries.length, 3);
     expect(reader.hasErrors, isFalse);
@@ -226,8 +214,7 @@ void main() {
   test('Test simple parse error', () {
     var reader = newReader();
     var code = r'''
-       TRACE asdf; string with single quote;
-    ''';  
+       TRACE asdf; string with single quote;''';  
     reader.readFile('test.qvs',code);
     expect(reader.entries.length, 1);
     expect(reader.hasErrors, isTrue);
@@ -239,8 +226,7 @@ void main() {
 SUB dummy
   LET x =  1;
 END SUB
-CALL dummy;
-    ''';  
+CALL dummy;''';  
     reader.readFile('test.qvs',code);
     expect(reader.entries.length, 4);
     expect(reader.hasErrors, isFalse);
@@ -259,8 +245,7 @@ END SUB
 SUB dummy_internal
   LET y = 1;
 END SUB
-CALL dummy;
-    ''';  
+CALL dummy;''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse);
     expect(reader.entries.length, 8);
@@ -270,8 +255,7 @@ CALL dummy;
   test('Test call of undeclared subroutine', () {
     var reader = newReader();
     var code = r'''
-CALL dummy('y');
-    ''';  
+CALL dummy('y');''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isTrue);
   });
@@ -283,8 +267,7 @@ CALL dummy('y');
 SUB dummy (param1)
   LET x =  '$(param1)';
 END SUB
-CALL dummy('y');
-    ''';  
+CALL dummy('y');''';  
     reader.readFile('test.qvs',code);
     expect(reader.entries.length, 4);
     expect(reader.hasErrors, isFalse);
@@ -306,8 +289,7 @@ CALL dummy('y');
   test('Test variable clearing', () {
     var reader = newReader();
     var code = r'''
-      SET var1 = ;
-    ''';  
+      SET var1 = ; ''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 1);
@@ -319,8 +301,7 @@ CALL dummy('y');
     var reader = newReader();
     var code = r'''
       // TRACE $(x);
-      SET var1 = ;
-    ''';  
+      SET var1 = ;''';  
     reader.readFile('test.qvs',code);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 2);
@@ -328,6 +309,203 @@ CALL dummy('y');
     expect(reader.data.variables['var1'], '');
   });
 
+  test('Sub declaration properly closed ', () {
+    var reader = newReader();
+    var code = r'''
+    LET LoadInterval.FromDate = Date(MakeDate(LoadInterval.Year),'YYYY-DD-MM');
+End Sub''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length,2);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
   
+  test('Supress expansion in multi-line commented blocks ', () {
+    var reader = newReader();
+    var code = r'''
+      /** 
+        TRACE $(x);
+        LET var2 = 4;
+        asdf asdfasdf asdfasdf
+      */
+      SET var1 = ;''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries[0].commandType, QvsCommandType.COMMENT_LINE);
+    expect(reader.entries[1].commandType, QvsCommandType.COMMENT_LINE);
+    expect(reader.entries[2].commandType, QvsCommandType.COMMENT_LINE);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 6);
+    expect(reader.data.variables.containsKey('var1'), isTrue);
+    expect(reader.data.variables.length, 1);
+    expect(reader.data.variables['var1'], '');
+  });
+
+  test('IF function is not a control structure statement ', () {
+    var reader = newReader();
+    var code = r'''
+  AsOfPeriodTable2:
+  LOAD *,
+       If (ТипПериода = 10 OR ТипПериода = 11 OR ТипПериода = 12 OR ТипПериода = 13, Day(MonthEnd(Дата)), _ДнейПрошлогоПериодаВМесяце) as _ДнейПрошлогоПериодаВМесяцеNew
+  RESIDENT AsOfPeriodTable; ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 1);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+
+  test('Variable expansion in table identifier ', () {
+    var reader = newReader();
+    var code = r'''
+  LET _tableName = 'Календарь';
+  $(_tableName):
+  LOAD *,If(_ПоследнийДеньПериода = Дата,1,0) AS _ФлагПоследнийДеньПериода;''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 2);
+    expect(reader.data.variables.length, 1);
+    expect(reader.data.variables['_tableName'], 'Календарь');
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+  test('Subroutine with param. Parameter value not assigned on call. Param using should not be error', () {
+      var reader = newReader();
+      var code = r'''
+Sub Dummy(message)
+  TRACE '$(message)';
+End Sub;
+CALL Dummy;      ''';  
+      reader.readFile('test.qvs',code);
+      expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+      expect(reader.entries[1].expandedText.trim(), "TRACE '';");
+    });
+
+  
+  
+  test('Parameter modification within subroutine. Parameter initially not assigned', () {
+      var reader = newReader();
+      var code = r'''
+Sub Dummy(message)
+  LET message = 'test';
+  TRACE '$(message)';
+End Sub;
+CALL Dummy;
+TRACE 'Out $(message)'; ''';  
+      reader.readFile('test.qvs',code);
+      expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+      expect(reader.data.variables.length,1);
+      expect(reader.data.variables['message'],'test');
+      expect(reader.entries[2].expandedText.trim(),"TRACE 'test';");
+      expect(reader.entries[5].expandedText.trim(),"TRACE 'Out test';");
+    });
+
+  test('Parameter modification within subroutine. Parameter assigned in call site', () {
+      var reader = newReader();
+      var code = r'''
+Sub Dummy(message)
+  LET message = 'test';
+  TRACE '$(message)';
+End Sub;
+CALL Dummy('test1');
+TRACE 'Out $(message)'; ''';  
+      reader.readFile('test.qvs',code);
+      expect(reader.hasErrors, isTrue,reason: 'Global variable should not been created');
+      expect(reader.data.variables.isEmpty,isTrue);
+      expect(reader.entries[2].expandedText.trim(),"TRACE 'test';");
+    });
+  test('One line comments within a command', () {
+      var reader = newReader();
+      var code = r'''
+LOAD 
+  Field1,
+//  Field2,
+  Field3 
+    RESIDENT table1; ''';  
+      reader.readFile('test.qvs',code);
+      expect(reader.entries.length,1);
+      expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+  
+  test('Multi-line coment block', () {
+      var reader = newReader();
+      var code = r'''
+/* 111111
+2222222
+333333*/ ''';  
+      reader.readFile('test.qvs',code);
+      expect(reader.entries.length,3);
+      expect(reader.entries[0].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[1].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[2].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+  
+  test('One-line coment block', () {
+      var reader = newReader();
+      var code = r'''
+// 111111
+// 2222222
+// 333333 ''';  
+      reader.readFile('test.qvs',code);
+      expect(reader.entries.length,3);
+      expect(reader.entries[0].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[1].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[2].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+
+  test('One-line coment block after empty line', () {
+      var reader = newReader();
+      var code = r'''
+
+// 111111
+// 2222222
+// 333333 ''';  
+      reader.readFile('test.qvs',code);
+      expect(reader.entries.length,4);
+      expect(reader.entries[0].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[1].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[2].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+
+  
+  test('Test numeric const variable assigned be LET operation', () {
+    var reader = newReader();
+    var code = r'''
+      LET var1 = 1; ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.data.variables.containsKey('var1'), isTrue);
+    expect(reader.data.variables['var1'], '1');
+  });
+
+  test('Test string const variable assigned be LET operation', () {
+    var reader = newReader();
+    var code = r'''
+      LET var1 = 'test'; ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.data.variables.containsKey('var1'), isTrue);
+    expect(reader.data.variables['var1'], 'test');
+  });
+  test('Test expression assigned to variable by SET operation', () {
+    var reader = newReader();
+    var code = r'''
+      SET var1 = purgeChar(peek('TABLE_NAME', i, 'ExcelSheets'), chr(39)); ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.data.variables.containsKey('var1'), isTrue);
+    expect(reader.data.variables['var1'], "purgeChar(peek('TABLE_NAME', i, 'ExcelSheets'), chr(39))");
+  });
+  test('Test expression assigned to variable by LET operation (fake value assigned)', () {
+    var reader = newReader();
+    var code = r'''
+      LET var1 = purgeChar(peek('TABLE_NAME', i, 'ExcelSheets'), chr(39)); ''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 1);
+    expect(reader.data.variables.containsKey('var1'), isTrue);
+    expect(reader.data.variables['var1'], "var1_ASSIGNED_VALUE");
+  });
+
   
 }

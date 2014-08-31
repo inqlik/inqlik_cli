@@ -21,10 +21,10 @@ class QvsGrammar extends CompositeParser {
   void _qvs() {
     def(p.start, ref(p.command).plus().end().flatten());
     def(p.command,
-        ref(p.macroLine)
-        .or(ref(p.load))
+        ref(p.load)
         .or(ref(p.controlStatement))
         .or(ref(p.call))
+        .or(ref(p.sleep))
         .or(ref(p.dropFields))
         .or(ref(p.dropTable))
         .or(ref(p.renameTable))
@@ -36,6 +36,8 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.commentWith))
         .or(ref(p.trace))
         .or(ref(p.doWhile))
+        .or(ref(p.includeDirective))
+        .or(ref(p.connect))
         .or(ref(p.assignment)));
     def(p.renameTable,
         _keyword('RENAME')
@@ -58,11 +60,10 @@ class QvsGrammar extends CompositeParser {
         ref(p.tableDesignator).optional()
         .seq(ref(p.loadPerfix).star())
         .seq(_keyword('MAPPING').optional())
-        .seq(ref(p.precedingLoad).star())
         .seq(ref(p.preloadFunc).optional())
-        .seq(_keyword('LOAD').or(_keyword('SELECT')))
+        .seq(_keyword('LOAD').or(_keyword('SQL').optional().seq(_keyword('SELECT'))))
         .seq(ref(p.selectList).trim(trimmer))
-        .seq(ref(p.loadSource).trim(trimmer))
+        .seq(ref(p.loadSource).optional().trim(trimmer))
         .seq(char(';'))
           .trim(trimmer));
     def(p.precedingLoad,
@@ -75,6 +76,10 @@ class QvsGrammar extends CompositeParser {
       .or(_word('BUFFER').seq(ref(p.bufferModifier).optional()))
       .or(_word('BUNDLE').seq(_word('INFO').optional()))
       .or(_word('ADD').seq(_word('ONLY').optional())));
+    def(p.sleep,
+      _keyword('SLEEP').
+       seq(ref(p.integer).trim(trimmer)).
+       seq(_keyword(';')));
     def(p.bufferModifier,
         _keyword('(')
         .seq(
@@ -224,30 +229,31 @@ class QvsGrammar extends CompositeParser {
         char('(').trim(trimmer)
             .seq(ref(p.expression))
             .seq(char(')').trim(trimmer)).flatten());
-    def(p.macro,
-        _keyword(r'$(')
-            .seq(word().or(anyIn(r'./\[]=')).plus().trim(trimmer))
-            .seq(char(')').trim(trimmer)).flatten());
     
     def(p.tableOrFilename,
         word().or(anyIn(r'./\:').or(localLetter())).plus()
         .or(ref(p.fieldrefInBrackets))
-        .or(ref(p.macro))
         .or(ref(p.str))
-        .seq(ref(p.fileModifier).optional())
+        .seq(ref(p.fileModifier).or(ref(p.tableSelectModifier)).optional())
         .trim(trimmer));
-//    def(p.fileName,
-//        );
+    def(p.includeDirective,
+        _keyword(r'$(').
+        seq(string('must_').optional()).
+        seq(string('include=')).
+        seq(ref(p.tableOrFilename).trim(trimmer)).
+        seq(_keyword(')')).
+        seq(_keyword(';'))
+        );
     def(p.whereClause,
         _keyword('where').or(_keyword('while')).trim(trimmer)
         .seq(ref(p.binaryExpression))
         .trim(trimmer));
     def(p.assignment,
         _keyword('SET').or(_keyword('LET')).trim(trimmer)
-        .seq(ref(p.identifier).or(ref(p.macro)).trim(trimmer))
+        .seq(ref(p.identifier).trim(trimmer))
         .seq(char('=').trim(trimmer))
         .seq(ref(p.expression).optional())
-        .seq(char(';'))
+        .seq(char(';').trim(trimmer))
         );
     def(p.call,
         _word('call').trim(trimmer)
@@ -261,9 +267,6 @@ class QvsGrammar extends CompositeParser {
         char("(")
         .seq(char(")").neg().star())
         .seq(char(")")).trim(trimmer).flatten());
-    def(p.macroLine,
-        ref(p.macro).trim(trimmer)
-        .seq(char(';')).trim(trimmer).flatten());
     def(p.fileModifierTokens,
         _keyword('embedded labels')
         .or(_keyword('explicit labels'))
@@ -294,13 +297,18 @@ class QvsGrammar extends CompositeParser {
         _keyword('(')
          .seq(ref(p.fileModifierElements))
          .seq(_keyword(')')));
+    def(p.tableSelectModifier,
+        _keyword('WITH')
+         .seq(_keyword('('))
+         .seq(word().plus().trim(trimmer))
+         .seq(_keyword(')')));
     def(p.connect,
         _keyword('ODBC').or(_keyword('OLEDB')).or(_keyword('CUSTOM')).optional()
-        .seq(_keyword('CONNECT'))
+        .seq(_keyword('CONNECT64').or(_keyword('CONNECT32')).or(_keyword('CONNECT')))
         .seq(_keyword('TO'))
-        .seq(ref(p.str).trim(trimmer))
+        .seq(ref(p.str).or(ref(p.fieldrefInBrackets)))
         .seq(ref(p.simpleParens).optional())
-        .flatten()
+        .seq(_keyword(';'))
         );
     def(p.controlStatement,
         ref(p.subStart)
@@ -401,7 +409,6 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.function))
         .or(ref(p.number))
         .or(ref(p.fieldref))
-        .or(ref(p.macro))
         .or(ref(p.parens)));
     def(p.binaryExpression, ref(p.primaryExpression)
         .seq(ref(p.binaryPart).star()).trim(trimmer).flatten());
@@ -409,10 +416,9 @@ class QvsGrammar extends CompositeParser {
         .seq(ref(p.primaryExpression)));
     def(p.fieldref,
           _keyword(ref(p.identifier)
-          .or(ref(p.macro))
           .or(ref(p.fieldrefInBrackets))));
     def(p.identifier,letter().or(char('_').or(char('@')).or(localLetter()))
-        .seq(word().or(char('.')).or(char('_')).or(localLetter()).plus())
+        .seq(word().or(char('.')).or(char('_')).or(localLetter().or(char(r'$'))).plus())
         .or(letter())
         .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(trimmer));

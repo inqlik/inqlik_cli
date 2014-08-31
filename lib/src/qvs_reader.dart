@@ -32,27 +32,28 @@ class QvsReaderData {
   String rootFile;
   final List<QvsErrorDescriptor> errors = [];
   final Map<String, String> variables = {};
-  String inSubDeclaration = '';
 }
 class QvsLineType {
-  final int _val;
+  final String _val;
   const QvsLineType._internal(this._val);
-  static const CONTROL_STRUCTURE = const QvsLineType._internal(1);
-  static const END_OF_COMMAND = const QvsLineType._internal(2);
-  static const SIMPLE_LINE = const QvsLineType._internal(3);
-  static const COMMENT_LINE = const QvsLineType._internal(4);
+  static const CONTROL_STRUCTURE = const QvsLineType._internal('CONTROL_STRUCTURE');
+  static const END_OF_COMMAND = const QvsLineType._internal('END_OF_COMMAND');
+  static const SIMPLE_LINE = const QvsLineType._internal('SIMPLE_LINE');
+  static const COMMENT_LINE = const QvsLineType._internal('COMMENT_LINE');
+  String toString() => 'QvsLineType($_val)';
 }
 
 class QvsCommandType {
-  final int _val;
+  final String _val;
   const QvsCommandType._internal(this._val);
-  static const CONTROL_STRUCTURE = const QvsCommandType._internal(1);
-  static const MUST_INCLUDE = const QvsCommandType._internal(2);
-  static const INCLUDE = const QvsCommandType._internal(3);
-  static const BASE_COMMAND = const QvsCommandType._internal(4);
-  static const SUB_DECLARATION = const QvsCommandType._internal(5);
-  static const SUB_DECLARATION_END = const QvsCommandType._internal(6);
-  static const COMMENT_LINE = const QvsCommandType._internal(7);
+  static const CONTROL_STRUCTURE = const QvsCommandType._internal('CONTROL_STRUCTURE');
+  static const MUST_INCLUDE = const QvsCommandType._internal('MUST_INCLUDE');
+  static const INCLUDE = const QvsCommandType._internal('INCLUDE');
+  static const BASE_COMMAND = const QvsCommandType._internal('BASE_COMMAND');
+  static const SUB_DECLARATION = const QvsCommandType._internal('SUB_DECLARATION');
+  static const SUB_DECLARATION_END = const QvsCommandType._internal('SUB_DECLARATION_END');
+  static const COMMENT_LINE = const QvsCommandType._internal('COMMENT_LINE');
+  String toString() => 'QvsCommandType($_val)';
 }
 
  
@@ -63,14 +64,14 @@ class QvsFileReader {
   static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;\s*$'); 
   static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]*)\s*=',caseSensitive: false); 
   static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9_]+)',caseSensitive: false);
-  static final endSubroutinePattern = new RegExp(r'^\s*END\s+SUB\s*;?\s*$',caseSensitive: false);
+  static final endSubroutinePattern = new RegExp(r'^\s*End\s*Sub',caseSensitive: false);
   static final variablePattern = new RegExp(r'\$\((\w[A-Za-z.0-9]*)\)');
   static final singleLineComment = new RegExp(r'^\s*//');
   static final multiLineCommentStart = new RegExp(r'^\s*/[*]');
-  static final multiLineCommentEnd = new RegExp(r'[*]/\s*$');
+  static final multiLineCommentEnd = new RegExp(r'\*/\s*$');
   static final callSubroutinePattern = new RegExp(r'^\s*CALL\s+(\w[A-Za-z.0-9]+)',caseSensitive: false); 
   static final controlStructurePatterns = [
-    new RegExp(r'^\s*IF\s.*THEN\s*',caseSensitive: false),                                     
+    new RegExp(r'^\s*IF\s.*THEN\s*$',caseSensitive: false),                                     
     new RegExp(r'^\s*ELSEIF\s.*THEN\s*',caseSensitive: false),                                     
     new RegExp(r'^\s*ELSE\s*',caseSensitive: false),                                     
     new RegExp(r'^\s*FOR\s',caseSensitive: false),                                     
@@ -79,13 +80,14 @@ class QvsFileReader {
     new RegExp(r'^\s*LOOP\s+(WHILE|UNTIL)',caseSensitive: false),                                     
     new RegExp(r'^\s*NEXT',caseSensitive: false),                                     
     new RegExp(r'^\s*END\s?IF\s*',caseSensitive: false),
-    new RegExp(r'^\s*END\s?SUB\s*',caseSensitive: false),
     startSubroutinePattern,
     endSubroutinePattern,
     callSubroutinePattern
     ];
   String sourceFileName;
   bool skipParse = false;
+  String inSubDeclaration = '';
+  bool inMultiLineCommentBlock = false;
   final QvsReaderData data;
   QvsFileReader(this.data); 
   List<QvsCommandEntry> get entries => data.entries; 
@@ -140,7 +142,9 @@ class QvsFileReader {
       commandLines.add(line);
       lineCounter++;
       QvsLineType lineType = testLineType(line);
-      if (lineType != QvsLineType.SIMPLE_LINE) {
+      if (lineType == QvsLineType.CONTROL_STRUCTURE 
+          || lineType == QvsLineType.END_OF_COMMAND
+          || (commandLines.length == 1 && lineType == QvsLineType.COMMENT_LINE )) {
         data.internalLineNum++;
         command = commandLines.join('\n');
         var entry = new QvsCommandEntry()
@@ -152,16 +156,13 @@ class QvsFileReader {
           entry.commandType = QvsCommandType.COMMENT_LINE;
         }
         addCommand(entry);
-        if (sourceLineNum == 40) {
-          int debug = 1;
-        }
         sourceLineNum = lineCounter + 1;
         command = '';
         commandLines = [];
       }
     }
-    if (data.inSubDeclaration != '') {
-      addError(data.entries.last,'SUB ${data.inSubDeclaration} has not been closed propery');
+    if (inSubDeclaration != '') {
+      addError(data.entries.last,'SUB ${inSubDeclaration} has not been closed propery');
     }
   }
 
@@ -178,11 +179,11 @@ class QvsFileReader {
       } else {
         addError(entry,'Variable $varName not defined');
       }
-      entry.expandedText = entry.expandedText.replaceAll('\$($varName)',varValue);
+      entry.expandedText = entry.expandedText.replaceAll('\$($varName)',varValue == null ? '' : varValue);
       m = variablePattern.firstMatch(entry.expandedText);
     }
   }
-  void processSetVariableCommand(QvsCommandEntry entry) {
+  void processSetVariableCommand(QvsCommandEntry entry,Map<String, String> params) {
     var m = variableSetPattern.firstMatch(entry.expandedText);
     if (m == null) {
       return;
@@ -191,6 +192,7 @@ class QvsFileReader {
     if (r.isFailure) {
       return;
     }
+    bool isLetCommand = (r.value[0] as String).trim().toUpperCase() == 'LET';
     String varName = r.value[1];
     String varValue = r.value[3];
     if (varValue == null) { 
@@ -200,13 +202,32 @@ class QvsFileReader {
     }
     if (varValue.startsWith("'") && varValue.endsWith("'")) {
       varValue = varValue.replaceAll("'",'');
+    } else {
+      if (isLetCommand) {
+        Result num = grammar[number].end().parse(varValue);
+        if (num.isFailure) {
+          varValue = '${varName}_ASSIGNED_VALUE';
+        }
+      }
     }
-    data.variables[varName] = varValue;
+    if (params.containsKey(varName)) {
+      if (params[varName] == null) {
+        params.remove(varName);
+        data.variables[varName] = varValue;
+      } else {
+        params[varName] = varValue;
+      }
+    } else {
+      data.variables[varName] = varValue;
+    }
   }
   void processEntry(QvsCommandEntry entry,[Map<String, String> params = const {}]) {
+    if (entry.commandType == QvsCommandType.COMMENT_LINE) {
+      return;
+    }
     expandCommand(entry,params);
     parseCommand(entry);  
-    processSetVariableCommand(entry);
+    processSetVariableCommand(entry, params);
     var m = mustIncludePattern.firstMatch(entry.expandedText);
     if (m != null) {
       entry.commandType = QvsCommandType.MUST_INCLUDE;
@@ -256,8 +277,7 @@ class QvsFileReader {
       }
       params[formalParams[paramIdx]] = paramValue;
     }
-    idx++;
-    currentEntry = entries[idx];
+    currentEntry = entries[++idx];
     while (currentEntry.commandType != QvsCommandType.SUB_DECLARATION_END) {
       processEntry(currentEntry,params);
       idx++;
@@ -269,10 +289,7 @@ class QvsFileReader {
   }
   void addCommand(QvsCommandEntry entry) {
     data.entries.add(entry);
-    if (entry.commandType == QvsCommandType.COMMENT_LINE) {
-      return;
-    }
-    if (data.inSubDeclaration == '') {
+    if (inSubDeclaration == '') {
       processEntry(entry);
     }
     var m = startSubroutinePattern.firstMatch(entry.sourceText);
@@ -280,18 +297,19 @@ class QvsFileReader {
       entry.commandType = QvsCommandType.SUB_DECLARATION;
       String debug = m.group(1).trim();
       subMap[m.group(1)] = entry.internalLineNum -1;
-      data.inSubDeclaration = m.group(1);
+      inSubDeclaration = m.group(1);
     }
     if (m == null) {
       m = endSubroutinePattern.firstMatch(entry.sourceText);
       if (m != null) {
         entry.commandType = QvsCommandType.SUB_DECLARATION_END;
-        data.inSubDeclaration = '';
+        inSubDeclaration = '';
       }
     }
   }
   void parseCommand(QvsCommandEntry entry) {
-    Result res = grammar.ref(command).end().parse(entry.expandedText);
+    Result res = grammar.ref(command).end()
+         .parse(entry.expandedText);
     entry.parsed = true;
     if (res.isFailure) {
       int maxPosition = -1;
@@ -299,7 +317,7 @@ class QvsFileReader {
       int col;
       var rowAndCol;
       String message;
-      for (Parser p in new QvsGrammar().ref(command).children) {
+      for (Parser p in grammar.ref(command).children) {
         res = p.end().parse(entry.expandedText);
         if (maxPosition < res.position) {
           maxPosition = res.position;
@@ -313,9 +331,23 @@ class QvsFileReader {
     }
   }
   QvsLineType testLineType(line) {
+    if (multiLineCommentStart.hasMatch(line)) {
+      inMultiLineCommentBlock = true;
+      return QvsLineType.COMMENT_LINE;
+    }
+    if (inMultiLineCommentBlock) {
+      if ( multiLineCommentEnd.hasMatch(line)){
+        inMultiLineCommentBlock = false;
+      }      
+      return QvsLineType.COMMENT_LINE;
+    }
     if (singleLineComment.hasMatch(line)) {
       return QvsLineType.COMMENT_LINE;
     }
+    if (line.trim() == '') {
+      return QvsLineType.COMMENT_LINE;
+    }
+
     if (commandTerminationPattern.hasMatch(line)) {
       return QvsLineType.END_OF_COMMAND;
     }
