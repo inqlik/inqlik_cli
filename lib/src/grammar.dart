@@ -3,10 +3,6 @@ part of qvs_parser;
 
 
 class QvsGrammar extends CompositeParser {
-//  void def(String name, Parser parser) {
-//    super.def(name,parser);
-//    print("const String $name = '$name';");
-//  }
   void initialize() {
     _whitespace();
     _number();
@@ -154,10 +150,9 @@ class QvsGrammar extends CompositeParser {
         .seq(char(';')).trim(trimmer).flatten()
         );
     def(p.doWhile,
-        _word('DO')
-        .seq(_word('WHILE').or(_word('UNTIL')))
-        .seq(ref(p.expression))
-        .seq(char(';').optional()).trim(trimmer).flatten()
+        _keyword('DO').or(_keyword('LOOP'))
+        .seq(_keyword('WHILE').or(_keyword('UNTIL')).seq(ref(p.expression)).optional())
+        .seq(char(';').optional()).trim(trimmer)
         );
     def(p.stringOrNotColon,
         ref(p.str)
@@ -334,9 +329,12 @@ class QvsGrammar extends CompositeParser {
 
     def(p.forNextStart,
         _keyword('FOR')
+        .seq(ref(p.identifier))
+        .seq(_keyword('='))
         .seq(ref(p.expression))
         .seq(_keyword('to'))
         .seq(ref(p.expression))
+        .seq(_keyword('STEP').seq(ref(p.expression)).optional())
         .seq(_keyword(';').optional()));
     def(p.ifStart,
         _keyword('IF').or(_keyword('ELSEIF'))

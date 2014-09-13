@@ -23,12 +23,6 @@ shouldPass(String source, String production) {
 }
 
 void main() {
-//  var str = r'    LET vL.Ma= = tch = -1  ;';
-//  //shouldPass(str,'assignment');
-//  var parser = new ActionParser(qvs['assignment'].end(),(v) => [v.length,v]);
-//  print(parser.parse(str).value);
-//  
-//  return;
   test('testIdentifier1', () {
     shouldPass('SimpleName', 'identifier');
   });
@@ -227,8 +221,6 @@ LOAD *
    var str = 'Comment Field Dim1 With "This is a field comment";';
    shouldPass(str,'commentWith');
    str = 'Comment Field Dim1 With This is a field comment;';
-//   shouldPass(str,'commentWith');
-//   print(_parse(str,'stringOrNotColon').value);
  });
 
  test('fieldrefs',() {
@@ -302,7 +294,6 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
  test('Sub declaration with params parsing ',() {
    var str = r"SUB dummy(param1,param2)";
    Result res = _parse(str,p.subStart);
-   print(res.value);
    expect(res.value.length,3);
    expect(res.value[1][0][0],"dummy");
    expect(res.value[1][2].length,2);
@@ -313,7 +304,6 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
  test('Sub declaration without params parsing ',() {
    var str = r"SUB dummy";
    Result res = _parse(str,p.subStart);
-   print(res.value);
    expect(res.value.length,3);
    expect(res.value[1],"dummy");
  });
@@ -335,7 +325,6 @@ TRACE  1; //adf asdf asdf asdf""";
 // dsdfg sdfg sdfgs df
 TRACE 1;""";
     Result res = _parse(str, p.trimFromStart);
-    print(res.value);
   });
  
  test('Typical load',() {
@@ -359,7 +348,26 @@ DO WHILE Purchase.ProcessDate <= Num(MakeDate(2014,01))
      shouldPass(str,p.start);
    });
 
- skip_test('Must include with dot in pathname and preceding comments',() {
+ test('DO whithout WHILE',() {
+     var str = r"""
+DO
+""";
+     shouldPass(str,p.start);
+   });
+ test('LOOP WHILE',() {
+     var str = r"""
+LOOP WHILE Purchase.ProcessDate <= Num(MakeDate(2014,01))""";
+     shouldPass(str,p.command);
+   });
+
+ test('LOOP whithout WHILE',() {
+     var str = r"""
+LOOP""";
+     shouldPass(str,p.command);
+   });
+
+ 
+ test('Must include with dot in pathname and preceding comments',() {
       var str = r"""
 /*as asdf asdf*/
 // asdfasdfasdf
@@ -420,6 +428,46 @@ CONNECT32 TO [Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\QlikDocs\Spar\2.Tr
 """;
        shouldPass(str,p.start);
    });
+
+ test('Start ForNext without semicolon',() {
+       var str = r"""
+for a=1 to 9
+""";
+       shouldPass(str,p.start);
+   });
+
+ test('Start ForNext with semicolon',() {
+       var str = r"""
+for a=1 to 9;
+""";
+       shouldPass(str,p.start);
+   });
+
+ test('Start ForNext with Step clause and semicolon',() {
+       var str = r"""
+for a=1 to 9 Step 2;
+""";
+       shouldPass(str,p.start);
+   });
+ 
+ skip_test('SELECT with composite table name',() {
+       var str = r"""
+ SQL SELECT 
+         [PURCHID]
+     ,   [INVOICEID]
+     ,   [INTERNALINVOICEID]
+     ,   [INVOICEDATE]
+     ,   [INVOICEACCOUNT]
+     ,   [ORDERACCOUNT]
+     ,   [PMR_PAPERINVOICEDATE]
+ FROM [RETAIL].[dbo].[VENDINVOICEJOUR] WITH (NOLOCK)
+ WHERE DATAAREAID = 'dat' ; 
+""";
+       shouldPass(str,p.start);
+   });
+ 
+ 
+ 
 
  
 }

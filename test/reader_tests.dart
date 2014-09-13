@@ -515,7 +515,7 @@ LOAD
     expect(reader.entries.length, 1);
   });
   
-  solo_test('FOR NEXT loop create variable', () {
+  test('FOR NEXT loop create variable', () {
     var reader = newReader();
     var code = r'''
 FOR i = 1 to 3
@@ -528,5 +528,27 @@ TRACE $(i);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
   });
 
+  test('LOOP is control statement', () {
+    var reader = newReader();
+    var code = r'''
+  DO WHILE Purchase.ProcessDate <= Num(MakeDate(2014,01))
+      LET Purchase.ProcessYear = Year(Purchase.ProcessDate);
+LOOP
+TRACE $(Purchase.ProcessYear);''';
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 4);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+
+  solo_test('Suppress Errors shebang comment statemet', () {
+    var reader = newReader();
+    var code = r'''
+      ABRAKADABRA; //#!SUPPRESS_ERROR''';
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 1);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    
+  });
   
+
 }

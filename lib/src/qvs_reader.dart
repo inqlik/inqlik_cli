@@ -1,6 +1,7 @@
 library qvs_reader;
 
 import 'dart:io';
+import 'dart:collection';
 import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
 import 'parser.dart';
@@ -16,6 +17,7 @@ class QvsCommandEntry {
   QvsCommandType commandType;
   bool parsed = false;
   bool hasError = false;
+  bool suppressError = false;
   int errorPosition = 0;
   //QvsCommandEntry(this.sourceFileName,this.sourceLineNum, this.internalLineNum, this.sourceText, this.expandedText);
   String toString() => 'QvsCommandEntry($sourceFileName,sourceLineNum=$sourceLineNum, internalLineNum=$internalLineNum,$sourceText)';
@@ -39,6 +41,7 @@ class QvsReaderData {
   String rootFile;
   final List<QvsErrorDescriptor> errors = [];
   final Map<String, String> variables = {};
+  final Queue<Map<String,String>> subParams = new Queue<Map<String,String>>();
 }
 class QvsLineType {
   final String _val;
@@ -65,7 +68,7 @@ class QvsCommandType {
 
  
 class QvsFileReader {
-  static final grammar = new QvsGrammar();
+  QvsParser parser;
   static final commandTerminationPattern = new RegExp(r'^.*;\s*($|//)');
   static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;\s*$'); 
   static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;\s*$'); 
@@ -76,6 +79,7 @@ class QvsFileReader {
   static final singleLineComment = new RegExp(r'^\s*//');
   static final multiLineCommentStart = new RegExp(r'^\s*/[*]');
   static final multiLineCommentEnd = new RegExp(r'\*/\s*$');
+  static final suppressErrorPattern = new RegExp(r'//#!SUPPRESS_ERROR\s*$');
   static final callSubroutinePattern = new RegExp(r'^\s*CALL\s+(\w[A-Za-z.0-9]+)',caseSensitive: false); 
   static final controlStructurePatterns = [
     new RegExp(r'^\s*IF\s.*THEN\s*$',caseSensitive: false),                                     
@@ -83,7 +87,8 @@ class QvsFileReader {
     new RegExp(r'^\s*ELSE\s*',caseSensitive: false),                                     
     new RegExp(r'^\s*FOR\s',caseSensitive: false),                                     
     new RegExp(r'^\s*EXIT\s',caseSensitive: false),                                     
-    new RegExp(r'^\s*DO\s+(WHILE|UNTIL)',caseSensitive: false),                                     
+    new RegExp(r'^\s*DO\s+',caseSensitive: false),                                     
+    new RegExp(r'^\s*LOOP\s*$',caseSensitive: false),                                     
     new RegExp(r'^\s*LOOP\s+(WHILE|UNTIL)',caseSensitive: false),                                     
     new RegExp(r'^\s*NEXT',caseSensitive: false),                                     
     new RegExp(r'^\s*END\s?IF\s*',caseSensitive: false),
@@ -96,13 +101,19 @@ class QvsFileReader {
   String inSubDeclaration = '';
   bool inMultiLineCommentBlock = false;
   final QvsReaderData data;
-  QvsFileReader(this.data); 
+  QvsFileReader(this.data) {
+    parser = new QvsParser(this);
+  }
   List<QvsCommandEntry> get entries => data.entries; 
+  Map<String, String> get currentParams => data.subParams.isEmpty? {}: data.subParams.first;
   Map<String, int> get subMap => data.subMap; 
   List<QvsErrorDescriptor> get errors => data.errors; 
   String toString() => 'QvsReader(${data.entries})';
   bool get hasErrors => data.errors.isNotEmpty;
   void addError(QvsCommandEntry entry, String message,[int row, int col]) {
+    if (entry.suppressError) {
+      return;
+    }
     if (row == null) {
       row = entry.sourceLineNum;
     }
@@ -144,9 +155,13 @@ class QvsFileReader {
     int lineCounter = 0;
     int sourceLineNum = 1;
     String command = '';
+    bool suppressError = false;
     List<String> commandLines = [];
     for (var line in lines) {
       commandLines.add(line);
+      if (suppressErrorPattern.hasMatch(line)) {
+        suppressError = true;
+      }
       lineCounter++;
       QvsLineType lineType = testLineType(line);
       if (lineType == QvsLineType.CONTROL_STRUCTURE 
@@ -157,6 +172,7 @@ class QvsFileReader {
         var entry = new QvsCommandEntry()
         ..sourceFileName = sourceFileName
         ..sourceLineNum = sourceLineNum
+        ..suppressError = suppressError
         ..internalLineNum = data.internalLineNum
         ..sourceText = command;
         if (lineType == QvsLineType.COMMENT_LINE) {
@@ -164,6 +180,7 @@ class QvsFileReader {
         }
         addCommand(entry);
         sourceLineNum = lineCounter + 1;
+        suppressError = false;
         command = '';
         commandLines = [];
       }
@@ -173,14 +190,14 @@ class QvsFileReader {
     }
   }
 
-  void expandCommand(QvsCommandEntry entry, Map<String, String> params) {
+  void expandCommand(QvsCommandEntry entry) {
     entry.expandedText = entry.sourceText;
     var m = variablePattern.firstMatch(entry.expandedText);
     while (m != null) {
       var varName = m.group(1);
       var varValue = '';
-      if (params.containsKey(varName)) {
-        varValue = params[varName];
+      if (currentParams.containsKey(varName)) {
+        varValue = currentParams[varName];
       } else if (data.variables.containsKey(varName)) {
         varValue = data.variables[varName];
       } else {
@@ -190,18 +207,7 @@ class QvsFileReader {
       m = variablePattern.firstMatch(entry.expandedText);
     }
   }
-  void processSetVariableCommand(QvsCommandEntry entry,Map<String, String> params) {
-    var m = variableSetPattern.firstMatch(entry.expandedText);
-    if (m == null) {
-      return;
-    }
-    Result r = grammar[assignment].end().parse(entry.expandedText);
-    if (r.isFailure) {
-      return;
-    }
-    bool isLetCommand = (r.value[0] as String).trim().toUpperCase() == 'LET';
-    String varName = r.value[1];
-    String varValue = r.value[3];
+  void processAssignmentCommand(String varName, String varValue, bool isLetCommand) {
     if (varValue == null) { 
       varValue = '';
     } else {
@@ -211,30 +217,30 @@ class QvsFileReader {
       varValue = varValue.replaceAll("'",'');
     } else {
       if (isLetCommand) {
-        Result num = grammar[number].end().parse(varValue);
+        Result num = parser[number].end().parse(varValue);
         if (num.isFailure) {
           varValue = '${varName}_ASSIGNED_VALUE';
         }
       }
     }
-    if (params.containsKey(varName)) {
-      if (params[varName] == null) {
-        params.remove(varName);
+    if (currentParams.containsKey(varName)) {
+      if (currentParams[varName] == null) {
+        currentParams.remove(varName);
         data.variables[varName] = varValue;
       } else {
-        params[varName] = varValue;
+        currentParams[varName] = varValue;
       }
     } else {
       data.variables[varName] = varValue;
     }
   }
-  void processEntry(QvsCommandEntry entry,[Map<String, String> params = const {}]) {
+  void processEntry(QvsCommandEntry entry) {
     if (entry.commandType == QvsCommandType.COMMENT_LINE) {
       return;
     }
-    expandCommand(entry,params);
+    expandCommand(entry);
     parseCommand(entry);  
-    processSetVariableCommand(entry, params);
+//    processSetVariableCommand(entry);
     var m = mustIncludePattern.firstMatch(entry.expandedText);
     if (m != null) {
       entry.commandType = QvsCommandType.MUST_INCLUDE;
@@ -255,25 +261,22 @@ class QvsFileReader {
     }
   }
   void walkIntoSubroutine(QvsCommandEntry entry) {
-    Result r = grammar[call].end().parse(entry.expandedText);
-    String subName = r.value[1];
+    Result r = parser[call].end().parse(entry.expandedText);
+    String subName = r.value[0];
     if (!subMap.containsKey(subName)) {
       addError(entry,'Call of undefined subroutine [$subName]');
       return;
     }
-    List<String> actualParams = [];
-    if (r.value[2] != null) {
-      actualParams.addAll(r.value[2][1][0]);
-    }
+    List<String> actualParams = r.value[1];
     int idx = subMap[subName];
     QvsCommandEntry currentEntry = entries[idx];
-    r = grammar[subStart].end().parse(currentEntry.sourceText);
+    r = parser[subStart].end().parse(currentEntry.sourceText);
     List<String> formalParams = [];
     if (r.value[1] is !String) {
       formalParams.addAll(r.value[1][2]);
     }
     Map<String,String> params = {};
-    
+    data.subParams.addFirst(params);
     for (int paramIdx = 0; paramIdx<formalParams.length;paramIdx++) {
       String paramValue;
       if (paramIdx<actualParams.length) {
@@ -286,13 +289,14 @@ class QvsFileReader {
     }
     currentEntry = entries[++idx];
     while (currentEntry.commandType != QvsCommandType.SUB_DECLARATION_END) {
-      processEntry(currentEntry,params);
+      processEntry(currentEntry);
       idx++;
       if (idx == entries.length) {
         throw new Exception('Walked past of list boundary in walkIntoSubroutine');
       }
       currentEntry = entries[idx];
     }
+    data.subParams.removeFirst();
   }
   void addCommand(QvsCommandEntry entry) {
     data.entries.add(entry);
@@ -315,7 +319,7 @@ class QvsFileReader {
     }
   }
   void parseCommand(QvsCommandEntry entry) {
-    Result res = grammar.ref(command).end()
+    Result res = parser.ref(command).end()
          .parse(entry.expandedText);
     entry.parsed = true;
     if (res.isFailure) {
@@ -324,7 +328,7 @@ class QvsFileReader {
       int col;
       var rowAndCol;
       String message;
-      for (Parser p in grammar.ref(command).children) {
+      for (Parser p in parser.ref(command).children) {
         res = p.end().parse(entry.expandedText);
         if (maxPosition < res.position) {
           maxPosition = res.position;
