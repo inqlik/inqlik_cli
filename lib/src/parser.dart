@@ -31,6 +31,14 @@ class QvsParser extends QvsGrammar {
       reader.processAssignmentCommand(list[1], list[3], false);
       return list;
     });
+    action(p.forEachStart, (List list) {
+      reader.processAssignmentCommand(list[2], list[4][0], false);
+      return list;
+    });
+    action(p.forEachFileMaskStart, (List list) {
+      reader.processAssignmentCommand(list[2], list[6], false);
+      return list;
+    });
 
     
     //    action('tableIdentifier', (v) {

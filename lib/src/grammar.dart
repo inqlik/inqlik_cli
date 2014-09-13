@@ -31,6 +31,9 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.storeTable)) 
         .or(ref(p.commentWith))
         .or(ref(p.trace))
+        .or(ref(p.execute))
+        .or(ref(p.sqltables))
+        .or(ref(p.directory))
         .or(ref(p.doWhile))
         .or(ref(p.includeDirective))
         .or(ref(p.connect))
@@ -111,9 +114,8 @@ class QvsGrammar extends CompositeParser {
         _keyword('FROM')
         .seq(ref(p.fieldref)));
     def(p.dropFields,
-        _keyword('DROP')
-        .seq(_keyword('FIELD'))
-        .seq(_keyword('S').optional())
+        _word('DROP')
+        .seq(_word('FIELDS').or(_word('FIELD')))
         .seq(ref(p.fieldrefs))
         .seq(ref(p.from).optional())
         .seq(char(';'))
@@ -223,7 +225,6 @@ class QvsGrammar extends CompositeParser {
         char('(').trim(trimmer)
             .seq(ref(p.expression))
             .seq(char(')').trim(trimmer)).flatten());
-    
     def(p.tableOrFilename,
         word().or(anyIn(r'./\:').or(localLetter())).plus()
         .or(ref(p.fieldrefInBrackets))
@@ -263,6 +264,7 @@ class QvsGrammar extends CompositeParser {
         .seq(char(")")).trim(trimmer).flatten());
     def(p.fileModifierTokens,
         _keyword('embedded labels')
+        .or(_keyword('ooxml'))
         .or(_keyword('explicit labels'))
         .or(_keyword('no')
             .seq(_keyword('quotes').
@@ -275,7 +277,10 @@ class QvsGrammar extends CompositeParser {
             .or(_keyword('oem'))
             .or(_keyword('mac'))
             .or(_keyword('UTF').seq(char('-').optional().seq(char('8')))))
-        .or(_keyword('table is').seq(ref(p.fieldref)))
+        .or(_keyword('table is')
+            .seq(ref(p.fieldref)
+                  .or(ref(p.number))
+                  .or(ref(p.str))))
         .or(_keyword('header').or(_keyword('record'))
             .seq(_keyword('is'))
             .seq(ref(p.decimalInteger))
@@ -308,6 +313,7 @@ class QvsGrammar extends CompositeParser {
         ref(p.subStart)
         .or(ref(p.exitScript))
         .or(ref(p.forNextStart))
+        .or(ref(p.forEachFileMaskStart))
         .or(ref(p.forEachStart))
         .or(ref(p.ifStart))
         .or(_keyword('ELSE'))
@@ -342,11 +348,21 @@ class QvsGrammar extends CompositeParser {
         .seq(_keyword('THEN'))
         .seq(_keyword(';').optional()));
     def(p.forEachStart,
-        _keyword('FOR')
-        .seq(_keyword('each'))
+        _word('FOR')
+        .seq(_word('each'))
+        .seq(ref(p.identifier))
+        .seq(_word('in'))
+        .seq(ref(p.params))
+        .seq(_keyword(';').optional()));
+    def(p.forEachFileMaskStart,
+        _word('FOR')
+        .seq(_word('each'))
+        .seq(ref(p.identifier))
+        .seq(_word('in'))
+        .seq(_keyword('filelist').or(_keyword('dirlist')))
+        .seq(_keyword('('))
         .seq(ref(p.expression))
-        .seq(_keyword('each'))
-        .seq(ref(p.expression))
+        .seq(_keyword(')'))
         .seq(_keyword(';').optional()));
     def(p.qualify,
         _keyword('UNQUALIFY').or(_keyword('QUALIFY'))
@@ -379,7 +395,22 @@ class QvsGrammar extends CompositeParser {
      .seq(char(';').neg().plus())
      .seq(_keyword(';'))
    );
+   def(p.execute,
+     _word('EXECUTE')
+     .seq(char(';').neg().plus())
+     .seq(_keyword(';'))
+   );
+   def(p.sqltables,
+     _keyword('SQLTABLES')
+     .seq(_keyword(';'))
+   );
+   def(p.directory,
+     _word('DIRECTORY')
+     .seq(char(';').neg().plus())
+     .seq(_keyword(';'))
+   );
 
+   
   }
   
   

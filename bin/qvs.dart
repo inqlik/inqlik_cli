@@ -1,6 +1,7 @@
 //import 'package:petitparser/petitparser.dart';
 import 'package:args/args.dart';
 import 'package:qvs_parser/qvs_runner.dart';
+import 'dart:io';
 String input = r'''
 JOIN (   [asdf]  ) 
 ''';
@@ -23,6 +24,7 @@ void main(arguments) {
     return;
   }
   
-  run(args.rest[0]);
+  int exitCode = run(args.rest[0]);
+  exit(exitCode);
 }
 

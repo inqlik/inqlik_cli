@@ -540,7 +540,7 @@ TRACE $(Purchase.ProcessYear);''';
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
   });
 
-  solo_test('Suppress Errors shebang comment statemet', () {
+  test('Suppress Errors shebang comment statemet', () {
     var reader = newReader();
     var code = r'''
       ABRAKADABRA; //#!SUPPRESS_ERROR''';
@@ -550,5 +550,29 @@ TRACE $(Purchase.ProcessYear);''';
     
   });
   
+  test('For each with filelist create variable', () {
+    var reader = newReader();
+    var code = r'''
+  for each File in filelist ('*.xls')
+    trace $(File);    
+  next
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries[1].expandedText.trim(),'trace *.xls;');    
+  });
 
+  test('For each with value list create variable', () {
+    var reader = newReader();
+    var code = r'''
+  for each ext in 'qvw', 'qva', 'qvo', 'qvs'
+    trace $(ext);    
+  next
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries[1].expandedText.trim(),'trace qvw;');    
+  });
+
+  
 }

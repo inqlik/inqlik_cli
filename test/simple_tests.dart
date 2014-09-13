@@ -466,7 +466,25 @@ for a=1 to 9 Step 2;
        shouldPass(str,p.start);
    });
  
+ test('FOR EACH with list of values',() {
+       var str = r"""
+ for each a in 1,3,7,'xyz'
+ """;
+       shouldPass(str,p.start);
+   });
+
+ test('FOR EACH with filemask',() {
+       var str = r"""
+ for each File in filelist (Root&' \*.' &Ext)
+ """;
+       shouldPass(str,p.start);
+   });
  
+ test('EXECUTE',() {
+       var str = r"""
+execute cmd.exe /C move /y file.xls backup\ ; """;
+       shouldPass(str,p.start);
+   });
  
 
  
