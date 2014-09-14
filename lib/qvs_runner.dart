@@ -2,8 +2,10 @@ library qvs_runner;
 import 'src/qvs_reader.dart';
 
 
-int run(String fileName) {
-  QvsFileReader reader = newReader()..readFile(fileName);
+QvsFileReader run(String fileName, bool justLocateQvw) {
+  QvsFileReader reader = newReader()
+      ..justLocateQvw = justLocateQvw
+      ..readFile(fileName);
   for (var error in reader.errors) {
     print('------------------------------');
     print(error.entry.commandWithError());
@@ -12,9 +14,11 @@ int run(String fileName) {
   int exitStatus = 0;
   var parseStatusString = 'successfully';
   if (reader.errors.isNotEmpty) {
-    exitStatus = -1;
+    exitStatus = 1;
     parseStatusString = 'with ${reader.errors.length} errors/warnings';
   }
-  print('Parse finished $parseStatusString');
-  return exitStatus;
+  if (!justLocateQvw) {
+    print('Parse finished $parseStatusString');
+  }
+  return reader;
 }

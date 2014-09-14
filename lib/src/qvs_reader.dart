@@ -35,6 +35,7 @@ class QvsErrorDescriptor {
   String toString() => 'QvsErrorDescriptor(${this.errorMessage})';
 }
 class QvsReaderData {
+  String qvwFileName;
   int internalLineNum=0;
   final List<QvsCommandEntry> entries = [];
   final Map<String, int> subMap = {};
@@ -77,6 +78,7 @@ class QvsFileReader {
   static final endSubroutinePattern = new RegExp(r'^\s*End\s*Sub',caseSensitive: false);
   static final variablePattern = new RegExp(r'\$\((\w[A-Za-z.0-9]*)\)');
   static final singleLineComment = new RegExp(r'^\s*//');
+  static final singleLineCommentinNotEmptyLine = new RegExp(r'\S\s*//');
   static final multiLineCommentStart = new RegExp(r'^\s*/[*]');
   static final multiLineCommentEnd = new RegExp(r'\*/\s*$');
   static final suppressErrorPattern = new RegExp(r'//#!SUPPRESS_ERROR\s*$');
@@ -110,6 +112,7 @@ class QvsFileReader {
   List<QvsErrorDescriptor> get errors => data.errors; 
   String toString() => 'QvsReader(${data.entries})';
   bool get hasErrors => data.errors.isNotEmpty;
+  bool justLocateQvw = false;
   void addError(QvsCommandEntry entry, String message,[int row, int col]) {
     if (entry.suppressError) {
       return;
@@ -148,9 +151,41 @@ class QvsFileReader {
         lines = new File(sourceFileName).readAsLinesSync();
       }
     }
+    if (sourceFileName == data.rootFile) {
+      locateQvwFile(lines);
+    }
+    if (justLocateQvw) {
+      return;
+    }
     readLines(lines);
   }
-  
+  void locateQvwFile(List<String> lines) {
+    if (lines.isEmpty) {
+      return;
+    }
+    String baseName = path.basename(data.rootFile); 
+    String testFile;
+    if (lines.first.trim().startsWith('//#!')) {
+      String directive = lines.first.trim().replaceFirst('//#!', '');
+      directive = directive.replaceAll(';', '');
+      testFile = '';
+      if (directive.endsWith('.qvw')) {
+        testFile = directive;
+      } else {
+        testFile = path.join(directive,path.basenameWithoutExtension(data.rootFile)+'.qvw');
+      }
+      if (path.isRelative(testFile)) {
+        testFile = path.join(path.dirname(data.rootFile),testFile);
+        testFile = path.normalize(testFile);
+      }
+    } else {
+      testFile = data.rootFile.replaceFirst('.qvs','.qvw');
+    }
+    if (new File(testFile).existsSync()) {
+      data.qvwFileName = testFile;
+    }
+
+  }
   void readLines(List<String> lines) {
     int lineCounter = 0;
     int sourceLineNum = 1;
@@ -158,10 +193,16 @@ class QvsFileReader {
     bool suppressError = false;
     List<String> commandLines = [];
     for (var line in lines) {
-      commandLines.add(line);
+      if (line.trim().startsWith('//#!SKIP_PARSING')) {
+        return;
+      }
       if (suppressErrorPattern.hasMatch(line)) {
         suppressError = true;
       }
+      if (singleLineCommentinNotEmptyLine.hasMatch(line)) {
+        line = line.split('//').first;
+      }
+      commandLines.add(line);
       lineCounter++;
       QvsLineType lineType = testLineType(line);
       if (lineType == QvsLineType.CONTROL_STRUCTURE 
@@ -247,7 +288,7 @@ class QvsFileReader {
       createNestedReader().readFile(m.group(1),null,entry);
     }
     if (m == null) {
-      m = mustIncludePattern.firstMatch(entry.expandedText);
+      m = includePattern.firstMatch(entry.expandedText);
       if (m != null) {
         entry.commandType = QvsCommandType.INCLUDE;
         createNestedReader().readFile(m.group(1),null,entry);
@@ -262,6 +303,10 @@ class QvsFileReader {
   }
   void walkIntoSubroutine(QvsCommandEntry entry) {
     Result r = parser[call].end().parse(entry.expandedText);
+    if (r.isFailure) {
+      addError(entry,'Invalid subroutine call');
+      return;
+    }
     String subName = r.value[0];
     if (!subMap.containsKey(subName)) {
       addError(entry,'Call of undefined subroutine [$subName]');
@@ -271,9 +316,12 @@ class QvsFileReader {
     int idx = subMap[subName];
     QvsCommandEntry currentEntry = entries[idx];
     r = parser[subStart].end().parse(currentEntry.sourceText);
+    if (r.isFailure) {
+      throw r.message;
+    }
     List<String> formalParams = [];
-    if (r.value[1] is !String) {
-      formalParams.addAll(r.value[1][2]);
+    if (r.value[1][1] != null) {
+      formalParams.addAll(r.value[1][1][1]);
     }
     Map<String,String> params = {};
     data.subParams.addFirst(params);

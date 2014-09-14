@@ -547,7 +547,6 @@ TRACE $(Purchase.ProcessYear);''';
     reader.readFile('test.qvs',code);
     expect(reader.entries.length, 1);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
-    
   });
   
   test('For each with filelist create variable', () {
@@ -574,5 +573,47 @@ TRACE $(Purchase.ProcessYear);''';
     expect(reader.entries[1].expandedText.trim(),'trace qvw;');    
   });
 
+  test('Ignore comments at end of line', () {
+    var reader = newReader();
+    var code = r'''
+SET vMinDate = Num(MakeDate(2012,01));//$(DateRange.Min);
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.first.expandedText.trim(),'SET vMinDate = Num(MakeDate(2012,01));');  
+  });
+
+  test('SKIP_PARSING shebang comment statement', () {
+    var reader = newReader();
+    var code = r'''
+//#!..\..\1.Application\
+//#!SKIP_PARSING
+ABRAKADABRA ;
+ANOTHER ABRAKADABRA;
+SOME OTHER ABRAKADABRA;
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length, 1);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+
+  test('Test qvw file location without shebang directive ', () {
+    var reader = newReader();
+    reader.readFile('files1\\file_without_shebang_qvw_directive.qvs');
+    expect(reader.entries.isEmpty, isFalse);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.data.qvwFileName, isNotNull);
+    expect(reader.data.qvwFileName,contains('files1\\file_without_shebang_qvw_directive.qvw'));
+  });
+
+  test('Test qvw file location with shebang directive ', () {
+    var reader = newReader();
+    reader.readFile('files/file_with_shebang_qvw_directive.qvs');
+    expect(reader.entries.isEmpty, isFalse);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.data.qvwFileName, isNotNull);
+    expect(reader.data.qvwFileName,contains('files1\\file_with_shebang_qvw_directive.qvw'));
+  });
+  
   
 }

@@ -1,14 +1,14 @@
 //import 'package:petitparser/petitparser.dart';
 import 'package:args/args.dart';
 import 'package:qvs_parser/qvs_runner.dart';
+import 'package:qvs_parser/src/qvs_reader.dart';
 import 'dart:io';
 String input = r'''
 JOIN (   [asdf]  ) 
 ''';
 void main(arguments) {
   var ap = new ArgParser();
-  ap.addFlag('forceReload', abbr: 'f', help: 'Reload document even if parse was unsuccessful', defaultsTo: false, negatable: false);
-  ap.addFlag('verbose', abbr: 'v', negatable: false, defaultsTo: false);
+  ap.addOption('command', allowed: ['check_and_reload', 'open','force_reload'], abbr: 'c', defaultsTo: 'check_and_reload');
   ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
   ap.addOption('qlikview', abbr: 'q', defaultsTo: r'C:\Program Files\QlikView\qv.exe', help: "Full path to QlikView executable");
 
@@ -18,13 +18,33 @@ void main(arguments) {
     print('options are:\n');
     print(ap.getUsage());
     print('\nExamples:\n');
-    print(r'dart qvs.dart.snapshot --qlikView="c:\QlikView\qv.exe" --forceReload inventory.qvs');
-    print('or');
-    print(r'c:\dart\dart-sdk\bin\dart.exe -f qvs.dart loadInventory.qvs');
+    print(r'dart qvs.dart.snapshot --qlikView="c:\QlikView\qv.exe" --command=  inventory.qvs');
     return;
   }
-  
-  int exitCode = run(args.rest[0]);
-  exit(exitCode);
+  QvsFileReader reader = run(args.rest[0], args['command']=='open');
+  var cmArgs = [];
+  String executable = args['qlikview'];
+  if (reader.data.qvwFileName == null) {
+    print('Cannot locate qvw file for script ${reader.data.rootFile}');
+    exit(2);
+  }
+  if (args['command']=='open') {
+    cmArgs = ['/C', executable, reader.data.qvwFileName];
+    print('Opening file ${reader.data.qvwFileName}');
+  } else {
+    if (args['command']=='check_and_reload') {
+      if (reader.errors.isNotEmpty) {
+        exit(1);
+      }
+    }
+    cmArgs = ['/C', executable, '/r', '/Nodata', '/Nosecurity',reader.data.qvwFileName];
+    print('Reloading file ${reader.data.qvwFileName}');
+  }
+  Process.run('cmd', cmArgs)
+  .then((ProcessResult res) {
+    var message = 'QlikView process finished. ${res.stderr}'; 
+    print(message);
+  })
+  .catchError((Object err) {print('Error while invoking qlikview: $err');});
 }
 

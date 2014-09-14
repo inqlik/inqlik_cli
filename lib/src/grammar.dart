@@ -170,7 +170,8 @@ class QvsGrammar extends CompositeParser {
           .or(_keyword('IntervalMatch'))
           .or(_keyword('CrossTable'))
         .seq(ref(p.simpleParens))
-        .flatten());
+        .or(_word('FIRST')
+            .seq(ref(p.expression))));
     def(p.whileClause,
         _keyword('while')
         .seq(ref(p.expression))
@@ -214,11 +215,6 @@ class QvsGrammar extends CompositeParser {
     def(p.tableIdentifier,
       ref(p.fieldref).seq(char(':').trim(trimmer))
     );
-    def(p.subRoutine,
-        word().or(char('.')).plus().trim(trimmer)
-        .seq(char('(').trim(trimmer))
-        .seq(ref(p.params).optional())
-        .seq(char(')').trim(trimmer)).flatten());
     def(p.params,
         ref(p.expression).separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def(p.parens,
@@ -326,7 +322,7 @@ class QvsGrammar extends CompositeParser {
         .seq(_keyword(';').optional()));
     def(p.subStart,
         _keyword('SUB')
-        .seq(ref(p.identifier).or(ref(p.function)))
+        .seq(ref(p.subDeclaration))
         .seq(_keyword(';').optional()));
     def(p.exitScript,
     _keyword('exit')
@@ -450,6 +446,12 @@ class QvsGrammar extends CompositeParser {
         .or(letter())
         .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(trimmer));
+    def(p.varName,
+        word()
+          .or(localLetter())
+          .or(anyIn(r'._$#@'))
+            .plus().flatten().trim(trimmer)
+        );
     def(p.fieldrefInBrackets, _keyword('[')
         .seq(_keyword(']').neg().plus())
         .seq(_keyword(']')).trim(trimmer).flatten());
@@ -471,6 +473,11 @@ class QvsGrammar extends CompositeParser {
         .seq(char('(').trim(trimmer))
         .seq(ref(p.params).optional())
         .seq(char(')').trim(trimmer)));
+    def(p.subDeclaration,
+          ref(p.varName)
+          .seq(_keyword('(')
+            .seq(ref(p.params))
+            .seq(_keyword(')')).optional()));
     def(p.unaryExpression,
         _word('NOT').or(_keyword('-').or(_word('DISTINCT'))).trim(trimmer)
             .seq(ref(p.expression))

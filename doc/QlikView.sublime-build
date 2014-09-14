@@ -1,0 +1,12 @@
+{
+	"cmd": ["dart", "c:\\projects\\qvs_parser\\bin\\qvs.dart", "--command=check_and_reload", "$file"],
+  "file_regex": "^>* Parse error. File: \"(...*?)\", line: ([0-9]*)",
+  "selector": "source.qvs",
+      "variants": [
+      {
+        "name": "Run",
+        "cmd": ["dart", "c:\\projects\\qvs_parser\\bin\\qvs.dart", "--command=open","$file"],
+      } 
+    ]
+
+}

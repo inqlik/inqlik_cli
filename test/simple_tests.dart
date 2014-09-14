@@ -295,17 +295,18 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
    var str = r"SUB dummy(param1,param2)";
    Result res = _parse(str,p.subStart);
    expect(res.value.length,3);
-   expect(res.value[1][0][0],"dummy");
-   expect(res.value[1][2].length,2);
-   expect(res.value[1][2][0],'param1');
-   expect(res.value[1][2][1],'param2');
+   print(res.value);
+   expect(res.value[1][0],"dummy");
+   expect(res.value[1][1][1].length,2);
+   expect(res.value[1][1][1][0],'param1');
+   expect(res.value[1][1][1][1],'param2');
  });
 
  test('Sub declaration without params parsing ',() {
    var str = r"SUB dummy";
    Result res = _parse(str,p.subStart);
    expect(res.value.length,3);
-   expect(res.value[1],"dummy");
+   expect(res.value[1][0],"dummy");
  });
  
  skip_test('Another SET ',() {
@@ -486,11 +487,21 @@ execute cmd.exe /C move /y file.xls backup\ ; """;
        shouldPass(str,p.start);
    });
  
+test('FIRST n',() {
+       var str = r"""
+DataTemp:
+FIRST 1  
+LOAD field1
+  RESIDENT table2;
+""";
+       shouldPass(str,p.start);
+   });
 
- 
+test('SUB declaration from Qvc',() {
+       var str = r"""
+SUB _Qvc.LoadQvdInfo(_qvdpath)
+""";
+       shouldPass(str,p.subStart);
+   });
 }
-
-
-
-
 
