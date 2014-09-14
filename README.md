@@ -1,7 +1,7 @@
-qvs_parser (v0.1.0)
+qvs
 ================
 
-Command line parser for QlikView load scripts.
+Syntax check tool for QlikView load scripts.
 
 #### Features
 
