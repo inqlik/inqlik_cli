@@ -1,7 +1,7 @@
 library simple_tests;
 
-import 'package:qvs_parser/src/parser.dart';
-import 'package:qvs_parser/src/productions.dart' as p;
+import 'package:qvs/src/parser.dart';
+import 'package:qvs/src/productions.dart' as p;
 import 'package:unittest/unittest.dart';
 import 'package:petitparser/petitparser.dart';
 

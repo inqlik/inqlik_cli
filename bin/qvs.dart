@@ -1,7 +1,7 @@
 //import 'package:petitparser/petitparser.dart';
 import 'package:args/args.dart';
-import 'package:qvs_parser/qvs_runner.dart';
-import 'package:qvs_parser/src/qvs_reader.dart';
+import 'package:qvs/qvs_runner.dart';
+import 'package:qvs/src/qvs_reader.dart';
 import 'dart:io';
 String input = r'''
 JOIN (   [asdf]  ) 
@@ -9,6 +9,7 @@ JOIN (   [asdf]  )
 void main(arguments) {
   var ap = new ArgParser();
   ap.addOption('command', allowed: ['check_and_reload', 'open','force_reload'], abbr: 'c', defaultsTo: 'check_and_reload');
+  ap.addFlag('show-resident-tables', negatable: false, defaultsTo: false);
   ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
   ap.addOption('qlikview', abbr: 'q', defaultsTo: r'C:\Program Files\QlikView\qv.exe', help: "Full path to QlikView executable");
 
@@ -21,7 +22,7 @@ void main(arguments) {
     print(r'dart qvs.dart.snapshot --qlikView="c:\QlikView\qv.exe" --command=  inventory.qvs');
     return;
   }
-  QvsFileReader reader = run(args.rest[0], args['command']=='open');
+  QvsFileReader reader = run(args.rest[0], args['command']=='open', args['show-resident-tables']);
   var cmArgs = [];
   String executable = args['qlikview'];
   if (reader.data.qvwFileName == null) {

@@ -1,5 +1,5 @@
-name: qvs_parser
-version: 0.2.2
+name: qvs
+version: 1.0.1
 author: Vadim Tsushko <vadimtsushko@gmail.com>
 description: A sample command-line application
 homepage: https://github.com/vadimtsushko/qvs_parser

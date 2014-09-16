@@ -1,6 +1,6 @@
 library reader_tests;
 
-import 'package:qvs_parser/src/qvs_reader.dart';
+import 'package:qvs/src/qvs_reader.dart';
 import 'package:unittest/unittest.dart';
 
 void main() {
@@ -613,6 +613,42 @@ SOME OTHER ABRAKADABRA;
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.data.qvwFileName, isNotNull);
     expect(reader.data.qvwFileName,contains('files1\\file_with_shebang_qvw_directive.qvw'));
+  });
+  
+  test('Test table management', () {
+    var reader = newReader();
+    var code = r'''
+Table1:
+LOAD *;
+LOAD * FROM 123.qvd(qvd);
+Concatenate(Table1)
+LOAD * RESIDENT Table1;
+Join(Table1)
+LOAD * RESIDENT Table1;
+Table2:
+LOAD * RESIDENT xxx;
+RENAME TABLE Table1 to TableFinal;
+DROP TABLE Table2;
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.data.tables.length,1);
+    expect(reader.data.tables.first,'TableFinal');
+  });
+
+  test('Variable creation in FOR NEXT. Initialized by expression', () {
+    var reader = newReader();
+    var code = r'''
+FOR n = Num(now()) TO Num(MakeDate(2016))
+ TRACE $(n);
+NEXT n    
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.data.entries.length,4);
+    expect(reader.data.entries[1].expandedText.trim(), 'TRACE n_ASSIGNED_VALUE;');
+    print(reader.entries[1].expandedText);
+//    expect(reader.data.tables.first,'TableFinal');
   });
   
   

@@ -31,7 +31,10 @@ class QvsCommandEntry {
 class QvsErrorDescriptor {
   final QvsCommandEntry entry;
   final String errorMessage;
-  QvsErrorDescriptor(this.entry,this.errorMessage);
+  String commandWithError;
+  QvsErrorDescriptor(this.entry,this.errorMessage) {
+    commandWithError = entry.commandWithError();
+  }
   String toString() => 'QvsErrorDescriptor(${this.errorMessage})';
 }
 class QvsReaderData {
@@ -43,6 +46,7 @@ class QvsReaderData {
   final List<QvsErrorDescriptor> errors = [];
   final Map<String, String> variables = {};
   final Queue<Map<String,String>> subParams = new Queue<Map<String,String>>();
+  final Set<String> tables = new Set<String>();
 }
 class QvsLineType {
   final String _val;
@@ -131,14 +135,14 @@ class QvsFileReader {
   void readFile(String fileName, [String fileContent = null, QvsCommandEntry entry = null]) {
     List<String> lines = [];
     if (data.rootFile == null) {
-     data.rootFile = path.absolute(path.dirname(Platform.script.toFilePath()),fileName);
-     String pathToDefaulInclude = path.join(path.dirname(data.rootFile),'default_include.qvs');  
+     data.rootFile = path.normalize(path.absolute(path.dirname(Platform.script.toFilePath()),fileName));
+     String pathToDefaulInclude = path.normalize(path.join(path.dirname(data.rootFile),'default_include.qvs')); 
      if (new File(pathToDefaulInclude).existsSync()) {
        createNestedReader().readFile(pathToDefaulInclude); 
      }
      sourceFileName = data.rootFile;
     } else {
-      sourceFileName = path.absolute(path.dirname(data.rootFile),fileName);
+      sourceFileName = path.normalize(path.absolute(path.dirname(data.rootFile),fileName));
     }
     if (fileContent != null) {
       lines = fileContent.split('\n');

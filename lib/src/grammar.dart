@@ -179,8 +179,7 @@ class QvsGrammar extends CompositeParser {
     
     def(p.concatenate,
         _keyword('concatenate')
-        .seq(ref(p.tableInParens).optional())
-        .flatten());
+        .seq(ref(p.tableInParens).optional()));
     def(p.tableInParens,
         _keyword('(')
         .seq(ref(p.fieldref))
@@ -222,7 +221,7 @@ class QvsGrammar extends CompositeParser {
             .seq(ref(p.expression))
             .seq(char(')').trim(trimmer)).flatten());
     def(p.tableOrFilename,
-        word().or(anyIn(r'./\:').or(localLetter())).plus()
+        word().or(anyIn(r'./\:?*').or(localLetter())).plus()
         .or(ref(p.fieldrefInBrackets))
         .or(ref(p.str))
         .seq(ref(p.fileModifier).or(ref(p.tableSelectModifier)).optional())

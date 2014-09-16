@@ -1,6 +1,5 @@
 library qvs_parser;
 import 'package:petitparser/petitparser.dart';
-import 'dart:io';
 import 'qvs_reader.dart';
 import 'productions.dart' as p;
 part 'grammar.dart';
@@ -9,7 +8,12 @@ part 'grammar.dart';
 class QvsParser extends QvsGrammar {
   QvsFileReader reader;
   QvsParser(this.reader): super();
-  static final Set<String> tables = new Set<String>();
+  String _stripBrakets(String val) {
+    if (val.startsWith('[')) {
+      val = val.substring(1,val.length-1);  
+    }
+    return val;
+  }
   void initialize() {
     super.initialize();
     action(p.call, (List list) {
@@ -28,67 +32,34 @@ class QvsParser extends QvsGrammar {
       return list;
     });
     action(p.forNextStart, (List list) {
-      reader.processAssignmentCommand(list[1], list[3], false);
+      reader.processAssignmentCommand(list[1], list[3], true);
       return list;
     });
     action(p.forEachStart, (List list) {
-      reader.processAssignmentCommand(list[2], list[4][0], false);
+      reader.processAssignmentCommand(list[2], list[4][0], true);
       return list;
     });
     action(p.forEachFileMaskStart, (List list) {
-      reader.processAssignmentCommand(list[2], list[6], false);
+      reader.processAssignmentCommand(list[2], list[6], true);
       return list;
     });
+    action(p.dropTable, (v) {
+      for (var table in v[3]) {
+        reader.data.tables.remove(_stripBrakets(table));
+      }
+    });
+    action(p.load, (v) {
+//      print('LOAD STATEMENT: $v');
+    });
 
-    
-    //    action('tableIdentifier', (v) {
-////      print(v);
-//      tables.add(v.value.first.value);
-//    });
-//    action('drop table', (v) {
-////      print(v);
-//      for(var each in v[3]) {
-//        tables.remove(each.value);
-//      }
-//    });
-//    action('rename table', (v) {
-////      print(v);
-//      tables.remove(v[2].value);
-//      tables.add(v[4].value);
-//    });
-//    action('load', (v){
-//      print(v);
-//      print(' ${v[5].value}');
-//    });
+    action(p.renameTable, (v) {
+      reader.data.tables.remove(_stripBrakets(v[2]));
+      reader.data.tables.add(v[4]);
+    });
+    action(p.tableIdentifier, (v){
+      reader.data.tables.add(_stripBrakets(v[0]));
+      return v;
+    });
 
-  }
-}
-
-void runQlikView(String buffer, String executable, String scriptName) {
-  var lines = buffer.split('\n');
-  var firstLine = lines[0];
-  if (firstLine.startsWith('//#!')) {
-    var fileName = firstLine.substring(4).trim();
-    var file = new File(fileName);
-    if (!file.existsSync())
-    {
-      print('Reload unterrupted. File not found: $fileName');
-      exit(2);
-    }
-    file = new File(executable);
-    if (!file.existsSync())
-    {
-      print('Reload unterrupted. QlikView executable not found: $executable');
-      exit(2);
-    }
-    print('Reloading file $fileName');
-    var arguments = ['/c',executable,'/r', '/Nodata', '/Nosecurity', '/vss=$scriptName', fileName];
-    print('cmd $arguments');
-    Process.run('cmd', arguments)
-    .then((ProcessResult res) {
-      var message = 'QlikView reload process finished. ${res.stderr}'; 
-      print(message);
-    })
-    .catchError((Object err) {print('Error while reloading: $err');});
   }
 }
