@@ -115,7 +115,7 @@ void main() {
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 5);
     expect(reader.subMap.containsKey('test'),isTrue);
-    expect(reader.subMap['test'], 1);
+    expect(reader.subMap['test'].startIndex, 1);
   });
 
   test('Test with subroutine with dotted name', () {
@@ -130,7 +130,7 @@ void main() {
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 5);
     expect(reader.subMap.containsKey('myLib.test'),isTrue);
-    expect(reader.subMap['myLib.test'], 1);
+    expect(reader.subMap['myLib.test'].startIndex, 1);
   });
 
   test('Test simplest expansion', () {
@@ -312,13 +312,24 @@ CALL dummy('y');''';
   test('Sub declaration properly closed ', () {
     var reader = newReader();
     var code = r'''
+Sub Dummy
+    LET LoadInterval.FromDate = Date(MakeDate(LoadInterval.Year),'YYYY-DD-MM');
+End Sub''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.entries.length,3);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+  });
+
+  test('Unmatched end of sub declaration', () {
+    var reader = newReader();
+    var code = r'''
     LET LoadInterval.FromDate = Date(MakeDate(LoadInterval.Year),'YYYY-DD-MM');
 End Sub''';  
     reader.readFile('test.qvs',code);
     expect(reader.entries.length,2);
-    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.hasErrors, isTrue,reason: 'Redundant end of sub should be error');
   });
-  
+
   test('Supress expansion in multi-line commented blocks ', () {
     var reader = newReader();
     var code = r'''
@@ -647,9 +658,36 @@ NEXT n
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.data.entries.length,4);
     expect(reader.data.entries[1].expandedText.trim(), 'TRACE n_ASSIGNED_VALUE;');
-    print(reader.entries[1].expandedText);
-//    expect(reader.data.tables.first,'TableFinal');
   });
   
+  test('Nested subroutines', () {
+    var reader = newReader();
+    var code = r'''
+SUB Dummy(outParam)
+  SUB _NestedInDummy(innerParam) 
+    TRACE $(outParam) $(innerParam);  
+  END SUB
+  CALL _NestedInDummy('Inner');
+  TRACE $(outParam);
+END SUB
+CALL Dummy('Outer');
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries[2].expandedText.trim(),'TRACE Outer Inner;');
+  });
+
+  
+  test('Multiline comment on one line', () {
+    var reader = newReader();
+    var code = r'''
+/* asdfasdf*/
+LET var1 =  1;
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.data.variables.length,1);
+  });
+
   
 }

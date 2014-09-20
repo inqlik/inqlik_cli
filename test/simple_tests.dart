@@ -499,9 +499,31 @@ LOAD field1
 
 test('SUB declaration from Qvc',() {
        var str = r"""
-SUB _Qvc.LoadQvdInfo(_qvdpath)
+SUB Qvc.AsOfTable (_dateField)
 """;
        shouldPass(str,p.subStart);
    });
+test('REM comments',() {
+       var str = r"""
+TRACE 1;
+REM trace $(asdasdas);
+TRACE 2;
+""";
+       shouldPass(str,p.start);
+   });
+
+test('SET dot',() {
+       var str = r"""
+SET Qvc.Loader.v.ConnectionDir=.;""";
+       shouldPass(str,p.start);
+   });
+
+test('SET string with semicolon',() {
+       var str = r"""
+SET var1=';' & ';';
+""";
+       shouldPass(str,p.setAssignment);
+   });
+
 }
 

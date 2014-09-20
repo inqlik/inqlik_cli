@@ -41,7 +41,8 @@ class QvsReaderData {
   String qvwFileName;
   int internalLineNum=0;
   final List<QvsCommandEntry> entries = [];
-  final Map<String, int> subMap = {};
+  final Map<String, QvsSubDescriptor> subMap = {};
+  final Map<int, QvsSubDescriptor> subEntries = {};
   String rootFile;
   final List<QvsErrorDescriptor> errors = [];
   final Map<String, String> variables = {};
@@ -71,6 +72,15 @@ class QvsCommandType {
   String toString() => 'QvsCommandType($_val)';
 }
 
+class QvsSubDescriptor {
+  final String name;
+  final int startIndex;
+  int sourceStart;
+  int sourceEnd;
+  int endIndex;
+  QvsSubDescriptor(this.name,this.startIndex);
+  String toString() => "QvsSubDescriptor($name,$sourceStart,$sourceEnd)";
+}
  
 class QvsFileReader {
   QvsParser parser;
@@ -84,6 +94,7 @@ class QvsFileReader {
   static final singleLineComment = new RegExp(r'^\s*//');
   static final singleLineCommentinNotEmptyLine = new RegExp(r'\S\s*//');
   static final multiLineCommentStart = new RegExp(r'^\s*/[*]');
+  static final closedMultiLineComment = new RegExp(r'/\*.*?\*/');
   static final multiLineCommentEnd = new RegExp(r'\*/\s*$');
   static final suppressErrorPattern = new RegExp(r'//#!SUPPRESS_ERROR\s*$');
   static final callSubroutinePattern = new RegExp(r'^\s*CALL\s+(\w[A-Za-z.0-9]+)',caseSensitive: false); 
@@ -104,7 +115,7 @@ class QvsFileReader {
     ];
   String sourceFileName;
   bool skipParse = false;
-  String inSubDeclaration = '';
+  Queue<QvsSubDescriptor> currentSubroutineDeclaration = new Queue<QvsSubDescriptor>();
   bool inMultiLineCommentBlock = false;
   final QvsReaderData data;
   QvsFileReader(this.data) {
@@ -112,7 +123,7 @@ class QvsFileReader {
   }
   List<QvsCommandEntry> get entries => data.entries; 
   Map<String, String> get currentParams => data.subParams.isEmpty? {}: data.subParams.first;
-  Map<String, int> get subMap => data.subMap; 
+  Map<String, QvsSubDescriptor> get subMap => data.subMap; 
   List<QvsErrorDescriptor> get errors => data.errors; 
   String toString() => 'QvsReader(${data.entries})';
   bool get hasErrors => data.errors.isNotEmpty;
@@ -230,8 +241,8 @@ class QvsFileReader {
         commandLines = [];
       }
     }
-    if (inSubDeclaration != '') {
-      addError(data.entries.last,'SUB ${inSubDeclaration} has not been closed propery');
+    if (currentSubroutineDeclaration.isNotEmpty) {
+      addError(data.entries.last,'SUB ${currentSubroutineDeclaration.first.name} has not been closed properly');
     }
   }
 
@@ -311,14 +322,13 @@ class QvsFileReader {
       addError(entry,'Invalid subroutine call');
       return;
     }
-    String subName = r.value[0];
+    String subName = r.value[0].trim();
     if (!subMap.containsKey(subName)) {
       addError(entry,'Call of undefined subroutine [$subName]');
       return;
     }
     List<String> actualParams = r.value[1];
-    int idx = subMap[subName];
-    QvsCommandEntry currentEntry = entries[idx];
+    QvsCommandEntry currentEntry = entries[subMap[subName].startIndex];
     r = parser[subStart].end().parse(currentEntry.sourceText);
     if (r.isFailure) {
       throw r.message;
@@ -328,6 +338,9 @@ class QvsFileReader {
       formalParams.addAll(r.value[1][1][1]);
     }
     Map<String,String> params = {};
+    if (data.subParams.isNotEmpty) {
+      params.addAll(data.subParams.first);
+    }
     data.subParams.addFirst(params);
     for (int paramIdx = 0; paramIdx<formalParams.length;paramIdx++) {
       String paramValue;
@@ -339,34 +352,50 @@ class QvsFileReader {
       }
       params[formalParams[paramIdx]] = paramValue;
     }
-    currentEntry = entries[++idx];
-    while (currentEntry.commandType != QvsCommandType.SUB_DECLARATION_END) {
-      processEntry(currentEntry);
-      idx++;
+    for (int idx = subMap[subName].startIndex+1; idx < subMap[subName].endIndex; idx++) {
       if (idx == entries.length) {
         throw new Exception('Walked past of list boundary in walkIntoSubroutine');
       }
-      currentEntry = entries[idx];
+      if (data.subEntries.containsKey(idx)) { // Skip statements in nested sub
+        idx = data.subEntries[idx].endIndex;
+      } else {
+        processEntry(entries[idx]);
+      }  
     }
     data.subParams.removeFirst();
   }
   void addCommand(QvsCommandEntry entry) {
     data.entries.add(entry);
-    if (inSubDeclaration == '') {
+    if (currentSubroutineDeclaration.isEmpty) {
       processEntry(entry);
     }
     var m = startSubroutinePattern.firstMatch(entry.sourceText);
     if (m != null) {
       entry.commandType = QvsCommandType.SUB_DECLARATION;
       String debug = m.group(1).trim();
-      subMap[m.group(1)] = entry.internalLineNum -1;
-      inSubDeclaration = m.group(1);
+      var sub = new QvsSubDescriptor(m.group(1),entry.internalLineNum - 1);
+      sub.sourceStart = entry.sourceLineNum;
+      subMap[sub.name] = sub;
+      data.subEntries[sub.startIndex] = sub;
+      currentSubroutineDeclaration.addFirst(sub);
     }
     if (m == null) {
       m = endSubroutinePattern.firstMatch(entry.sourceText);
       if (m != null) {
         entry.commandType = QvsCommandType.SUB_DECLARATION_END;
-        inSubDeclaration = '';
+        if (currentSubroutineDeclaration.isNotEmpty) {
+          var sub = currentSubroutineDeclaration.removeFirst();
+          sub.endIndex = entry.internalLineNum - 1;
+          sub.sourceEnd = entry.sourceLineNum;
+          if (sub.name == 'Qvc.ListFiles') {
+            int debug = 1;
+          }
+        } else {
+          addError(entry,'Extra end of sub.');  
+        }
+//        else {
+//          addError(entry,'');  
+//        }
       }
     }
   }
@@ -396,8 +425,10 @@ class QvsFileReader {
   }
   QvsLineType testLineType(line) {
     if (multiLineCommentStart.hasMatch(line)) {
-      inMultiLineCommentBlock = true;
-      return QvsLineType.COMMENT_LINE;
+      if (!closedMultiLineComment.hasMatch(line)) {
+        inMultiLineCommentBlock = true;
+        return QvsLineType.COMMENT_LINE;
+      }  
     }
     if (inMultiLineCommentBlock) {
       if ( multiLineCommentEnd.hasMatch(line)){

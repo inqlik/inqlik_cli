@@ -23,6 +23,13 @@ void main(arguments) {
     return;
   }
   QvsFileReader reader = run(args.rest[0], args['command']=='open', args['show-resident-tables']);
+//  reader.data.variables.forEach((key,value) {
+//    print('$key = $value');
+//  });
+//  reader.data.subMap.values.forEach((value) {
+//    print('$value');
+//  });
+
   var cmArgs = [];
   String executable = args['qlikview'];
   if (reader.data.qvwFileName == null) {

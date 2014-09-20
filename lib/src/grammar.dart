@@ -156,9 +156,9 @@ class QvsGrammar extends CompositeParser {
         .seq(_keyword('WHILE').or(_keyword('UNTIL')).seq(ref(p.expression)).optional())
         .seq(char(';').optional()).trim(trimmer)
         );
-    def(p.stringOrNotColon,
+    def(p.stringOrNotSemicolon,
         ref(p.str)
-        .or(char(';').neg().plusLazy(char(';')))
+        .or(char(';').neg()).starLazy(char(';')).flatten()
         );
     def(p.join,
         _keyword('LEFT').or(_keyword('RIGHT')).or(_keyword('INNER')).optional()
@@ -238,12 +238,23 @@ class QvsGrammar extends CompositeParser {
         _keyword('where').or(_keyword('while')).trim(trimmer)
         .seq(ref(p.binaryExpression))
         .trim(trimmer));
-    def(p.assignment,
-        _keyword('SET').or(_keyword('LET')).trim(trimmer)
+    def(p.letAssignment,
+        _keyword('LET')
         .seq(ref(p.identifier).trim(trimmer))
         .seq(char('=').trim(trimmer))
         .seq(ref(p.expression).optional())
         .seq(char(';').trim(trimmer))
+        );
+    def(p.setAssignment,
+        _keyword('SET')
+        .seq(ref(p.identifier).trim(trimmer))
+        .seq(char('=').trim(trimmer))
+        .seq(ref(p.stringOrNotSemicolon))
+        .seq(char(';').trim(trimmer))
+        );
+    def(p.assignment,
+        ref(p.setAssignment)
+        .or(ref(p.letAssignment))
         );
     def(p.call,
         _word('call').trim(trimmer)
@@ -414,8 +425,11 @@ class QvsGrammar extends CompositeParser {
     
     def(p.whitespace, whitespace()
       .or(ref(p.singeLineComment))
+      .or(ref(p.remComment))
       .or(ref(p.multiLineComment)));
     def(p.singeLineComment, string('//')
+      .seq(Token.newlineParser().neg().star()));
+    def(p.remComment, string('REM')
       .seq(Token.newlineParser().neg().star()));
     def(p.multiLineComment, string('/*')
       .seq(string('*/').neg().star())
