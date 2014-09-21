@@ -689,5 +689,43 @@ LET var1 =  1;
     expect(reader.data.variables.length,1);
   });
 
+  test('LET assignment without let', () {
+    var reader = newReader();
+    var code = r'''
+ var1 =  1;
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.data.variables.length,1);
+  });
+
+  test('LET assignment without let', () {
+    var reader = newReader();
+    var code = r'''
+ var1 =  1;
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.data.variables.length,1);
+  });
+
+  test('SUB default parameters assignment pattern: If/let', () {
+    var reader = newReader();
+    var code = r'''
+  SUB GenerateBaseQVD(GenerateBaseQVD_DocumentType, GenerateBaseQVD_StartYear)
+    IF Len('$(GenerateBaseQVD_StartYear)') = 0 THEN
+      LET GenerateBaseQVD_StartYear = 0;
+    ELSE 
+     LET GenerateBaseQVD_StartYear = $(GenerateBaseQVD_StartYear);
+    ENDIF
+  END SUB
+  CALL GenerateBaseQVD('asd',2);
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+
+  });
+  
+
   
 }

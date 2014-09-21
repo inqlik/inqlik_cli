@@ -90,7 +90,7 @@ class QvsFileReader {
   static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]*)\s*=',caseSensitive: false); 
   static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9_]+)',caseSensitive: false);
   static final endSubroutinePattern = new RegExp(r'^\s*End\s*Sub',caseSensitive: false);
-  static final variablePattern = new RegExp(r'\$\((\w[A-Za-z.0-9]*)\)');
+  static final variablePattern = new RegExp(r'\$\((\w[A-Za-z._0-9]*)\)');
   static final singleLineComment = new RegExp(r'^\s*//');
   static final singleLineCommentinNotEmptyLine = new RegExp(r'\S\s*//');
   static final multiLineCommentStart = new RegExp(r'^\s*/[*]');
@@ -163,7 +163,12 @@ class QvsFileReader {
           addError(entry,'File not found: $sourceFileName');
         }  
       } else {
-        lines = new File(sourceFileName).readAsLinesSync();
+        try {
+          lines = new File(sourceFileName).readAsLinesSync();
+        } catch (exception, stacktrace) {
+          print(exception);
+          return; 
+        }
       }
     }
     if (sourceFileName == data.rootFile) {
@@ -387,9 +392,6 @@ class QvsFileReader {
           var sub = currentSubroutineDeclaration.removeFirst();
           sub.endIndex = entry.internalLineNum - 1;
           sub.sourceEnd = entry.sourceLineNum;
-          if (sub.name == 'Qvc.ListFiles') {
-            int debug = 1;
-          }
         } else {
           addError(entry,'Extra end of sub.');  
         }
@@ -400,6 +402,9 @@ class QvsFileReader {
     }
   }
   void parseCommand(QvsCommandEntry entry) {
+    if (entry.expandedText == null) {
+      throw entry;
+    }
     Result res = parser.ref(command).end()
          .parse(entry.expandedText);
     entry.parsed = true;

@@ -17,7 +17,8 @@ class QvsGrammar extends CompositeParser {
   void _qvs() {
     def(p.start, ref(p.command).plus().end().flatten());
     def(p.command,
-        ref(p.load)
+        ref(p.sqlTables)
+        .or(ref(p.load))
         .or(ref(p.controlStatement))
         .or(ref(p.call))
         .or(ref(p.sleep))
@@ -132,6 +133,7 @@ class QvsGrammar extends CompositeParser {
         .seq(ref(p.fieldref))
         .seq(_keyword('INTO'))
         .seq(ref(p.tableOrFilename))
+        .seq(ref(p.whereClause).optional())
         .seq(char(';'))
         .trim(trimmer).flatten());
     
@@ -216,6 +218,8 @@ class QvsGrammar extends CompositeParser {
     );
     def(p.params,
         ref(p.expression).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+    def(p.paramsOptional,
+        ref(p.expression).optional().separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def(p.parens,
         char('(').trim(trimmer)
             .seq(ref(p.expression))
@@ -239,7 +243,7 @@ class QvsGrammar extends CompositeParser {
         .seq(ref(p.binaryExpression))
         .trim(trimmer));
     def(p.letAssignment,
-        _keyword('LET')
+        _keyword('LET').optional()
         .seq(ref(p.identifier).trim(trimmer))
         .seq(char('=').trim(trimmer))
         .seq(ref(p.expression).optional())
@@ -256,13 +260,19 @@ class QvsGrammar extends CompositeParser {
         ref(p.setAssignment)
         .or(ref(p.letAssignment))
         );
+    def(p.sqlTables,
+        ref(p.tableDesignator)
+        .seq(_keyword('SQLTABLES'))
+        .seq(_keyword(';'))
+        );
+
     def(p.call,
         _word('call').trim(trimmer)
         .seq(word().or(char('.')).plus().trim(trimmer).flatten())
                     .seq(char('(').trim(trimmer)
                     .seq(ref(p.params).plus())
                     .seq(char(')').trim(trimmer)).optional())
-        .seq(char(';')).trim(trimmer)
+        .seq(_keyword(';').optional()).trim(trimmer)
         );
     def(p.simpleParens,
         char("(")
@@ -336,7 +346,7 @@ class QvsGrammar extends CompositeParser {
         .seq(_keyword(';').optional()));
     def(p.exitScript,
     _keyword('exit')
-    .seq(_keyword('script'))
+    .seq(_keyword('script').or(_keyword('sub')))
     .seq(_keyword(';').optional()));
 
     def(p.forNextStart,
@@ -443,6 +453,7 @@ class QvsGrammar extends CompositeParser {
     def(p.primaryExpression,
         ref(p.str)
         .or(ref(p.unaryExpression))
+        .or(ref(p.macroFunction))
         .or(ref(p.function))
         .or(ref(p.number))
         .or(ref(p.fieldref))
@@ -480,12 +491,21 @@ class QvsGrammar extends CompositeParser {
         ref(p.number).or(ref(p.str)));
     def(p.function,
         letter()
-        .seq(word().or(char('.')).plus()).flatten()
-        .seq(char('#').optional())
+        .seq(word().or(char('#')).plus()).flatten()
         .trim(trimmer)
         .seq(char('(').trim(trimmer))
         .seq(ref(p.params).optional())
         .seq(char(')').trim(trimmer)));
+    def(p.userFunction,
+        word().or(anyIn('._#')).plus().flatten()
+        .trim(trimmer)
+        .seq(char('(').trim(trimmer))
+        .seq(ref(p.paramsOptional).optional())
+        .seq(char(')').trim(trimmer)));
+    def(p.macroFunction,
+            _keyword(r'$(')
+                .seq(ref(p.userFunction))
+                .seq(_keyword(')').trim(trimmer)));
     def(p.subDeclaration,
           ref(p.varName)
           .seq(_keyword('(')

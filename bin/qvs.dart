@@ -8,18 +8,23 @@ JOIN (   [asdf]  )
 ''';
 void main(arguments) {
   var ap = new ArgParser();
-  ap.addOption('command', allowed: ['check_and_reload', 'open','force_reload'], abbr: 'c', defaultsTo: 'check_and_reload');
+  ap.addOption('command', allowed: ['check_and_reload', 'open','force_reload','check'], abbr: 'c', defaultsTo: 'check_and_reload');
+  ap.addOption('directories',abbr: 'd', defaultsTo: '');
   ap.addFlag('show-resident-tables', negatable: false, defaultsTo: false);
   ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
   ap.addOption('qlikview', abbr: 'q', defaultsTo: r'C:\Program Files\QlikView\qv.exe', help: "Full path to QlikView executable");
 
   var args = ap.parse(arguments);
-  if (args["help"] || args.rest.isEmpty) {
+  if (args["help"] || (args.rest.isEmpty && args['directories']=='')) {
     print('Usage: dart qvs.(dart|snapshot) [options] fileToParse');
     print('options are:\n');
     print(ap.getUsage());
     print('\nExamples:\n');
-    print(r'dart qvs.dart.snapshot --qlikView="c:\QlikView\qv.exe" --command=  inventory.qvs');
+    print(r'dart qvs.dart.snapshot --qlikView="c:\QlikView\qv.exe" --command=check_and_reload  inventory.qvs');
+    return;
+  }
+  if (args['directories']!='') {
+    runDirFile(args['directories']);
     return;
   }
   QvsFileReader reader = run(args.rest[0], args['command']=='open', args['show-resident-tables']);
@@ -34,7 +39,7 @@ void main(arguments) {
   String executable = args['qlikview'];
   if (reader.data.qvwFileName == null) {
     print('Cannot locate qvw file for script ${reader.data.rootFile}');
-    exit(2);
+    exit(0);
   }
   if (args['command']=='open') {
     cmArgs = ['/C', executable, reader.data.qvwFileName];
@@ -42,7 +47,7 @@ void main(arguments) {
   } else {
     if (args['command']=='check_and_reload') {
       if (reader.errors.isNotEmpty) {
-        exit(1);
+        exit(reader.errors.length);
       }
     }
     cmArgs = ['/C', executable, '/r', '/Nodata', '/Nosecurity',reader.data.qvwFileName];

@@ -19,7 +19,8 @@ shouldFail(String source, String production) {
 
 shouldPass(String source, String production) {
   Result res = _parse(source, production);
-  expect(res.isSuccess,isTrue, reason: '"$source" did not parse as "$production". Message: ${res.message}' );
+  String reason = '';
+  expect(res.isSuccess,isTrue, reason: '"$source" did not parse as "$production". Message: ${res.message}. ${res.toPositionString()}' );
 }
 
 void main() {
@@ -524,6 +525,38 @@ SET var1=';' & ';';
 """;
        shouldPass(str,p.setAssignment);
    });
+test('MacroFunction',() {
+       var str = r"""
+$(_Qvc.DefaultIfEmpty('', 'TEST'))""";
+       shouldPass(str,p.macroFunction);
+   });
+test('MacroFunction with empty parameter',() {
+       var str = r"""
+$(_Qvc.DefaultIfEmpty(, 'TEST'))""";
+       shouldPass(str,p.macroFunction);
+   });
+
+test('LET assignment without let',() {
+       var str = r"""
+_deltaTransEmtpy = -1;""";
+       shouldPass(str,p.assignment);
+   });
+
+test('STORE TABLE with WHERE clause',() {
+       var str = r"""
+STORE PlanData INTO ../Data/QVDs/PlanData/PlanData.QVD(QVD)
+Where IsNull(_КодОтделМаркетинг) = 0; 
+""";
+       shouldPass(str,p.start);
+   });
+solo_test('SqlTables statement',() {
+       var str = r"""
+ExcelSheets:
+SQLtables; 
+""";
+       shouldPass(str,p.start);
+   });
+
 
 }
 

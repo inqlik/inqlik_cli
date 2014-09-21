@@ -25,7 +25,7 @@ class QvsParser extends QvsGrammar {
       return [subName, actualParams];
     });
     action(p.assignment, (List list) {
-      bool isLetCommand = (list[0] as String).trim().toUpperCase() == 'LET';
+      bool isLetCommand = list[0] == null || (list[0] as String).trim().toUpperCase() == 'LET';
       String varName = list[1];
       String varValue = list[3];
       reader.processAssignmentCommand(varName, varValue, isLetCommand);
