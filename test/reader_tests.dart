@@ -749,5 +749,42 @@ LET var1 =  1;
     shouldBeSuccess(reader);
   });
 
+  test('Include statement without semicolon', () {
+    var reader = newReader();
+    var code = r'''
+$(Include=..\qvc_runtime\qvc.qvs)
+BigTable:
+LOAD 1 as X AutoGenerate 2000;
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+  });
+  
+  test('Multilene comment on one line followed by REM comment', () {
+    var reader = newReader();
+    var code = r'''
+/* Logging subroutine */
+REM Default configuration for Qvc.Log;
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+  });
+
+  test('On-line comment in string ', () {
+    var reader = newReader();
+    var code = r'''
+  _colorTable:
+  LOAD trim(ColorVariable) as _qvctemp.ColorVariable,
+       trim(ColorValue) as _qvctemp.ColorValue
+  FROM
+  [_themeFile]
+  (ooxml, embedded labels, table is Sheet1)
+  WHERE len(trim(ColorVariable))>0 and left(trim(ColorVariable),2) <> '//'
+  ;
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+  });
+
   
 }

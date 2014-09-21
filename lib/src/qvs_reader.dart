@@ -7,6 +7,33 @@ import 'package:petitparser/petitparser.dart';
 import 'parser.dart';
 import 'productions.dart';
 
+
+const _SYSTEM_VARIABLES = const {
+  'CD':  "E:",
+  'QvPath':  "C:\PROGRA~1\QlikView",
+  'QvRoot':  "C:",
+  'QvWorkPath':  "C:\Projects\Qlikview-Components\Examples",
+  'QvWorkRoot':  "C:",
+  'WinPath': "C:\WINDOWS",
+  'WinRoot': "C:",
+  'ErrorMode': "1",
+  'StripComments': '1',
+  'OpenUrlTimeout':  '86400',
+  'ScriptErrorCount':  '0',
+  'ScriptErrorList': "",
+  'ScriptError': null,  
+  'ThousandSep': ",",
+  'DecimalSep':  ".",
+  'MoneyThousandSep':  ",",
+  'MoneyDecimalSep': ".",
+  'MoneyFormat': r"$#,##0.00;($#,##0.00)",
+  'TimeFormat':  "h:mm:ss TT",
+  'DateFormat':  "M/D/YYYY",
+  'TimestampFormat': "M/D/YYYY h:mm:ss[.fff] TT",
+  'MonthNames':  "Jan;Feb;Mar;Apr;May;Jun;Jul;Aug;Sep;Oct;Nov;Dec",
+  'DayNames':  "Mon;Tue;Wed;Thu;Fri;Sat;Sun",
+  'ScriptErrorDetails':  null
+  };
 QvsFileReader newReader() => new QvsFileReader(new QvsReaderData());
 class QvsCommandEntry {
   String sourceFileName;
@@ -45,7 +72,7 @@ class QvsReaderData {
   final Map<int, QvsSubDescriptor> subEntries = {};
   String rootFile;
   final List<QvsErrorDescriptor> errors = [];
-  final Map<String, String> variables = {};
+  final Map<String, String> variables = new Map<String, String>.from(_SYSTEM_VARIABLES);
   final Queue<Map<String,String>> subParams = new Queue<Map<String,String>>();
   final Set<String> tables = new Set<String>();
 }
@@ -85,16 +112,17 @@ class QvsSubDescriptor {
 class QvsFileReader {
   QvsParser parser;
   static final commandTerminationPattern = new RegExp(r'^.*;\s*($|//)');
-  static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;\s*$'); 
-  static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;\s*$'); 
+  static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;?\s*$',caseSensitive: false); 
+  static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;?\s*$',caseSensitive: false); 
   static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]*)\s*=',caseSensitive: false); 
   static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9_]+)',caseSensitive: false);
   static final endSubroutinePattern = new RegExp(r'^\s*End\s*Sub',caseSensitive: false);
   static final variablePattern = new RegExp(r'\$\((\w[A-Za-z._0-9]*)\)');
-  static final singleLineComment = new RegExp(r'^\s*//');
+  static final singleLineComment = new RegExp(r'^\s*(//|REM )', caseSensitive: false);
   static final singleLineCommentinNotEmptyLine = new RegExp(r'\S\s*//');
   static final multiLineCommentStart = new RegExp(r'^\s*/[*]');
   static final closedMultiLineComment = new RegExp(r'/\*.*?\*/');
+  static final closedMultiLineCommentOnWholeLine = new RegExp(r'^\s*/\*.*?\*/\s*$');
   static final multiLineCommentEnd = new RegExp(r'\*/\s*$');
   static final suppressErrorPattern = new RegExp(r'//#!SUPPRESS_ERROR\s*$');
   static final callSubroutinePattern = new RegExp(r'^\s*CALL\s+(\w[A-Za-z.0-9]+)',caseSensitive: false); 
@@ -111,7 +139,9 @@ class QvsFileReader {
     new RegExp(r'^\s*END\s?IF\s*',caseSensitive: false),
     startSubroutinePattern,
     endSubroutinePattern,
-    callSubroutinePattern
+    callSubroutinePattern,
+    mustIncludePattern,
+    includePattern
     ];
   String sourceFileName;
   bool skipParse = false;
@@ -220,7 +250,12 @@ class QvsFileReader {
         suppressError = true;
       }
       if (singleLineCommentinNotEmptyLine.hasMatch(line)) {
-        line = line.split('//').first;
+        // Make sure that comment blok is not within the string
+        var leftPart = line.split('//').first;
+        int i = "'".allMatches(leftPart).toList().length;
+        if (i % 2 != 1) {
+          line = leftPart;
+        }
       }
       commandLines.add(line);
       lineCounter++;
@@ -301,7 +336,6 @@ class QvsFileReader {
     }
     expandCommand(entry);
     parseCommand(entry);  
-//    processSetVariableCommand(entry);
     var m = mustIncludePattern.firstMatch(entry.expandedText);
     if (m != null) {
       entry.commandType = QvsCommandType.MUST_INCLUDE;
@@ -435,6 +469,9 @@ class QvsFileReader {
         inMultiLineCommentBlock = true;
         return QvsLineType.COMMENT_LINE;
       }  
+    }
+    if (closedMultiLineCommentOnWholeLine.hasMatch(line)) {
+      return QvsLineType.COMMENT_LINE;
     }
     if (inMultiLineCommentBlock) {
       if ( multiLineCommentEnd.hasMatch(line)){

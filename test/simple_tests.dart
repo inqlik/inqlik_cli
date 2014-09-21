@@ -549,7 +549,7 @@ Where IsNull(_КодОтделМаркетинг) = 0;
 """;
        shouldPass(str,p.start);
    });
-solo_test('SqlTables statement',() {
+test('SqlTables statement',() {
        var str = r"""
 ExcelSheets:
 SQLtables; 
@@ -557,6 +557,63 @@ SQLtables;
        shouldPass(str,p.start);
    });
 
+test('Must include without semicolon',() {
+       var str = r"""
+$(Include=..\qvc_runtime\qvc.qvs)
+BigTable:
+LOAD 1 as X AutoGenerate 2000;
+""";
+       shouldPass(str,p.start);
+   });
+
+test('EXIT SCRIPT WHEN A=1;',() {
+       var str = r"""
+EXIT SCRIPT WHEN A=1;
+""";
+       shouldPass(str,p.start);
+   });
+test('unless A=1 load * from myfile.csv;',() {
+       var str = r"""
+unless A=1 load * from myfile.csv;
+""";
+       shouldPass(str,p.start);
+   });
+
+test('Directory;',() {
+       var str = r"""
+Directory;
+""";
+       shouldPass(str,p.start);
+   });
+
+test('TableIdentifier with dot;',() {
+       var str = r"""
+Directory;
+""";
+       shouldPass(str,p.start);
+   });
+
+test('Preceding load whith where clause',() {
+       var str = r"""
+Qvc.LineageInfo:
+LOAD 
+  *
+WHERE NOT mixmatch(Qvc.LineageInfo.Source, DocumentPath())    // Ignore the Self-references
+  AND NOT Qvc.LineageInfo.Source LIKE 'RESIDENT _qvctemp.*'
+; 
+""";
+       shouldPass(str,p.start);
+   });
+
+skip_test('Load connection from text file',() {
+       var str = r"""
+  _qvctemp.Conn_temp:
+  LOAD a as _qvctemp.ConnectString
+  FROM [DbExtract\_qvctemp.den.connectionFilename_ASSIGNED_VALUE]
+  (fix, codepage is 1252);
+""";
+       shouldPass(str,p.start);
+   });
 
 }
 
