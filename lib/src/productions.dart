@@ -108,4 +108,5 @@ const String trace = 'trace';
 const String execute = 'execute';
 const String sqltables = 'sqltables';
 const String directory = 'directory';
+const String disconnect = 'disconnect';
 const String sqlTables = 'sqlTables';

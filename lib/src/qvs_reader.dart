@@ -349,13 +349,14 @@ class QvsFileReader {
     data.subParams.addFirst(params);
     for (int paramIdx = 0; paramIdx<formalParams.length;paramIdx++) {
       String paramValue;
+      String paramName = formalParams[paramIdx];
       if (paramIdx<actualParams.length) {
         paramValue = actualParams[paramIdx];
-        if (paramValue.startsWith("'") && paramValue.endsWith("'")) {
-          paramValue = paramValue.replaceAll("'",'');
-        }
       }
-      params[formalParams[paramIdx]] = paramValue;
+      params[paramName] = paramValue;
+      if (paramValue != null) {
+        processAssignmentCommand(paramName, paramValue, true);     
+      }
     }
     for (int idx = subMap[subName].startIndex+1; idx < subMap[subName].endIndex; idx++) {
       if (idx == entries.length) {

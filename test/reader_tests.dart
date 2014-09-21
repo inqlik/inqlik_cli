@@ -3,6 +3,15 @@ library reader_tests;
 import 'package:qvs/src/qvs_reader.dart';
 import 'package:unittest/unittest.dart';
 
+void shouldBeSuccess(QvsFileReader reader) {
+  for (var error in reader.errors) {
+    print('------------------------------');
+    print(error.commandWithError);
+    print('>>>>> ' + error.errorMessage);
+  }
+  expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+}
+
 void main() {
   test('test_simplest', () {
     var code = '''
@@ -726,6 +735,19 @@ LET var1 =  1;
 
   });
   
+  test('TEST Expressions in SUB parameters', () {
+    var reader = newReader();
+    var code = r'''
+  SUB LoadPlanByYear(LoadByYear.Year)
+    Plan:
+    LOAD * FROM Plan_$(LoadByYear.Year).QVD(QVD);
+  END SUB
+//  CALL LoadPlanByYear('2014');
+  CALL LoadPlanByYear(Max(Year)-1);
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+  });
 
   
 }

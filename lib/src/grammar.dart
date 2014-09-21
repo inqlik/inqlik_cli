@@ -38,6 +38,7 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.doWhile))
         .or(ref(p.includeDirective))
         .or(ref(p.connect))
+        .or(ref(p.disconnect))
         .or(ref(p.assignment)));
     def(p.renameTable,
         _keyword('RENAME')
@@ -423,6 +424,10 @@ class QvsGrammar extends CompositeParser {
    def(p.directory,
      _word('DIRECTORY')
      .seq(char(';').neg().plus())
+     .seq(_keyword(';'))
+   );
+   def(p.disconnect,
+     _keyword('disconnect')
      .seq(_keyword(';'))
    );
 
