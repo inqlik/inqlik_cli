@@ -2,8 +2,8 @@ library qvs_runner;
 import 'src/qvs_reader.dart';
 import 'dart:io';
 
-QvsFileReader run(String fileName, bool justLocateQvw, bool traceResidentTables) {
-  QvsFileReader reader = newReader()
+FileReader run(String fileName, bool justLocateQvw, bool traceResidentTables) {
+  FileReader reader = newReader()
       ..justLocateQvw = justLocateQvw
       ..readFile(fileName);
   for (var error in reader.errors) {
@@ -46,7 +46,7 @@ void runDirFile(String dirFileName) {
     for (var file in dir.listSync(recursive: true)) {
       if (file is File) {
         if (file.path.endsWith('.qvs')) {
-          QvsFileReader reader = newReader()
+          FileReader reader = newReader()
               ..readFile(file.path);
           filesTotal++;
           if (reader.errors.isNotEmpty)  {

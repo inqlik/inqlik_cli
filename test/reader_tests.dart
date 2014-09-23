@@ -3,7 +3,7 @@ library reader_tests;
 import 'package:qvs/src/qvs_reader.dart';
 import 'package:unittest/unittest.dart';
 
-void shouldBeSuccess(QvsFileReader reader) {
+void shouldBeSuccess(FileReader reader) {
   for (var error in reader.errors) {
     print('------------------------------');
     print(error.commandWithError);
@@ -349,9 +349,9 @@ End Sub''';
       */
       SET var1 = ;''';  
     reader.readFile('test.qvs',code);
-    expect(reader.entries[0].commandType, QvsCommandType.COMMENT_LINE);
-    expect(reader.entries[1].commandType, QvsCommandType.COMMENT_LINE);
-    expect(reader.entries[2].commandType, QvsCommandType.COMMENT_LINE);
+    expect(reader.entries[0].commandType, CommandType.COMMENT_LINE);
+    expect(reader.entries[1].commandType, CommandType.COMMENT_LINE);
+    expect(reader.entries[2].commandType, CommandType.COMMENT_LINE);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
     expect(reader.entries.length, 6);
     expect(reader.data.variables.containsKey('var1'), isTrue);
@@ -449,9 +449,9 @@ LOAD
 333333*/ ''';  
       reader.readFile('test.qvs',code);
       expect(reader.entries.length,3);
-      expect(reader.entries[0].commandType,QvsCommandType.COMMENT_LINE);
-      expect(reader.entries[1].commandType,QvsCommandType.COMMENT_LINE);
-      expect(reader.entries[2].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[0].commandType,CommandType.COMMENT_LINE);
+      expect(reader.entries[1].commandType,CommandType.COMMENT_LINE);
+      expect(reader.entries[2].commandType,CommandType.COMMENT_LINE);
       expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
   });
   
@@ -463,9 +463,9 @@ LOAD
 // 333333 ''';  
       reader.readFile('test.qvs',code);
       expect(reader.entries.length,3);
-      expect(reader.entries[0].commandType,QvsCommandType.COMMENT_LINE);
-      expect(reader.entries[1].commandType,QvsCommandType.COMMENT_LINE);
-      expect(reader.entries[2].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[0].commandType,CommandType.COMMENT_LINE);
+      expect(reader.entries[1].commandType,CommandType.COMMENT_LINE);
+      expect(reader.entries[2].commandType,CommandType.COMMENT_LINE);
       expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
   });
 
@@ -478,9 +478,9 @@ LOAD
 // 333333 ''';  
       reader.readFile('test.qvs',code);
       expect(reader.entries.length,4);
-      expect(reader.entries[0].commandType,QvsCommandType.COMMENT_LINE);
-      expect(reader.entries[1].commandType,QvsCommandType.COMMENT_LINE);
-      expect(reader.entries[2].commandType,QvsCommandType.COMMENT_LINE);
+      expect(reader.entries[0].commandType,CommandType.COMMENT_LINE);
+      expect(reader.entries[1].commandType,CommandType.COMMENT_LINE);
+      expect(reader.entries[2].commandType,CommandType.COMMENT_LINE);
       expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
   });
 
@@ -786,5 +786,20 @@ REM Default configuration for Qvc.Log;
     shouldBeSuccess(reader);
   });
 
+  test('Recursive Subroutines', () {
+    var reader = newReader();
+    var code = r'''
+SUB Recurse(_dir, _goInto)
+   IF Len('$(_goInto)') = 0 THEN
+      CALl Recurse('$(_dir)','-1')
+   END IF  
+END SUB
+CALL Recurse('dummyDir');
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+  });
+
+  
   
 }

@@ -6,7 +6,7 @@ part 'grammar.dart';
 
 
 class QvsParser extends QvsGrammar {
-  QvsFileReader reader;
+  FileReader reader;
   QvsParser(this.reader): super();
   String _stripBrakets(String val) {
     if (val.startsWith('[')) {
