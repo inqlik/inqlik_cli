@@ -477,8 +477,8 @@ class QvsGrammar extends CompositeParser {
     def(p.fieldref,
           _keyword(ref(p.identifier)
           .or(ref(p.fieldrefInBrackets))));
-    def(p.identifier,letter().or(char('_').or(char('@')).or(localLetter()))
-        .seq(word().or(char('.')).or(char('_')).or(localLetter().or(char(r'$'))).plus())
+    def(p.identifier,letter().or(anyIn('_%@').or(localLetter()))
+        .seq(word().or(anyIn('.%')).or(char('_')).or(localLetter().or(char(r'$'))).plus())
         .or(letter())
         .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(trimmer));
@@ -576,11 +576,11 @@ class QvsGrammar extends CompositeParser {
     def(p.radixSpecifier, ref(p.digits));
     def(p.radixDigits, pattern('0-9A-Z').plus());
 
-    def(P.float, ref(p.mantissa)
+    def(p.float, ref(p.mantissa)
         .seq(ref(p.exponentLetter)
             .seq(ref(p.exponent))
             .optional()));
-    def(P.mantissa, ref(p.digits)
+    def(p.mantissa, ref(p.digits)
         .seq(char('.'))
         .seq(ref(p.digits)));
     def(p.exponent, char('-')
@@ -597,10 +597,4 @@ class QvsGrammar extends CompositeParser {
 
 }
 
-class P {
-  static const String mantissa = 'mantissa';
-  static const String float = 'float';
 
-}
-
-const String qualify = 'qualify';

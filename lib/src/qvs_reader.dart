@@ -175,7 +175,9 @@ class QvsFileReader {
   
   void readFile(String fileName, [String fileContent = null, QvsCommandEntry entry = null]) {
     List<String> lines = [];
+    bool rootFileMode = false;
     if (data.rootFile == null) {
+     rootFileMode = true;
      data.rootFile = path.normalize(path.absolute(path.dirname(Platform.script.toFilePath()),fileName));
      String pathToDefaulInclude = path.normalize(path.join(path.dirname(data.rootFile),'default_include.qvs')); 
      if (new File(pathToDefaulInclude).existsSync()) {
@@ -201,13 +203,21 @@ class QvsFileReader {
         }
       }
     }
-    if (sourceFileName == data.rootFile) {
+    if (rootFileMode) {
       locateQvwFile(lines);
     }
     if (justLocateQvw) {
       return;
     }
     readLines(lines);
+    if (rootFileMode) {
+      removeSystemVariables();
+    }
+  }
+  void removeSystemVariables() {
+    for(var each in _SYSTEM_VARIABLES.keys) {
+      data.variables.remove(each);
+    }
   }
   void locateQvwFile(List<String> lines) {
     if (lines.isEmpty) {
@@ -309,7 +319,9 @@ class QvsFileReader {
     } else {
       varValue = varValue.trim();
     }
-    if (varValue.startsWith("'") && varValue.endsWith("'")) {
+    if (varValue.startsWith("'") 
+          && varValue.endsWith("'") 
+          && "'".allMatches(varValue).toList().length == 2) {
       varValue = varValue.replaceAll("'",'');
     } else {
       if (isLetCommand) {
@@ -320,7 +332,7 @@ class QvsFileReader {
       }
     }
     if (currentParams.containsKey(varName)) {
-      if (currentParams[varName] == null) {
+      if (currentParams[varName].endsWith('_NULL_VALUE')) {
         currentParams.remove(varName);
         data.variables[varName] = varValue;
       } else {
@@ -390,6 +402,8 @@ class QvsFileReader {
       params[paramName] = paramValue;
       if (paramValue != null) {
         processAssignmentCommand(paramName, paramValue, true);     
+      } else {
+        params[paramName] = '${paramName}_NULL_VALUE';
       }
     }
     for (int idx = subMap[subName].startIndex+1; idx < subMap[subName].endIndex; idx++) {

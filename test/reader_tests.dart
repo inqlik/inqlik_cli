@@ -392,7 +392,7 @@ End Sub;
 CALL Dummy;      ''';  
       reader.readFile('test.qvs',code);
       expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
-      expect(reader.entries[1].expandedText.trim(), "TRACE '';");
+      expect(reader.entries[1].expandedText.trim(), "TRACE 'message_NULL_VALUE';");
     });
 
   

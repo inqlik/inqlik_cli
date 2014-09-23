@@ -608,12 +608,22 @@ WHERE NOT mixmatch(Qvc.LineageInfo.Source, DocumentPath())    // Ignore the Self
 skip_test('Load connection from text file',() {
        var str = r"""
   _qvctemp.Conn_temp:
-  LOAD a as _qvctemp.ConnectString
+  LOAD @1:2 as _qvctemp.ConnectString
   FROM [DbExtract\_qvctemp.den.connectionFilename_ASSIGNED_VALUE]
   (fix, codepage is 1252);
 """;
        shouldPass(str,p.start);
    });
 
-}
+test('Load connection from text file',() {
+       var str = r"""
+[_LinkTableTemp_ASSIGNED_VALUE]:
+NOCONCATENATE LOAD DISTINCT     
+  Product, Color, Size,
+  AutoNumberHash128(Product, Color, Size) as %LinkTable_Key
+RESIDENT Order;
+""";
+       shouldPass(str,p.start);
+   });
 
+}
