@@ -61,7 +61,7 @@ class QvsParser extends QvsGrammar {
       return v;
     });
     action(p.macroFunction, (v){
-      print(v);
+//      print(v);
       return v;
     });
 
