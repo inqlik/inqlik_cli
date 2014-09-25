@@ -125,7 +125,7 @@ class FileReader {
   static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]*)\s*=',caseSensitive: false); 
   static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9_]+)',caseSensitive: false);
   static final endSubroutinePattern = new RegExp(r'^\s*End\s*Sub',caseSensitive: false);
-  static final variablePattern = new RegExp(r'\$\((\w[A-Za-z._0-9]*)\)');
+  static final variablePattern = new RegExp(r'\$\(([\wA-Za-z._0-9]*)\)');
   static final singleLineComment = new RegExp(r'^\s*(//|REM )', caseSensitive: false);
   static final singleLineCommentinNotEmptyLine = new RegExp(r'\S\s*//');
   static final multiLineCommentStart = new RegExp(r'^\s*/[*]');
@@ -263,6 +263,10 @@ class FileReader {
       if (line.trim().startsWith('//#!SKIP_PARSING')) {
         return;
       }
+      if (line.trim().startsWith('//#!TRACE_TABLES')) {
+        print('RESIDENT TABLES ARE: ${data.tables}');
+      }
+
       if (suppressErrorPattern.hasMatch(line)) {
         suppressError = true;
       }

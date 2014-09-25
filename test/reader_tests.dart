@@ -800,6 +800,40 @@ CALL Recurse('dummyDir');
     shouldBeSuccess(reader);
   });
 
+  test('Recursive Subroutines', () {
+    var reader = newReader();
+    var code = r'''
+SUB Recurse(_dir, _goInto)
+   IF Len('$(_goInto)') = 0 THEN
+      CALl Recurse('$(_dir)','-1')
+   END IF  
+END SUB
+CALL Recurse('dummyDir');
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+  });
   
+  solo_test('Variable with parameter expansion (Macrofunction)', () {
+    var reader = newReader();
+    var code = r'''
+SET mask=;
+SET _Qvc.DefaultIfEmpty = if(len('$1')= 0,'$2', '$1');
+LET mask = $(_Qvc.DefaultIfEmpty($(mask), '*'));
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+    expect(reader.entries[2].expandedText, r"LET mask = if(len('$(mask)')= 0,'*', $(mask);");
+  });
+  skip_test('Variable with parameter expansion - error on wrong parameter', () {
+    var reader = newReader();
+    var code = r'''
+SET mask=;
+SET _Qvc.DefaultIfEmpty = if(len('$1')= 0,'$2', '$1');
+LET mask = $(_Qvc.DefaultIfEmpty('$(mask)', '*'));
+''';
+    reader.readFile('test.qvs',code);
+    expect(reader.errors.isNotEmpty, isTrue);
+  });
   
 }

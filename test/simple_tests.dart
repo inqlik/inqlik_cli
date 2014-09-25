@@ -24,6 +24,8 @@ shouldPass(String source, String production) {
 }
 
 void main() {
+  int chk = '(?<=\().*(?=\))'.allMatches('(1234556(sd)s)').toList().length;
+  return;
   test('testIdentifier1', () {
     shouldPass('SimpleName', 'identifier');
   });

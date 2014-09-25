@@ -1,7 +1,7 @@
 //import 'package:petitparser/petitparser.dart';
 import 'package:args/args.dart';
 import 'package:qvs/qvs_runner.dart';
-import 'package:qvs/src/qvs_reader.dart';
+import 'package:qvs/src/qvs_reader.dart' as qvs;
 import 'dart:io';
 String input = r'''
 JOIN (   [asdf]  ) 
@@ -27,7 +27,7 @@ void main(arguments) {
     runDirFile(args['directories']);
     return;
   }
-  QvsFileReader reader = run(args.rest[0], args['command']=='open', args['show-resident-tables']);
+  qvs.FileReader reader = run(args.rest[0], args['command']=='open', args['show-resident-tables']);
 //  reader.data.variables.forEach((key,value) {
 //    print('$key = $value');
 //  });

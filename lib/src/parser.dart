@@ -60,6 +60,10 @@ class QvsParser extends QvsGrammar {
       reader.data.tables.add(_stripBrakets(v[0]));
       return v;
     });
+    action(p.macroFunction, (v){
+      print(v);
+      return v;
+    });
 
   }
 }
