@@ -24,8 +24,6 @@ shouldPass(String source, String production) {
 }
 
 void main() {
-  int chk = '(?<=\().*(?=\))'.allMatches('(1234556(sd)s)').toList().length;
-  return;
   test('testIdentifier1', () {
     shouldPass('SimpleName', 'identifier');
   });
@@ -627,5 +625,20 @@ RESIDENT Order;
 """;
        shouldPass(str,p.start);
    });
+test('Switch statement',() {
+       var str = r'''
+LET I = 2;
+switch I
+case 1
+load '$(I): CASE 1' as case autogenerate 1;
+case 2
+load '$(I): CASE 2' as case autogenerate 1;
+default
+load '$(I): DEFAULT' as case autogenerate 1;
+end switch
+''';
+       shouldPass(str,p.start);
+   });
+
 
 }

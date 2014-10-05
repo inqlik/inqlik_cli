@@ -847,7 +847,7 @@ END SUB
     shouldBeSuccess(reader);
   });
 
-  solo_test('Switch statement', () {
+  test('Switch statement', () {
     var reader = newReader();
     var code = r'''
 LET I = 2;
