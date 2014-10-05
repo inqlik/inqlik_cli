@@ -814,7 +814,7 @@ CALL Recurse('dummyDir');
     shouldBeSuccess(reader);
   });
   
-  solo_test('Variable with parameter expansion (Macrofunction)', () {
+  skip_test('Variable with parameter expansion (Macrofunction)', () {
     var reader = newReader();
     var code = r'''
 SET mask=;
@@ -835,5 +835,35 @@ LET mask = $(_Qvc.DefaultIfEmpty('$(mask)', '*'));
     reader.readFile('test.qvs',code);
     expect(reader.errors.isNotEmpty, isTrue);
   });
+
+  test('Mixed lang name of subroutine', () {
+    var reader = newReader();
+    var code = r'''
+SUB ПродажиТоваровByMonth(OnHandByMonth.Year, OnHandByMonth.Month, OnHandByMonth.removeTmpFiles)
+  LET OnHandByMonth.Month = Num(OnHandByMonth.Month,'00');
+END SUB
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+  });
+
+  solo_test('Switch statement', () {
+    var reader = newReader();
+    var code = r'''
+LET I = 2;
+switch I
+case 1
+load '$(I): CASE 1' as case autogenerate 1;
+case 2
+load '$(I): CASE 2' as case autogenerate 1;
+default
+load '$(I): DEFAULT' as case autogenerate 1;
+end switch
+''';
+    reader.readFile('test.qvs',code);
+    shouldBeSuccess(reader);
+  });
+
+  
   
 }

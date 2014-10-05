@@ -24,6 +24,7 @@ class QvsParser extends QvsGrammar {
       }
       return [subName, actualParams];
     });
+
     action(p.assignment, (List list) {
       bool isLetCommand = list[0] == null || (list[0] as String).trim().toUpperCase() == 'LET';
       String varName = list[1];
@@ -61,8 +62,8 @@ class QvsParser extends QvsGrammar {
       return v;
     });
     action(p.macroFunction, (v){
-//      print(v);
-      return v;
+//      print("macro ${v[1][0]} param ${v[1][2]}");
+      return [v[1][0], v[1][2]];
     });
 
   }

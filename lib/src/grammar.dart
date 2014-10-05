@@ -23,6 +23,9 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.controlStatement))
         .or(ref(p.call))
         .or(ref(p.sleep))
+        .or(ref(p.switchStatement))
+        .or(ref(p.defaultStatement))
+        .or(ref(p.caseStatement))
         .or(ref(p.dropFields))
         .or(ref(p.dropTable))
         .or(ref(p.renameTable))
@@ -133,6 +136,7 @@ class QvsGrammar extends CompositeParser {
         .trim(trimmer));
     def(p.storeTable,
         _keyword('STORE')
+        .seq(ref(p.selectList).seq(_keyword('FROM')).optional())
         .seq(ref(p.fieldref))
         .seq(_keyword('INTO'))
         .seq(ref(p.tableOrFilename))
@@ -141,13 +145,13 @@ class QvsGrammar extends CompositeParser {
         .trim(trimmer).flatten());
     
     def(p.selectList,
-        ref(p.field).or(_keyword('*')).separatedBy(char(',').trim(trimmer), includeSeparators: false));
+        ref(p.fieldrefAs).or(_keyword('*')).separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def(p.trimFromStart,
         trim(trimmer));
-    def(p.field,
-        ref(p.expression).seq(_keyword('as')).seq(ref(p.fieldref))
-        .or(ref(p.expression))
-        .trim(trimmer).flatten());
+//    def(p.field,
+//        ref(p.expression).seq(_keyword('as')).seq(ref(p.fieldref))
+//        .or(ref(p.expression))
+//        .trim(trimmer).flatten());
     def(p.commentWith,
         _word('COMMENT').or(_word('TAG')).or(_word('UNTAG'))
         .seq(_word('FIELD').or(_word('FIELDS')))
@@ -344,7 +348,9 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.controlStatementFinish)));
     def(p.controlStatementFinish,
         _keyword('END')
-          .seq(_keyword('SUB').or(_keyword('IF')))
+          .seq(_keyword('SUB').
+            or(_keyword('SWITCH')).  
+            or(_keyword('IF')))
         .or(_keyword('NEXT')
           .seq(ref(p.identifier).optional()))
         .seq(_keyword(';').optional()));
@@ -354,7 +360,10 @@ class QvsGrammar extends CompositeParser {
         .seq(_keyword(';').optional()));
     def(p.exitScript,
     _keyword('exit')
-    .seq(_keyword('script').or(_keyword('sub')).or(_keyword('for')).or(_keyword('do')))
+    .seq(_keyword('script').
+        or(_keyword('sub')).
+        or(_keyword('for')).
+        or(_keyword('do')))
     .seq(ref(p.whenClause).optional())
     .seq(_keyword(';').optional()));
     def(p.forNextStart,
@@ -401,9 +410,10 @@ class QvsGrammar extends CompositeParser {
         .or(ref(p.fieldrefInBrackets))
         .or(ref(p.str)));
     def(p.fieldrefAs,
-      ref(p.fieldref)
-      .seq(_keyword('as')).
-      seq(ref(p.fieldref)));
+      ref(p.expression)
+            .seq(_keyword('as')).
+            seq(ref(p.fieldref)).
+          or(ref(p.expression)));
     def(p.fieldrefsAs,
       ref(p.fieldrefAs).separatedBy(char(',').trim(trimmer), includeSeparators: false));
     def(p.alias,
@@ -428,6 +438,22 @@ class QvsGrammar extends CompositeParser {
      _keyword('SQLTABLES')
      .seq(_keyword(';'))
    );
+   def(p.defaultStatement,
+     _keyword('default')
+     .seq(_keyword(';').optional())
+   );
+   def(p.caseStatement,
+     _keyword('case')
+     .seq(ref(p.expression))
+     .seq(_keyword(';').optional())
+   );
+
+   def(p.switchStatement,
+     _keyword('switch')
+     .seq(ref(p.expression))
+     .seq(_keyword(';').optional())
+   );
+
    def(p.directory,
      _keyword('DIRECTORY')
      .seq(char(';').neg().star())
@@ -476,7 +502,9 @@ class QvsGrammar extends CompositeParser {
         .seq(ref(p.primaryExpression)));
     def(p.fieldref,
           _keyword(ref(p.identifier)
-          .or(ref(p.fieldrefInBrackets))));
+          .or(ref(p.fieldrefInBrackets))
+          .or(ref(p.str)).trim(trimmer)
+          ));
     def(p.identifier,letter().or(anyIn('_%@').or(localLetter()))
         .seq(word().or(anyIn('.%')).or(char('_')).or(localLetter().or(char(r'$'))).plus())
         .or(letter())

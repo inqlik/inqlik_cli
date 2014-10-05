@@ -123,7 +123,7 @@ class FileReader {
   static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;?\s*$',caseSensitive: false); 
   static final includePattern = new RegExp(r'^\s*\$\(include=(.*)\)\s*;?\s*$',caseSensitive: false); 
   static final variableSetPattern = new RegExp(r'^\s*(LET|SET)\s+(\w[A-Za-z.0-9]*)\s*=',caseSensitive: false); 
-  static final startSubroutinePattern = new RegExp(r'^\s*SUB\s+(\w[A-Za-z.0-9_]+)',caseSensitive: false);
+  static final startSubroutinePattern = new RegExp(r'^\s*SUB\s',caseSensitive: false);
   static final endSubroutinePattern = new RegExp(r'^\s*End\s*Sub',caseSensitive: false);
   static final variablePattern = new RegExp(r'\$\(([\wA-Za-z._0-9]*)\)');
   static final singleLineComment = new RegExp(r'^\s*(//|REM )', caseSensitive: false);
@@ -144,7 +144,10 @@ class FileReader {
     new RegExp(r'^\s*LOOP\s*$',caseSensitive: false),                                     
     new RegExp(r'^\s*LOOP\s+(WHILE|UNTIL)',caseSensitive: false),                                     
     new RegExp(r'^\s*NEXT',caseSensitive: false),                                     
-    new RegExp(r'^\s*END\s?IF\s*',caseSensitive: false),
+    new RegExp(r'^\s*END\s?(IF|SWITCH)',caseSensitive: false),
+    new RegExp(r'^\s*SWITCH',caseSensitive: false),                                     
+    new RegExp(r'^\s*CASE',caseSensitive: false),                                     
+    new RegExp(r'^\s*DEFAULT\s*;?\s*$',caseSensitive: false),
     startSubroutinePattern,
     endSubroutinePattern,
     callSubroutinePattern,
@@ -442,8 +445,15 @@ class FileReader {
     var m = startSubroutinePattern.firstMatch(entry.sourceText);
     if (m != null) {
       entry.commandType = CommandType.SUB_DECLARATION;
-      String debug = m.group(1).trim();
-      var sub = new SubDescriptor(m.group(1),entry.internalLineNum - 1);
+      Result r = parser[subStart].parse(entry.sourceText.trim());
+      if (r.isFailure) {
+        addError(entry,'Invalid subroutine call');
+        return;
+      }
+      String subName = r.value[1][0].trim();
+
+//      String debug = m.group(1).trim();
+      var sub = new SubDescriptor(subName,entry.internalLineNum - 1);
       sub.sourceStart = entry.sourceLineNum;
       subMap[sub.name] = sub;
       data.subEntries[sub.startIndex] = sub;
