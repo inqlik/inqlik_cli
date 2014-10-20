@@ -163,6 +163,18 @@ void main() {
     expect(reader.entries[0].expandedText.trim(),'TRACE 11;');
   });
 
+  test('Test recursive expansion with assignment', () {
+    var reader = newReader();
+    var code = r'''
+      LET var1 = 1;
+      TRACE $(var$(var1))$(var1);''';  
+    reader.readFile('test.qvs',code);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.entries.length, 2);
+    expect(reader.entries[1].expandedText.trim(),'TRACE 11;');
+  });
+
+  
   test('Test variable creation (simple numeric)', () {
     var reader = newReader();
     var code = r'''

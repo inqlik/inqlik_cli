@@ -542,6 +542,13 @@ _deltaTransEmtpy = -1;""";
        shouldPass(str,p.assignment);
    });
 
+test('LET assignment without non-valid expression',() {
+       var str = r"""
+LET _deltaTransEmtpy = -1 x;""";
+       shouldFail(str,p.assignment);
+   });
+
+
 test('STORE TABLE with WHERE clause',() {
        var str = r"""
 STORE PlanData INTO ../Data/QVDs/PlanData/PlanData.QVD(QVD)

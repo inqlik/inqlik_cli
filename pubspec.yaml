@@ -6,6 +6,7 @@ homepage: https://github.com/vadimtsushko/qvs_parser
 dependencies:
   args: any
   meta: any
+  path: any
   petitparser: any
 dev_dependencies:
   unittest: any
