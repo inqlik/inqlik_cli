@@ -8,5 +8,6 @@ dependencies:
   meta: any
   path: any
   petitparser: any
+  qv_exp: any
 dev_dependencies:
   unittest: any

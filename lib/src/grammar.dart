@@ -67,16 +67,17 @@ class QvsGrammar extends CompositeParser {
         .seq(_keyword('MAPPING').optional())
         .seq(ref(p.preloadFunc).optional())
         .seq(_keyword('LOAD').or(_keyword('SQL').optional().seq(_keyword('SELECT'))))
+        .seq(_keyword('DISTINCT').optional())
         .seq(ref(p.selectList).trim(trimmer))
         .seq(ref(p.loadSource).or(ref(p.whereClause)).optional().trim(trimmer))
         .seq(char(';'))
           .trim(trimmer));
-    def(p.precedingLoad,
-        _keyword('LOAD')
-        .seq(ref(p.selectList).trim(trimmer))
-        .seq(ref(p.whereClause).optional())
-        .seq(char(';'))
-          .trim(trimmer).flatten());
+//    def(p.,
+//        _keyword('LOAD')
+//        .seq(ref(p.selectList).trim(trimmer))
+//        .seq(ref(p.whereClause).optional())
+//        .seq(char(';'))
+//          .trim(trimmer).flatten());
     def(p.loadPerfix,
       _keyword('NOCONCATENATE')
       .or(_word('BUFFER').seq(ref(p.bufferModifier).optional()))
@@ -247,20 +248,20 @@ class QvsGrammar extends CompositeParser {
         );
     def(p.whereClause,
         _keyword('where').or(_keyword('while')).trim(trimmer)
-        .seq(ref(p.binaryExpression))
+        .seq(ref(p.expression))
         .trim(trimmer));
     def(p.whenClause,
         _keyword('when').or(_keyword('unless'))
-        .seq(ref(p.binaryExpression))
+        .seq(ref(p.expression))
         .trim(trimmer));
 
     def(p.letAssignment,
         _keyword('LET').optional()
         .seq(ref(p.identifier).or(ref(p.fieldrefInBrackets)))
         .seq(char('=').trim(trimmer))
-        .seq(ref(p.expression).optional())
+        .seq(expression().trim(trimmer).optional())
         .seq(char(';').trim(trimmer))
-        );
+    );
     def(p.setAssignment,
         _keyword('SET')
         .seq(ref(p.identifier).or(ref(p.fieldrefInBrackets)))
@@ -484,38 +485,46 @@ class QvsGrammar extends CompositeParser {
       .seq(string('*/')));
   }
  
+  expression() => new QvExpGrammar()['expression'];
   _expression() {
     def(p.expression,
-        ref(p.binaryExpression).trim(trimmer)
+        expression().trim(trimmer)
         );   
-    def(p.primaryExpression,
-        ref(p.str)
-        .or(ref(p.unaryExpression))
-        .or(ref(p.macroFunction))
-        .or(ref(p.function))
-        .or(ref(p.number))
-        .or(ref(p.fieldref))
-        .or(ref(p.parens)));
-    def(p.binaryExpression, ref(p.primaryExpression)
-        .seq(ref(p.binaryPart).star()).trim(trimmer).flatten());
-    def(p.binaryPart, ref(p.binaryOperator)
-        .seq(ref(p.primaryExpression)));
+//    def(p.primaryExpression,
+//        ref(p.str)
+//        .or(ref(p.unaryExpression))
+//        .or(ref(p.macroFunction))
+//        .or(ref(p.function))
+//        .or(ref(p.number))
+//        .or(ref(p.fieldref))
+//        .or(ref(p.parens)));
+//    def(p.binaryExpression, ref(p.primaryExpression)
+//        .seq(ref(p.binaryPart).star()).trim(trimmer).flatten());
+//    def(p.binaryPart, ref(p.binaryOperator)
+//        .seq(ref(p.primaryExpression)));
     def(p.fieldref,
           _keyword(ref(p.identifier)
           .or(ref(p.fieldrefInBrackets))
           .or(ref(p.str)).trim(trimmer)
           ));
-    def(p.identifier,letter().or(anyIn('_%@').or(localLetter()))
-        .seq(word().or(anyIn('.%')).or(char('_')).or(localLetter().or(char(r'$'))).plus())
-        .or(letter())
-        .seq(whitespace().star().seq(char('(')).not())
-        .flatten().trim(trimmer));
+    def(p.identifier,
+        new QvExpGrammar()['identifier']
+    ); 
     def(p.varName,
-        word()
-          .or(localLetter())
-          .or(anyIn(r'._$#@'))
-            .plus().flatten().trim(trimmer)
-        );
+        new QvExpGrammar()['varName']
+    ); 
+
+    //    def(p.identifier,letter().or(anyIn('_%@').or(localLetter()))
+//        .seq(word().or(anyIn('.%')).or(char('_')).or(localLetter().or(char(r'$'))).plus())
+//        .or(letter())
+//        .seq(whitespace().star().seq(char('(')).not())
+//        .flatten().trim(trimmer));
+//    def(p.varName,
+//        word()
+//          .or(localLetter())
+//          .or(anyIn(r'._$#@'))
+//            .plus().flatten().trim(trimmer)
+//        );
     def(p.fieldrefInBrackets, _keyword('[')
         .seq(_keyword(']').neg().plus())
         .seq(_keyword(']')).trim(trimmer).flatten());
@@ -529,13 +538,13 @@ class QvsGrammar extends CompositeParser {
    
     def(p.constant,
         ref(p.number).or(ref(p.str)));
-    def(p.function,
-        letter()
-        .seq(word().or(char('#')).plus()).flatten()
-        .trim(trimmer)
-        .seq(char('(').trim(trimmer))
-        .seq(ref(p.params).optional())
-        .seq(char(')').trim(trimmer)));
+//    def(p.function,
+//        letter()
+//        .seq(word().or(char('#')).plus()).flatten()
+//        .trim(trimmer)
+//        .seq(char('(').trim(trimmer))
+//        .seq(ref(p.params).optional())
+//        .seq(char(')').trim(trimmer)));
     def(p.userFunction,
         word().or(anyIn('._#')).plus().flatten()
         .trim(trimmer)
@@ -551,23 +560,23 @@ class QvsGrammar extends CompositeParser {
           .seq(_keyword('(')
             .seq(ref(p.params))
             .seq(_keyword(')')).optional()));
-    def(p.unaryExpression,
-        _word('NOT').or(_keyword('-').or(_word('DISTINCT'))).trim(trimmer)
-            .seq(ref(p.expression))
-            .trim(trimmer).flatten());
-    def(p.binaryOperator,
-        _word('and')
-        .or(_word('or'))
-        .or(_word('xor'))
-        .or(_word('like'))
-        .or(_keyword('<='))
-        .or(_keyword('<>'))
-        .or(_keyword('!='))
-        .or(_keyword('>='))
-        .or(anyIn('+-/*<>=&'))
-        .or(_word('precedes'))
-        .trim(trimmer).flatten()
-        );
+//    def(p.unaryExpression,
+//        _word('NOT').or(_keyword('-').or(_word('DISTINCT'))).trim(trimmer)
+//            .seq(ref(p.expression))
+//            .trim(trimmer).flatten());
+//    def(p.binaryOperator,
+//        _word('and')
+//        .or(_word('or'))
+//        .or(_word('xor'))
+//        .or(_word('like'))
+//        .or(_keyword('<='))
+//        .or(_keyword('<>'))
+//        .or(_keyword('!='))
+//        .or(_keyword('>='))
+//        .or(anyIn('+-/*<>=&'))
+//        .or(_word('precedes'))
+//        .trim(trimmer).flatten()
+//        );
   }
   
   /** Defines a token parser that ignore case and consumes whitespace. */

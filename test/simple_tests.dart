@@ -63,6 +63,23 @@ Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
     shouldPass(fileOptionsStr,'fileModifier');
   });
   
+  test('Filter options as expression', () {
+  String fileOptionsStr = r'''
+  filters(
+      Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
+      )
+''';
+    shouldPass(fileOptionsStr,p.expression);
+  });
+  test('Expression in braces', () {
+  String expr = r'''
+(Qvc.LineageInfo.Source = 'RESIDENT _qvctemp.*')''';
+    shouldPass(expr,p.expression);
+  });
+
+  
+  
+  
   test('fileOptions2', () {
   String fileOptionsStr = r'''
 (txt, codepage is 1251, no labels, delimiter is '\t', msq, filters(
@@ -538,8 +555,14 @@ $(_Qvc.DefaultIfEmpty(, 'TEST'))""";
 
 test('LET assignment without let',() {
        var str = r"""
-_deltaTransEmtpy = -1;""";
+LET _deltaTransEmtpy = -1;""";
        shouldPass(str,p.assignment);
+   });
+
+test('SIMPLE LET assignment',() {
+       var str = r"""
+LET _deltaTransEmtpy =  Dual(1);""";
+       shouldPass(str,p.letAssignment);
    });
 
 test('LET assignment without non-valid expression',() {
@@ -605,8 +628,9 @@ test('Preceding load whith where clause',() {
 Qvc.LineageInfo:
 LOAD 
   *
-WHERE NOT mixmatch(Qvc.LineageInfo.Source, DocumentPath())    // Ignore the Self-references
-  AND NOT Qvc.LineageInfo.Source LIKE 'RESIDENT _qvctemp.*'
+WHERE (Qvc.LineageInfo.Source = 'RESIDENT _qvctemp.*')
+// WHERE NOT mixmatch(Qvc.LineageInfo.Source, DocumentPath())    // Ignore the Self-references
+//  AND NOT Qvc.LineageInfo.Source = 'RESIDENT _qvctemp.*'
 ; 
 """;
        shouldPass(str,p.start);
@@ -632,6 +656,7 @@ RESIDENT Order;
 """;
        shouldPass(str,p.start);
    });
+
 test('Switch statement',() {
        var str = r'''
 LET I = 2;
