@@ -1,5 +1,5 @@
 name: qvs
-version: 1.1.4
+version: 1.1.5-dev
 author: Vadim Tsushko <vadimtsushko@gmail.com>
 description: A sample command-line application
 homepage: https://github.com/vadimtsushko/qvs_parser
