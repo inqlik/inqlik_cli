@@ -1,5 +1,5 @@
 library qvs_runner;
-import 'src/qvs_reader.dart';
+import 'src/file_reader.dart';
 import 'dart:io';
 
 FileReader run(String fileName, bool justLocateQvw, bool traceResidentTables) {

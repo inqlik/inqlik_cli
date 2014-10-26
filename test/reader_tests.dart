@@ -1,5 +1,6 @@
 library reader_tests;
 
+import 'package:qvs/src/file_reader.dart';
 import 'package:qvs/src/qvs_reader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -67,8 +68,8 @@ void main() {
    ''';  
     var reader = newReader();
     reader.readFile('test1.qvs','TRACE in test1;');
-    var nestedReader = reader.createNestedReader()..readFile('test2.qvs','TRACE in test2;');
-    nestedReader.createNestedReader()..readFile('test3.qvs','TRACE in test3;');
+    var nestedReader = reader.readIncludeFile('test2.qvs','TRACE in test2;',null);
+    nestedReader.readIncludeFile('test3.qvs','TRACE in test3;',null);
     reader.readFile('test1.qvs','TRACE FINAL in test1;');
     expect(reader.entries.length, 4);
     expect(reader.entries[0].sourceFileName,endsWith('test1.qvs'));

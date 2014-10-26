@@ -1,12 +1,18 @@
 library qvs_reader;
 
-import 'dart:io';
+//import 'dart:io';
 import 'dart:collection';
-import 'package:path/path.dart' as path;
+//import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
 import 'parser.dart';
 import 'productions.dart';
 
+QvsReader readQvs(String fileName, String code) {
+  var reader = new QvsReader(new ReaderData());
+  reader.sourceFileName = fileName;
+  reader.readLines(code.split('\n'));
+  return reader;
+}
 
 const _SYSTEM_VARIABLES = const {
   'CD':  "E:",
@@ -34,7 +40,6 @@ const _SYSTEM_VARIABLES = const {
   'DayNames':  "Mon;Tue;Wed;Thu;Fri;Sat;Sun",
   'ScriptErrorDetails':  null
   };
-FileReader newReader() => new FileReader(new ReaderData());
 class QvsCommandEntry {
   String sourceFileName;
   int sourceLineNum;
@@ -58,8 +63,9 @@ class QvsCommandEntry {
 class ErrorDescriptor {
   final QvsCommandEntry entry;
   final String errorMessage;
+  int lineNum;
   String commandWithError;
-  ErrorDescriptor(this.entry,this.errorMessage) {
+  ErrorDescriptor(this.entry, this.errorMessage, this.lineNum) {
     commandWithError = entry.commandWithError();
   }
   String toString() => 'QvsErrorDescriptor(${this.errorMessage})';
@@ -117,7 +123,7 @@ class SubDescriptor {
   String toString() => "QvsSubDescriptor($name,$sourceStart,$sourceEnd)";
 }
  
-class FileReader {
+class QvsReader {
   QvsParser parser;
   static final commandTerminationPattern = new RegExp(r'^.*;\s*($|//)');
   static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;?\s*$',caseSensitive: false); 
@@ -158,7 +164,7 @@ class FileReader {
   bool skipParse = false;
   bool inMultiLineCommentBlock = false;
   final ReaderData data;
-  FileReader(this.data) {
+  QvsReader(this.data) {
     parser = new QvsParser(this);
   }
   List<QvsCommandEntry> get entries => data.entries; 
@@ -179,89 +185,41 @@ class FileReader {
       col = 1;
     }
     var locMessage = 'Parse error. File: "${entry.sourceFileName}", line: $row col: $col message: $message';
-    data.errors.add(new ErrorDescriptor(entry, locMessage));  
+    data.errors.add(new ErrorDescriptor(entry, locMessage, row));  
   } 
-  FileReader createNestedReader() => new FileReader(data)..skipParse = skipParse;
+
   
-  void readFile(String fileName, [String fileContent = null, QvsCommandEntry entry = null]) {
-    List<String> lines = [];
-    bool rootFileMode = false;
-    if (data.rootFile == null) {
-     rootFileMode = true;
-     data.rootFile = path.normalize(path.absolute(path.dirname(Platform.script.toFilePath()),fileName));
-     String pathToDefaulInclude = path.normalize(path.join(path.dirname(data.rootFile),'default_include.qvs')); 
-     if (new File(pathToDefaulInclude).existsSync()) {
-       createNestedReader().readFile(pathToDefaulInclude); 
-     }
-     sourceFileName = data.rootFile;
-    } else {
-      sourceFileName = path.normalize(path.absolute(path.dirname(data.rootFile),fileName));
-    }
-    if (fileContent != null) {
-      lines = fileContent.split('\n');
-    } else {
-      if (! new File(sourceFileName).existsSync()) {
-        if (entry != null && entry.commandType == CommandType.MUST_INCLUDE) {
-          addError(entry,'File not found: $sourceFileName');
-        }  
-      } else {
-        try {
-          lines = new File(sourceFileName).readAsLinesSync();
-        } catch (exception, stacktrace) {
-          print(exception);
-          return; 
-        }
-      }
-    }
-    if (rootFileMode) {
-      locateQvwFile(lines);
-    }
-    if (justLocateQvw) {
-      return;
-    }
-    readLines(lines);
-    if (rootFileMode) {
-      removeSystemVariables();
-    }
-  }
   void removeSystemVariables() {
     for(var each in _SYSTEM_VARIABLES.keys) {
       data.variables.remove(each);
     }
-  }
-  void locateQvwFile(List<String> lines) {
-    if (lines.isEmpty) {
-      return;
-    }
-    String baseName = path.basename(data.rootFile); 
-    String testFile;
-    if (lines.first.trim().startsWith('//#!')) {
-      String directive = lines.first.trim().replaceFirst('//#!', '');
-      directive = directive.replaceAll(';', '');
-      testFile = '';
-      if (directive.endsWith('.qvw')) {
-        testFile = directive;
-      } else {
-        testFile = path.join(directive,path.basenameWithoutExtension(data.rootFile)+'.qvw');
-      }
-      if (path.isRelative(testFile)) {
-        testFile = path.join(path.dirname(data.rootFile),testFile);
-        testFile = path.normalize(testFile);
-      }
-    } else {
-      testFile = data.rootFile.replaceFirst('.qvs','.qvw');
-    }
-    if (new File(testFile).existsSync()) {
-      data.qvwFileName = testFile;
-    }
-
   }
   void readLines(List<String> lines) {
     int lineCounter = 0;
     int sourceLineNum = 1;
     String command = '';
     bool suppressError = false;
+    LineType lineType;
     List<String> commandLines = [];
+    _processCommand([bool finishMode = false]) {
+      data.internalLineNum++;
+      command = commandLines.join('\n');
+      var entry = new QvsCommandEntry()
+      ..sourceFileName = sourceFileName
+      ..sourceLineNum = sourceLineNum
+      ..suppressError = suppressError
+      ..internalLineNum = data.internalLineNum
+      ..sourceText = command;
+      if (!finishMode && lineType == LineType.COMMENT_LINE) {
+        entry.commandType = CommandType.COMMENT_LINE;
+      }
+      addCommand(entry);
+      sourceLineNum = lineCounter + 1;
+      suppressError = false;
+      command = '';
+      commandLines = [];
+      
+    }
     for (var line in lines) {
       if (line.trim().startsWith('//#!SKIP_PARSING')) {
         return;
@@ -283,27 +241,16 @@ class FileReader {
       }
       commandLines.add(line);
       lineCounter++;
-      LineType lineType = testLineType(line);
+      lineType = testLineType(line);
       if (lineType == LineType.CONTROL_STRUCTURE 
           || lineType == LineType.END_OF_COMMAND
           || (commandLines.length == 1 && lineType == LineType.COMMENT_LINE )) {
-        data.internalLineNum++;
-        command = commandLines.join('\n');
-        var entry = new QvsCommandEntry()
-        ..sourceFileName = sourceFileName
-        ..sourceLineNum = sourceLineNum
-        ..suppressError = suppressError
-        ..internalLineNum = data.internalLineNum
-        ..sourceText = command;
-        if (lineType == LineType.COMMENT_LINE) {
-          entry.commandType = CommandType.COMMENT_LINE;
-        }
-        addCommand(entry);
-        sourceLineNum = lineCounter + 1;
-        suppressError = false;
-        command = '';
-        commandLines = [];
+        _processCommand();
       }
+      
+    }
+    if (commandLines.isNotEmpty) {
+      _processCommand(true);
     }
     if (data.currentSubroutineDeclaration.isNotEmpty) {
       addError(data.entries.last,'SUB ${data.currentSubroutineDeclaration.first.name} has not been closed properly');
@@ -356,6 +303,9 @@ class FileReader {
       data.variables[varName] = varValue;
     }
   }
+  void readIncludeFile(String fileName, String fileContent, QvsCommandEntry entry) {
+    this.addError(entry, 'include directive is not implemented in web parser');
+  }
   void processEntry(QvsCommandEntry entry) {
     if (entry.commandType == CommandType.COMMENT_LINE) {
       return;
@@ -365,13 +315,13 @@ class FileReader {
     var m = mustIncludePattern.firstMatch(entry.expandedText);
     if (m != null) {
       entry.commandType = CommandType.MUST_INCLUDE;
-      createNestedReader().readFile(m.group(1),null,entry);
+      readIncludeFile(m.group(1),null,entry);
     }
     if (m == null) {
       m = includePattern.firstMatch(entry.expandedText);
       if (m != null) {
         entry.commandType = CommandType.INCLUDE;
-        createNestedReader().readFile(m.group(1),null,entry);
+        readIncludeFile(m.group(1),null,entry);
       }
     }
     if (m == null) {
