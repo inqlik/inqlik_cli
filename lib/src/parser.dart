@@ -1,10 +1,8 @@
 library qvs_parser;
 import 'package:petitparser/petitparser.dart';
-import 'package:qv_exp/src/parser.dart';
 import 'qvs_reader.dart';
 import 'productions.dart' as p;
 part 'grammar.dart';
-
 
 class QvsParser extends QvsGrammar {
   QvsReader reader;

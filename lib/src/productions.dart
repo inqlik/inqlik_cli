@@ -1,14 +1,14 @@
 library qvs_productions;
 
+// Expression grammar productions
 const String whitespace = 'whitespace';
 const String singeLineComment = 'singeLineComment';
 const String remComment = 'remComment';
 const String multiLineComment = 'multiLineComment';
 const String trimFromStart = 'trimFromStart';
-const String includeDirective = 'includeDirective';
-const String doWhile = 'doWhile';
 const String number = 'number';
 const String positiveNumber = 'positiveNumber';
+const String parens = 'parens';
 const String integer = 'integer';
 const String decimalInteger = 'decimalInteger';
 const String digits = 'digits';
@@ -23,22 +23,51 @@ const String scaledDecimal = 'scaledDecimal';
 const String scaledMantissa = 'scaledMantissa';
 const String fractionalDigits = 'fractionalDigits';
 const String expression = 'expression';
+const String macroExpression = 'macroExpression';
 const String primaryExpression = 'primaryExpression';
 const String binaryExpression = 'binaryExpression';
 const String binaryPart = 'binaryPart';
-const String fieldref = 'fieldref';
 const String identifier = 'identifier';
 const String varName = 'varName';
+const String fieldName = 'fieldName';
 const String fieldrefInBrackets = 'fieldrefInBrackets';
 const String str = 'str';
 const String constant = 'constant';
 const String function = 'function';
 const String userFunction = 'userFunction';
 const String macroFunction = 'macroFunction';
-const String subDeclaration = 'subDeclaration';
 const String unaryExpression = 'unaryExpression';
 const String binaryOperator = 'binaryOperator';
 const String start = 'start';
+const String params = 'params';
+const String paramsOptional = 'paramsOptional';
+const String setExpression = 'setExpression';
+const String setEntity = 'setEntity';
+const String setEntitySimple = 'setEntitySimple';
+const String setEntityPrimary = 'setEntityPrimary';
+const String setEntityInParens = 'setEntityInParens';
+const String setIdentifier = 'setIdentifier';
+const String setOperator = 'setOperator';
+const String setModifier = 'setModifier';
+const String setFieldSelection = 'setFieldSelection';
+const String setElementSetExpression = 'setElementSetExpression';
+const String setElementSet = 'setElementSet';
+const String setElementList = 'setElementList';
+const String setElementFunction = 'setElementFunction';
+const String setElement = 'setElement';
+const String setElementSetInParens = 'setElementSetInParens';
+const String setElementSetPrimary = 'setElementSetPrimary';
+const String totalClause = 'totalClause';
+const String distinctClause = 'distinctClause';
+const String totalModifier = 'totalModifier';
+const String functionModifier = 'functionModifier';
+
+
+/// QVS grammar productiond
+const String includeDirective = 'includeDirective';
+const String doWhile = 'doWhile';
+const String fieldref = 'fieldref';
+const String subDeclaration = 'subDeclaration';
 const String command = 'command';
 const String commandInternal = 'commandInternal';
 const String renameTable = 'renameTable';
@@ -71,9 +100,6 @@ const String fieldrefsOrderBy = 'fieldrefsOrderBy';
 const String fieldrefOrderBy = 'fieldrefOrderBy';
 const String tableDesignator = 'tableDesignator';
 const String tableIdentifier = 'tableIdentifier';
-const String params = 'params';
-const String paramsOptional = 'paramsOptional';
-const String parens = 'parens';
 const String macro = 'macro';
 const String tableOrFilename = 'tableOrFilename';
 const String whereClause = 'whereClause';
@@ -114,3 +140,7 @@ const String switchStatement = 'switchStatement';
 const String caseStatement = 'caseStatement';
 const String disconnect = 'disconnect';
 const String sqlTables = 'sqlTables';
+
+
+
+

@@ -7,7 +7,6 @@ import 'package:petitparser/petitparser.dart';
 
 var qvs = new QvsGrammar();
 
-
 Result _parse(String source, String production) {
   var parser = qvs[production].end();
   return parser.parse(source);
@@ -52,6 +51,10 @@ void main() {
   test('fieldref1', () {
     shouldPass(' [41275]','fieldref');   
   });
+  test('fieldref1', () {
+    shouldPass(' [Dim2]','fieldref');   
+  });
+
   test('fileOptions1', () {
   String fileOptionsStr = r'''
     (biff, embedded labels,
