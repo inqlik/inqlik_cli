@@ -877,12 +877,26 @@ end switch
     shouldBeSuccess(reader);
   });
   
-  solo_test('Command with wiped out variables', () {
+  test('Command with wiped out variables', () {
     var reader = newReader();
     var code = r'''
 IF DayStart(MonthEnd()) <>  THEN''';
     reader.readFile('test.qvs',code);
     expect(reader.errors.isNotEmpty, isTrue);
   });
+
+  
+  solo_test('Switch statement', () {
+    var reader = newReader();
+    var code = r'''
+LET КоэффПродажи = 0.13;
+MainData:
+LOAD If(ТипДокумента = 2, Сумма - Себестоимость, ВП_ * $(КоэффПродажи)) as ВП,*;
+''';
+    reader.readFile('test.qvs',code);
+    
+    shouldBeSuccess(reader);
+  });
+
   
 }
