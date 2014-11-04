@@ -247,7 +247,7 @@ class QvsGrammar extends CompositeParser {
             .seq(char(')').trim(trimmer)).flatten());
     def(p.tableOrFilename,
         word().or(anyIn(r'./\:?*').or(localLetter())).plus()
-        .or(ref(p.fieldrefInBrackets))
+        .or(ref(p.fieldrefInBrackets).separatedBy(char('.'),includeSeparators: true))
         .or(ref(p.str))
         .seq(ref(p.fileModifier).or(ref(p.tableSelectModifier)).optional())
         .trim(trimmer));
@@ -665,7 +665,7 @@ class QvsGrammar extends CompositeParser {
                 .seq(ref(p.userFunction))
                 .seq(_keyword(')').trim(trimmer)));
     def(p.unaryExpression,
-        _word('NOT').or(_keyword('-')).trim(trimmer)
+        _keyword('NOT').or(_keyword('-')).trim(trimmer)
             .seq(ref(p.expression))
             .trim(trimmer).flatten());
     def(p.binaryOperator,

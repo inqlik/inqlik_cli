@@ -470,7 +470,7 @@ for a=1 to 9 Step 2;
        shouldPass(str,p.start);
    });
  
- skip_test('SELECT with composite table name',() {
+ test('SELECT with composite table name',() {
        var str = r"""
  SQL SELECT 
          [PURCHID]

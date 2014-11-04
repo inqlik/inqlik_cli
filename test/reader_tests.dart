@@ -886,7 +886,7 @@ IF DayStart(MonthEnd()) <>  THEN''';
   });
 
   
-  solo_test('Switch statement', () {
+  test('Variables with russian names', () {
     var reader = newReader();
     var code = r'''
 LET КоэффПродажи = 0.13;
@@ -898,5 +898,15 @@ LOAD If(ТипДокумента = 2, Сумма - Себестоимость, �
     shouldBeSuccess(reader);
   });
 
+  test('NOT operator disguised as build-in function', () {
+    var reader = newReader();
+    var code = r'''
+LOAD *       
+RESIDENT Dummy
+WHERE Not(1=2);''';
+    reader.readFile('test.qvs',code);
+    
+    shouldBeSuccess(reader);
+  });
   
 }
