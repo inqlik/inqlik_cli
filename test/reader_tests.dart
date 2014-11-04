@@ -876,4 +876,13 @@ end switch
     reader.readFile('test.qvs',code);
     shouldBeSuccess(reader);
   });
+  
+  solo_test('Command with wiped out variables', () {
+    var reader = newReader();
+    var code = r'''
+IF DayStart(MonthEnd()) <>  THEN''';
+    reader.readFile('test.qvs',code);
+    expect(reader.errors.isNotEmpty, isTrue);
+  });
+  
 }

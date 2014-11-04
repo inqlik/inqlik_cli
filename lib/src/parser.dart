@@ -48,6 +48,9 @@ class QvsParser extends QvsGrammar {
 //      print(result.value);
       String funcName = result.value[0];
       List<String> params = result.value[5];
+      if (params == null) {
+        params = [];
+      }
       if (!BUILT_IN_FUNCTIONS.containsKey(funcName.toUpperCase())) {
         throw result.failure("Unknown buil-in function `$funcName`", savedPosition);
       }
