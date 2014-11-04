@@ -1,4 +1,0 @@
-c:\QlikDocs\South1\Scripts
-c:\QlikDocs\Sportmoda\2.Transformation\3.Include\6.Custom\
-c:\QlikDocs\Spar\2.Transform\3.Include\6.Custom\
-c:\QlikDocs\Zakrepi\2.Transformation\3.Include\6.Custom\

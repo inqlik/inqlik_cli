@@ -4,12 +4,11 @@ import 'package:qvs/src/parser.dart';
 import 'package:qvs/src/productions.dart' as p;
 import 'package:unittest/unittest.dart';
 import 'package:petitparser/petitparser.dart';
-
-var qvs = new QvsGrammar();
+QvsParser qvs = newParser();
 
 Result _parse(String source, String production) {
-  var parser = qvs[production].end();
-  return parser.parse(source);
+//  var parser = qvs[production].end();
+  return qvs.guarded_parse(source, production);
 }
 
 shouldFail(String source, String production) {
@@ -92,7 +91,7 @@ Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
     shouldPass(fileOptionsStr,'fileModifier');
   });
   
-  test('tableOrFilename1', () {
+  test('tableOrFilename2', () {
   String fileOptionsStr = r'''
 [..\Resources\Expressions.qvs]   (txt, codepage is 1251, no labels, delimiter is '\t', msq, filters(
   Remove(Row, RowCnd(Interval, Pos(Top, 1), Pos(Top, 1), Select(1, 0)))
@@ -305,12 +304,11 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
  test('Call sub with params parsing ',() {
    var str = r"call dummy('qwe',Dual('123123',23));";
    Result res = _parse(str,p.call);
-   expect(res.value.length,4);
-   expect(res.value[1],"dummy");
-   expect(res.value[2].length,3);
-   expect(res.value[2][1][0].length,2);
-   expect(res.value[2][1][0][0],"'qwe'");
-   expect(res.value[2][1][0][1],"Dual('123123',23)");
+   expect(res.value.length,2);
+   expect(res.value[0],"dummy");
+   expect(res.value[1].length,2);
+   expect(res.value[1][0],"'qwe'");
+   expect(res.value[1][1],"Dual('123123',23)");
  });
  test('Sub declaration with params parsing ',() {
    var str = r"SUB dummy(param1,param2)";
@@ -564,7 +562,7 @@ LET _deltaTransEmtpy = -1;""";
 
 test('SIMPLE LET assignment',() {
        var str = r"""
-LET _deltaTransEmtpy =  Dual(1);""";
+LET _deltaTransEmtpy =  Dual('1',1);""";
        shouldPass(str,p.letAssignment);
    });
 

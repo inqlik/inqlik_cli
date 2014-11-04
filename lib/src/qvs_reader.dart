@@ -70,10 +70,10 @@ class ErrorDescriptor {
   }
   String toString() => 'QvsErrorDescriptor(${this.errorMessage})';
 }
-class Context {
+class ReaderContext {
   final SubDescriptor descriptor;
   final Map<String,String> params;
-  Context(this.descriptor, this.params);
+  ReaderContext(this.descriptor, this.params);
   String toString() => 'StackItem($descriptor, $params)';
 }
 class ReaderData {
@@ -85,10 +85,12 @@ class ReaderData {
   String rootFile;
   final List<ErrorDescriptor> errors = [];
   final Map<String, String> variables = new Map<String, String>.from(_SYSTEM_VARIABLES);
-  final Queue<Context> stack = new Queue<Context>();
+  final Queue<ReaderContext> stack = new Queue<ReaderContext>();
   final Set<String> tables = new Set<String>();
   Queue<SubDescriptor> currentSubroutineDeclaration = new Queue<SubDescriptor>();
-
+  void printState() {
+    print('ReaderData state. entries: ${entries.length}, errors: ${errors.length}');
+  }
 }
 class LineType {
   final String _val;
@@ -168,7 +170,7 @@ class QvsReader {
     parser = new QvsParser(this);
   }
   List<QvsCommandEntry> get entries => data.entries; 
-  Context get context => data.stack.isEmpty? null: data.stack.first;
+  ReaderContext get context => data.stack.isEmpty? null: data.stack.first;
   Map<String, SubDescriptor> get subMap => data.subMap; 
   List<ErrorDescriptor> get errors => data.errors; 
   String toString() => 'QvsReader(${data.entries})';
@@ -342,7 +344,7 @@ class QvsReader {
       addError(entry,'Call of undefined subroutine [$subName]');
       return;
     }
-    if (data.stack.any((Context cnt) => cnt.descriptor.name == subName)) {
+    if (data.stack.any((ReaderContext cnt) => cnt.descriptor.name == subName)) {
       // Do not step into recursion
       return;
     }
@@ -361,7 +363,7 @@ class QvsReader {
     if (data.stack.isNotEmpty) {
       params.addAll(data.stack.first.params);
     }
-    data.stack.addFirst(new Context(subDescriptor,params));
+    data.stack.addFirst(new ReaderContext(subDescriptor,params));
     for (int paramIdx = 0; paramIdx<formalParams.length;paramIdx++) {
       String paramValue;
       String paramName = formalParams[paramIdx];
@@ -430,8 +432,9 @@ class QvsReader {
     if (entry.expandedText == null) {
       throw entry;
     }
-    Result res = parser.ref(command).end()
-         .parse(entry.expandedText);
+    Result res = parser.guarded_parse(entry.expandedText,command);
+//    Result res = parser.ref(command).end()
+//         .parse(entry.expandedText);
     entry.parsed = true;
     if (res.isFailure) {
       int maxPosition = -1;
@@ -440,7 +443,7 @@ class QvsReader {
       var rowAndCol;
       String message;
       for (Parser p in parser.ref(command).children) {
-        res = p.end().parse(entry.expandedText);
+        res = qv_parse(p.end(),entry.expandedText);
         if (maxPosition < res.position) {
           maxPosition = res.position;
           entry.errorPosition = maxPosition;

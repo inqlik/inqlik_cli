@@ -1137,6 +1137,16 @@ const Map<String, FuncDesc> BUILT_IN_FUNCTIONS = const <String, FuncDesc>{
   'ZTESTW_SIG':const FuncDesc('ZTESTW_SIG',true,0,999),
   'ZTESTW_STERR':const FuncDesc('ZTESTW_STERR',true,0,999),
   'ZTESTW_UPPER':const FuncDesc('ZTESTW_UPPER',true,0,999),
-  'ZTESTW_Z':const FuncDesc('ZTESTW_UPPER',true,0,999)  
-};
+  'ZTESTW_Z':const FuncDesc('ZTESTW_UPPER',true,0,999),  
+  // FILTER SPECIFIERS
+  'FILTERS':const FuncDesc('FILTERS',false,0,999),  
+  'REMOVE':const FuncDesc('REMOVE',false,0,999),  
+  'ROWCND':const FuncDesc('ROWCND',false,0,999),  
+  'STRCND':const FuncDesc('STRCND',false,0,999),  
+  'POS':const FuncDesc('POS',false,0,999),  
+  'COLXTR':const FuncDesc('COLXTR',false,0,999),  
+  'UNWRAP':const FuncDesc('UNWRAP',false,0,999),  
+  'ROTATE':const FuncDesc('ROTATE',false,0,999),  
+  'TRANSPOSE':const FuncDesc('TRANSPOSE',false,0,999),  
+  'SELECT':const FuncDesc('SELECT',false,0,999)};
 

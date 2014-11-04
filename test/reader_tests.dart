@@ -876,7 +876,4 @@ end switch
     reader.readFile('test.qvs',code);
     shouldBeSuccess(reader);
   });
-
-  
-  
 }
