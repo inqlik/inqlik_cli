@@ -13,7 +13,12 @@ QvsReader readQvs(String fileName, String code) {
   reader.readLines(code.split('\n'));
   return reader;
 }
-
+class QvDirective {
+  static const String SUPPRESS_ERROR = '//#!QV_SUPPRESS_ERROR';
+  static const String SKIP_PARSING = '//#!QV_SKIP_PARSING';
+  static const String TRACE_TABLES = '//#!QV_TRACE_TABLES';
+  static const String TRACE_USER_VARIABLES = '//#!QV_TRACE_USER_VARIABLES';
+}
 const _SYSTEM_VARIABLES = const {
   'CD':  "E:",
   'QvPath':  "C:\PROGRA~1\QlikView",
@@ -140,7 +145,7 @@ class QvsReader {
   static final closedMultiLineComment = new RegExp(r'/\*.*?\*/');
   static final closedMultiLineCommentOnWholeLine = new RegExp(r'^\s*/\*.*?\*/\s*$');
   static final multiLineCommentEnd = new RegExp(r'\*/\s*$');
-  static final suppressErrorPattern = new RegExp(r'//#!SUPPRESS_ERROR\s*$');
+  static final suppressErrorPattern = new RegExp(QvDirective.SUPPRESS_ERROR + r'\s*$');
   static final callSubroutinePattern = new RegExp(r'^\s*CALL\s+(\w[A-Za-z.0-9]+)',caseSensitive: false); 
   static final controlStructurePatterns = [
     new RegExp(r'^\s*IF\s.*THEN\s*$',caseSensitive: false),                                     
@@ -196,6 +201,9 @@ class QvsReader {
       data.variables.remove(each);
     }
   }
+  void printUserVariables() {
+    print('User variables dump: not implemented yet');
+  }
   void readLines(List<String> lines) {
     int lineCounter = 0;
     int sourceLineNum = 1;
@@ -223,11 +231,14 @@ class QvsReader {
       
     }
     for (var line in lines) {
-      if (line.trim().startsWith('//#!SKIP_PARSING')) {
+      if (line.trim().startsWith(QvDirective.SKIP_PARSING)) {
         return;
       }
-      if (line.trim().startsWith('//#!TRACE_TABLES')) {
+      if (line.trim().startsWith(QvDirective.TRACE_TABLES)) {
         print('RESIDENT TABLES ARE: ${data.tables}');
+      }
+      if (line.trim().startsWith(QvDirective.TRACE_USER_VARIABLES)) {
+        printUserVariables();
       }
 
       if (suppressErrorPattern.hasMatch(line)) {

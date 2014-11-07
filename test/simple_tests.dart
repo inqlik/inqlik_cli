@@ -499,6 +499,13 @@ for a=1 to 9 Step 2;
  """;
        shouldPass(str,p.start);
    });
+ test('LOAD FROM WITH fileMask',() {
+       var str = r"""
+ LOAD * FROM dummy*.qvd(QVD);
+ """;
+       shouldPass(str,p.start);
+   });
+
  
  test('EXECUTE',() {
        var str = r"""

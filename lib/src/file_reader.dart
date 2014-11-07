@@ -80,8 +80,5 @@ class FileReader extends QvsReader{
     if (new File(testFile).existsSync()) {
       data.qvwFileName = testFile;
     }
-
   }
-
-  
 }

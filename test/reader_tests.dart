@@ -576,7 +576,7 @@ TRACE $(Purchase.ProcessYear);''';
   test('Suppress Errors shebang comment statemet', () {
     var reader = newReader();
     var code = r'''
-      ABRAKADABRA; //#!SUPPRESS_ERROR''';
+      ABRAKADABRA; //#!QV_SUPPRESS_ERROR''';
     reader.readFile('test.qvs',code);
     expect(reader.entries.length, 1);
     expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
@@ -620,7 +620,7 @@ SET vMinDate = Num(MakeDate(2012,01));//$(DateRange.Min);
     var reader = newReader();
     var code = r'''
 //#!..\..\1.Application\
-//#!SKIP_PARSING
+//#!QV_SKIP_PARSING
 ABRAKADABRA ;
 ANOTHER ABRAKADABRA;
 SOME OTHER ABRAKADABRA;
@@ -894,7 +894,6 @@ MainData:
 LOAD If(ТипДокумента = 2, Сумма - Себестоимость, ВП_ * $(КоэффПродажи)) as ВП,*;
 ''';
     reader.readFile('test.qvs',code);
-    
     shouldBeSuccess(reader);
   });
 
@@ -905,7 +904,6 @@ LOAD *
 RESIDENT Dummy
 WHERE Not(1=2);''';
     reader.readFile('test.qvs',code);
-    
     shouldBeSuccess(reader);
   });
   
