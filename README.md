@@ -18,3 +18,14 @@ To incomporate qvs into InQlik-Tools for Sublime Text, edit file `QlikView.subli
 Then copy `QlikView.sublime-build` file into `User` package directory (in Sublime Text menu command `Preferences \ Browse Packages...` then directory `User`)
 
 Alternatevely you can install [DartEditor](https://www.dartlang.org/), clone [main qvs repository](https://github.com/inqlik/qvs) and use sourcecode. 
+
+Online version of parser with constricted functionality available [here](http://inqlik.github.io/live/build/web/qvs.html)
+
+![web-parser](http://inqlik.github.io/images/web_qvs_error.png)
+
+Restrictions of online version are:
+
+- $(include=...) and $(must_include=...) directives not supported.
+- default include files not supported
+
+Additional info about that tool will be on [InQlik blog](http://inqlik.github.io/) 
