@@ -17,4 +17,4 @@ Then run `dart.exe qvs.snapshot` from that directory to get command-line help.
 To incomporate qvs into InQlik-Tools for Sublime Text, edit file `QlikView.sublime-build` change strings `c:\\qvs\\` to directory where you extracted qvs-dist (or just extract files into c:\qvs)
 Then copy `QlikView.sublime-build` file into `User` package directory (in Sublime Text menu command `Preferences \ Browse Packages...` then directory `User`)
 
-Alternatevely you can install DartEditor, clone main qvs repository and use sourcecode. 
+Alternatevely you can install [DartEditor](https://www.dartlang.org/), clone [main qvs repository](https://github.com/inqlik/qvs) and use sourcecode. 
