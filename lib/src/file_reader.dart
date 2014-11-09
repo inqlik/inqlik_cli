@@ -5,6 +5,7 @@ import 'qvs_reader.dart';
 import 'package:path/path.dart' as path;
 FileReader newReader() => new FileReader(new ReaderData());
 class FileReader extends QvsReader{
+  String defaultInclude = 'default_include.qvs';
   FileReader(ReaderData data):super(data);
   FileReader readIncludeFile(String fileName, String fileContent, QvsCommandEntry entry) {
     var result =  new FileReader(data)..skipParse = skipParse
@@ -19,12 +20,11 @@ class FileReader extends QvsReader{
     if (data.rootFile == null) {
      rootFileMode = true;
      data.rootFile = path.normalize(path.absolute(path.dirname(Platform.script.toFilePath()),fileName));
-     String pathToDefaulInclude = path.normalize(path.join(path.dirname(data.rootFile),'default_include.qvs')); 
+     String pathToDefaulInclude = path.normalize(path.join(path.dirname(data.rootFile),defaultInclude)); 
      if (new File(pathToDefaulInclude).existsSync()) {
        readIncludeFile(pathToDefaulInclude, null, null); 
      }
-
-     sourceFileName = data.rootFile;
+      sourceFileName = data.rootFile;
     } else {
       sourceFileName = path.normalize(path.absolute(path.dirname(data.rootFile),fileName));
     }
