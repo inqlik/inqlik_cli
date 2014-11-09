@@ -2,9 +2,10 @@ library qvs_runner;
 import 'src/file_reader.dart';
 import 'dart:io';
 
-FileReader run(String fileName, bool justLocateQvw, bool traceResidentTables) {
+FileReader run(String fileName, bool justLocateQvw, String defaultInclude, [bool traceResidentTables=false]) {
   FileReader reader = newReader()
       ..justLocateQvw = justLocateQvw
+      ..defaultInclude = defaultInclude
       ..readFile(fileName);
   for (var error in reader.errors) {
     print('------------------------------');

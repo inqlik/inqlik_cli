@@ -6,35 +6,52 @@ import 'dart:io';
 String input = r'''
 JOIN (   [asdf]  ) 
 ''';
+void printUsage(ArgParser ap) {
+  print('-------------------');
+  print('Parser for QlikView load scripts');
+  print(ap.usage);
+  print('Usage example:');
+  print(r'c:\qvs\dart.exe c:\qvs\qvs.snapshot -c check -i initial_include.qvs c:\my_project\scripts\LoadData.qvs');
+}
 void main(arguments) {
   var ap = new ArgParser();
-  ap.addOption('command', allowed: ['check_and_reload', 'open','force_reload','check'], abbr: 'c', defaultsTo: 'check_and_reload');
+  ap.addOption('command', allowed: ['check_and_reload', 'open','force_reload','check', 'check_directories'], abbr: 'c', defaultsTo: 'check_and_reload');
+  ap.addOption('include', abbr: 'i',defaultsTo: 'default_include.qvs');
+//  ap.addFlag('show-resident-tables', negatable: false, defaultsTo: false);
   ap.addOption('directories',abbr: 'd', defaultsTo: '');
-  ap.addFlag('show-resident-tables', negatable: false, defaultsTo: false);
-  ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
   ap.addOption('qlikview', abbr: 'q', defaultsTo: r'C:\Program Files\QlikView\qv.exe', help: "Full path to QlikView executable");
-
-  var args = ap.parse(arguments);
+  ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
+  var args;
+  try {
+    args = ap.parse(arguments);
+  }
+  catch(e) {
+    print(e);
+    exit(-1);
+  }
   if (args["help"] || (args.rest.isEmpty && args['directories']=='')) {
-    print('Usage: dart qvs.(dart|snapshot) [options] fileToParse');
-    print('options are:\n');
-    print(ap.getUsage());
-    print('\nExamples:\n');
-    print(r'dart qvs.dart.snapshot --qlikView="c:\QlikView\qv.exe" --command=check_and_reload  inventory.qvs');
+    printUsage(ap);
     return;
   }
-  if (args['directories']!='') {
-    runDirFile(args['directories']);
-    return;
+  if (args['command'] == 'check_directories') {
+    if (args['directories']!='') {
+      runDirFile(args['directories']);
+      exit(0);
+    } else {
+      print('For command `check_directories` file with directories list should be set as parameter `directories`');
+      printUsage(ap);
+      exit(-1);
+    }
   }
-  qvs.FileReader reader = run(args.rest[0], args['command']=='open', args['show-resident-tables']);
-//  reader.data.variables.forEach((key,value) {
-//    print('$key = $value');
-//  });
-//  reader.data.subMap.values.forEach((value) {
-//    print('$value');
-//  });
-
+  if (args.rest.isEmpty) {
+    print('ERROR:  Load script file name expected');
+    printUsage(ap);
+    exit(-1);
+  }
+  qvs.FileReader reader = run(args.rest[0], args['command']=='open', args['include']);
+  if (args['command']=='check') {
+    exit(0);
+  }
   var cmArgs = [];
   String executable = args['qlikview'];
   if (reader.data.qvwFileName == null) {
