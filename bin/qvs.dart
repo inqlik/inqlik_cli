@@ -15,7 +15,14 @@ void printUsage(ArgParser ap) {
 }
 void main(arguments) {
   var ap = new ArgParser();
-  ap.addOption('command', allowed: ['check_and_reload', 'open','force_reload','check', 'check_directories'], abbr: 'c', defaultsTo: 'check_and_reload');
+  ap.addOption('command', allowed: ['check_and_reload', 'open','force_reload','check', 'check_directories'], abbr: 'c', defaultsTo: 'check_and_reload',
+    allowedHelp: {
+         'check_and_reload': 'Check script for errors and run reload task on success',
+         'open': 'Open related qvw application',
+         'force_reload': 'Check syntax and run reload task regardless of errors',
+         'check': 'Check syntax, do not run reload task',
+         'check_directories': 'Read file passed as parameter -d --directories, get list of directories to batch check syntax'}  
+  );
   ap.addOption('include', abbr: 'i',defaultsTo: 'default_include.qvs');
 //  ap.addFlag('show-resident-tables', negatable: false, defaultsTo: false);
   ap.addOption('directories',abbr: 'd', defaultsTo: '');

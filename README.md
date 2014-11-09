@@ -1,37 +1,17 @@
-qvs
+QVS. Parser for QlikView load scripts
 ================
 
-Syntax check tool for QlikView load scripts.
+Command line tool to check syntax of QlikView load scripts
 
-#### Features
+Can be used with [InQlik-Tools for Sublime Text](https://github.com/inqlik/inqlik-tools) as optional build system, or as standalone tool
 
-Checks the syntacs of script. Optionally may reload QlikView document. 
-By default if parser get error while parsing script reload does not start. 
-To override this behaviour use command line switch --forceReload.
-By default parser expect QlikView executable on path C:\Program Files\QlikView\qv.exe
-This may be changed by command line parameter --qlikview 
-
-On syntax error parser output error in format
-
-    Parse error. File: Department.qvs row:  col: 7 message: FROM expected 
+![Inqlik-Tools](http://inqlik.github.io/images/qvs_error.png)
 
 
-####Installation and usage
+##Installation and usage
 
-Qvs_parser is written in Dart and requires Dart VM to run. Download dart-sdk from [Dartlang site](http://www.dartlang.org/tools/sdk/)
-Then you may alternatively or add dart-sdk/bin directory in your PATH, or modify last line of /tool/qvsrun.cmd to point to dart.exe in dart-sdk/bin
-Use command 
+Easiest way is to download prepackaged qvs-dist archive (approximately 3.5Mb) from [qvs-dist](https://github.com/inqlik/qvs-dist/archive/master.zip) and extract files into some location.
+Then run `dart.exe qvs.snapshot` from that directory to get command-line help.
+To incomporate qvs into InQlik-Tools for Sublime Text, edit file `QlikView.sublime-build` change strings `c:\\qvs\\` to directory where you extracted qvs-dist (or just extract files into c:\qvs)
+Then copy `QlikView.sublime-build` file into `User` package directory (in Sublime Text meny Preferences \ Browse Packages... directory `User`)
 
-    qvsrun yourFileToCheck.qvs 
-
-To reload QlikView document after successful parsing add full path do your QlikView document after commented sheband as first line of script.
-First 4 symbols of first line must be strictly `//#!` 
-Example:
-
-    //#!c:\QlikDocs\CurrentProject\EtlApps\DataModelDebug.qvw
- 
- This tool is fully integrated in [Sublime Text 2 plugin for QlikView scripts](http://vadimtsushko.github.io/sublime-qlikview/) 
- 
- Alternatively it may be downloaded from [Inqlik download page] (http://inqlik.ru/downloads)
-
-   
