@@ -1,10 +1,10 @@
 library qvs_parser;
 import 'package:petitparser/petitparser.dart';
-import 'qvs_reader.dart';
+import 'reader.dart';
 import 'productions.dart' as p;
 part 'grammar.dart';
 
-QvsParser newParser() => new QvsParser(new QvsReader(new ReaderData()));
+QvsParser newParser(QlikViewReader reader) => new QvsParser(reader);
 Result qv_parse(Parser parser, String source) {
   Result res;
   try {
@@ -19,7 +19,7 @@ Result qv_parse(Parser parser, String source) {
   return res;
 }
 class QvsParser extends QvsGrammar {
-  QvsReader reader;
+  QlikViewReader reader;
   QvsParser(this.reader): super();
   String _stripBrakets(String val) {
     if (val.startsWith('[')) {
@@ -105,7 +105,7 @@ class QvsParser extends QvsGrammar {
     });
     action(p.dropTable, (v) {
       for (var table in v[3]) {
-        reader.data.tables.remove(_stripBrakets(table));
+        reader.removeTable(_stripBrakets(table));
       }
     });
     action(p.load, (v) {
@@ -113,11 +113,11 @@ class QvsParser extends QvsGrammar {
     });
 
     action(p.renameTable, (v) {
-      reader.data.tables.remove(_stripBrakets(v[2]));
-      reader.data.tables.add(v[4]);
+      reader.removeTable(_stripBrakets(v[2]));
+      reader.addTable(v[4]);
     });
     action(p.tableIdentifier, (v){
-      reader.data.tables.add(_stripBrakets(v[0]));
+      reader.addTable(_stripBrakets(v[0]));
       return v;
     });
     action(p.macroFunction, (v){

@@ -1,11 +1,10 @@
 library qvs_reader;
 
-//import 'dart:io';
 import 'dart:collection';
-//import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
 import 'parser.dart';
 import 'productions.dart';
+import 'reader.dart';
 
 QvsReader readQvs(String fileName, String code) {
   var reader = new QvsReader(new ReaderData());
@@ -130,7 +129,7 @@ class SubDescriptor {
   String toString() => "QvsSubDescriptor($name,$sourceStart,$sourceEnd)";
 }
  
-class QvsReader {
+class QvsReader extends QlikViewReader{
   QvsParser parser;
   static final commandTerminationPattern = new RegExp(r'^.*;\s*($|//)');
   static final mustIncludePattern = new RegExp(r'^\s*\$\(must_include=(.*)\)\s*;?\s*$',caseSensitive: false); 
@@ -498,5 +497,10 @@ class QvsReader {
     }
     return LineType.SIMPLE_LINE;
   }
-  
+  void addTable(String tableName) {
+    data.tables.add(tableName);
+  }
+  void removeTable(String tableName) {
+    data.tables.remove(tableName);
+  }
 }

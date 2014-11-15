@@ -4,7 +4,8 @@ import 'package:qvs/src/parser.dart';
 import 'package:qvs/src/productions.dart' as p;
 import 'package:unittest/unittest.dart';
 import 'package:petitparser/petitparser.dart';
-QvsParser qvs = newParser();
+import 'package:qvs/src/qvs_reader.dart';
+QvsParser qvs = newParser(new QvsReader(new ReaderData()));
 
 Result _parse(String source, String production) {
 //  var parser = qvs[production].end();

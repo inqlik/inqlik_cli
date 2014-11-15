@@ -1,7 +1,7 @@
 //import 'package:petitparser/petitparser.dart';
 import 'package:args/args.dart';
-import 'package:qvs/qvs_runner.dart';
-import 'package:qvs/src/file_reader.dart' as qvs;
+import 'package:qvs/qvs.dart';
+import 'package:qvs/src/qvs_file_reader.dart' as qvs;
 import 'dart:io';
 String input = r'''
 JOIN (   [asdf]  ) 

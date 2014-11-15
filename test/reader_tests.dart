@@ -1,6 +1,6 @@
 library reader_tests;
 
-import 'package:qvs/src/file_reader.dart';
+import 'package:qvs/src/qvs_file_reader.dart';
 import 'package:qvs/src/qvs_reader.dart';
 import 'package:unittest/unittest.dart';
 

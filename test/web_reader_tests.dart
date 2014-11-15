@@ -11,7 +11,6 @@ void shouldBeSuccess(QvsReader reader) {
   }
   expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
 }
-
 void main() {
   test('test_simplest', () {
     var code = '''
