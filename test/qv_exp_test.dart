@@ -100,20 +100,41 @@ tag: Another tag
     expect(reader.printOut(),source);
   });
 
-  test('Csv export', () {
-    var source = TEST_FILE_CONTENTS;
+//  test('Csv export', () {
+//    var source = TEST_FILE_CONTENTS;
+//    var reader = newReader()..readFile('test.qlikview-vars',source);
+//    var out = reader.CsvOut();
+//    File outFile = new File('CsvOut.csv');
+//    outFile.writeAsBytesSync(out);
+//  });
+  
+
+  
+  solo_test('Macros', () {
+    var source = r"""
+---
+set: СтрелкаТренда
+definition: if ($1 = 0 OR IsNull($1), null(), 'qmem://<builtin>/' & 
+  if($1 >= 1.20,'Arrow_N_G.png',
+  if($1 >= 1.051,'Arrow_NE_G.png',
+  if($1 >= 1.05 ,'Arrow_NE_G.png',
+  if($1 >= 1,'Arrow_E_Y.png',
+  if($1 >= .95 ,'Arrow_W_Y.png',
+  if($1 >= .801  ,'Arrow_SE_R.png',
+  if($1 >= .80 ,'Arrow_S_R.png',
+  if($1 >= 0 ,'Arrow_S_R.png','Arrow_S_R.png') ))))))))
+---
+set: ТрендПродажиПредГод
+macro: СтрелкаТренда
+  - $(ПроцентПродажиПредГод)
+comment: Тренд продаж к предыдущему году  """;
     var reader = newReader()..readFile('test.qlikview-vars',source);
-    var out = reader.CsvOut();
-    File outFile = new File('CsvOut.csv');
-    outFile.writeAsBytesSync(out);
+    expect(reader.entries.length, 2);
+    expect(reader.entries[0].entryType,EntryType.EXPRESSION);
+    //expect(reader.entries[1].entryType,EntryType.MACRO);
+    print(reader.printOut());
   });
   
-  solo_test('Import names', () {
-    var source = TEST_FILE_CONTENTS;
-    var reader = newReader()..readFile('test.qlikview-vars',source);
-    var out = reader.importLabels(r'exp_files\EditedNames.csv');
-    
-  });
   
 }
 

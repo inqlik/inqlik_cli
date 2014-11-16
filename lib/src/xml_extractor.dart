@@ -86,14 +86,15 @@ class XmlExtractor {
     }
     return res;
   }
-  String qvwFieldsToCsv(List<QvwFieldDescriptor> fields) {
+  List<int> qvwFieldsToCsv(List<QvwFieldDescriptor> fields) {
     var codec = new CsvCodec(fieldDelimiter: ';');
     List<List<String>> outputList = [];
     outputList.add(['Name','SourceTables','Tags','Cardinal','TotalCount']);
     for (var each in fields) {
         outputList.add([each.name,each.sourceTables.join(','),each.tags.join(','),each.cardinal,each.totalCount]);
     }
-    return codec.encoder.convert(outputList);
+    var csvOut = codec.encoder.convert(outputList);
+    return SYSTEM_ENCODING.encoder.convert(csvOut);
   }
   
 }
