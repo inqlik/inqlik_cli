@@ -76,8 +76,11 @@ tag: Another tag
     expect(reader.entries[1].entryType,EntryType.BLANK);
     expect(reader.entries[2].entryType,EntryType.SECTION_HEADER);
     expect(reader.entries[3].entryType,EntryType.EXPRESSION);
+    Expression exp = reader.entries[3].expression;
+    expect(exp.name,'DynamicDim');
+    expect(exp.section, ':Chart expressions');
     expect(reader.entries[4].entryType,EntryType.EXPRESSION);
-    Expression exp = reader.entries[4].expression;
+    exp = reader.entries[4].expression;
     expect(exp.name,'Sales');
     expect(exp.tags['label'],' Sales');
     expect(exp.tags['comment'],startsWith(' Sales amount for '));
@@ -113,25 +116,18 @@ tag: Another tag
   solo_test('Macros', () {
     var source = r"""
 ---
-set: СтрелкаТренда
-definition: if ($1 = 0 OR IsNull($1), null(), 'qmem://<builtin>/' & 
-  if($1 >= 1.20,'Arrow_N_G.png',
-  if($1 >= 1.051,'Arrow_NE_G.png',
-  if($1 >= 1.05 ,'Arrow_NE_G.png',
-  if($1 >= 1,'Arrow_E_Y.png',
-  if($1 >= .95 ,'Arrow_W_Y.png',
-  if($1 >= .801  ,'Arrow_SE_R.png',
-  if($1 >= .80 ,'Arrow_S_R.png',
-  if($1 >= 0 ,'Arrow_S_R.png','Arrow_S_R.png') ))))))))
+set: MacroFunc
+definition: Sum($1)
 ---
-set: ТрендПродажиПредГод
-macro: СтрелкаТренда
-  - $(ПроцентПродажиПредГод)
-comment: Тренд продаж к предыдущему году  """;
+set: MacroApplication
+macro: MacroFunc
+  - Field1
+""";
     var reader = newReader()..readFile('test.qlikview-vars',source);
     expect(reader.entries.length, 2);
     expect(reader.entries[0].entryType,EntryType.EXPRESSION);
-    //expect(reader.entries[1].entryType,EntryType.MACRO);
+    expect(reader.entries[1].entryType,EntryType.MACRO);
+    expect(reader.entries[1].expression.definition,'Sum(Field1)');
     print(reader.printOut());
   });
   

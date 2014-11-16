@@ -26,12 +26,11 @@ class Expression {
   String definition;
   String label;
   String comments;
-  String tag;
+  String section;
   Map<String,String> tags = new Map<String,String>(); 
   bool isMacro = false;
   String _currentTag;
   List<String> _currentContent = [];
-  ExpressionEntry entry;
   String addLine(String line, LineType lineType) {
     if (lineType == LineType.UNDEFINED || lineType == LineType.BLANK) {
       if (_currentTag == null) {
@@ -67,7 +66,7 @@ class Expression {
     _currentTag = null;
     _currentContent.clear();
   }
-  toString() => 'Expression(name: $name, lavel: $label, tag: $tag, definition: $definition)';
+  toString() => 'Expression(name: $name, lavel: $label, section: $section, definition: $definition)';
   TagTuple splitTag(String line) {
     var result = new TagTuple();
     int colonPos = line.indexOf(':');
@@ -159,7 +158,7 @@ class EntryType {
   static const SECTION_HEADER = const EntryType._internal('SECTION_HEADER');
   static const MACRO = const EntryType._internal('MACRO');
   static const BLANK = const EntryType._internal('BLANK');
-  String toString() => 'CommandType($_val)';
+  String toString() => '$_val';
 }
 class ReaderState {
   final String _val;
@@ -167,7 +166,7 @@ class ReaderState {
   static const BLANK = const ReaderState._internal('BLANK');
   static const INSIDE_TAG = const ReaderState._internal('INSIDE_TAG');
   static const INSIDE_EXPPRESSION = const ReaderState._internal('INSIDE_EXPPRESSION');
-  String toString() => 'CommandType($_val)';
+  String toString() => '$_val';
 }
 
 
@@ -191,19 +190,27 @@ class QvExpReader extends QlikViewReader{
   void readFile(String fileName, [String fileContent = null]) {
       List<String> lines = [];
       data.rootFile = path.normalize(path.absolute(path.dirname(Platform.script.toFilePath()),fileName));
+      sourceFileName = data.rootFile;
       if (fileContent != null) {
         lines = fileContent.split('\n');
       } else {
-        if (! new File(sourceFileName).existsSync()) {
+        var file = new File(sourceFileName);
+        if (file.existsSync()) {
           try {
-            lines = new File(sourceFileName).readAsLinesSync();
+            lines = file.readAsLinesSync();
           } catch (exception, stacktrace) {
             print(exception);
             return; 
           }
         }
       }
-    readLines(lines);
+      readLines(lines);
+  }
+  void printErrors() {
+    for (var error in data.errors) {
+      print('------------------------------');
+      print('>>>>> ' + error.errorMessage);
+    }
   }
   void addError(ExpressionEntry entry, String message,[int row, int col]) {
     if (entry.suppressError) {
@@ -282,13 +289,61 @@ class QvExpReader extends QlikViewReader{
   void addEntry(ExpressionEntry entry) {
     data.entries.add(entry);
     if (entry.entryType == EntryType.EXPRESSION) {
-      data.expMap[entry.expression.name] = entry.expression;
+      var exp = entry.expression;
+      String def = exp.tags['definition'];
+      if (def == null) {
+        setDefinitionFromMacro(entry);
+      } else  {
+        exp.definition = def;
+      }
+      exp.section = currentSection;
+      data.expMap[exp.name] = exp;
+    }
+    if (entry.entryType == EntryType.SECTION_HEADER) {
+      currentSection = entry.sourceText.substring(QvExpDirective.SECTION.length).trim();
+    }
+  }
+  setDefinitionFromMacro(ExpressionEntry entry) {
+    var exp = entry.expression;
+    var macro = exp.tags['macro'];
+    if (macro == null) {
+      addError(entry,'Expression should have definition or macro defined');
+      throw data.errors.last;
+    } else {
+      var macroList = macro.replaceAll('\n\r','\n').split('\n');
+      if (macroList.length < 2) {
+        addError(entry,'Invalid macro format');
+        throw data.errors.last;
+      }
+      var macroFunName = macroList.first.trim();
+      var macroFunExpr = data.expMap[macroFunName];
+      if (macroFunExpr == null) {
+        addError(entry,'Cannot find expression $macroFunName for macro');
+        throw data.errors.last;
+      }
+      var def = macroFunExpr.definition;
+      int paramNum = 0;
+      for (var param in macroList.sublist(1)) {
+        param = param.trim();
+        if (param == '') {
+          continue;
+        }
+        paramNum++;
+        if (!param.startsWith('- ')) {
+          addError(entry,'Invalid macro parameter format $param');
+          throw data.errors.last;
+        }
+        param = param.substring(1).trim();
+        def = def.replaceAll('\$$paramNum', param);
+      }
+      exp.definition = def.trim();
+      entry.entryType = EntryType.MACRO;
     }
   }
   String printOut() {
     var sb = new StringBuffer();
     for (var entry in data.entries) {
-      if (entry.entryType != EntryType.EXPRESSION) {
+      if (entry.entryType != EntryType.EXPRESSION && entry.entryType != EntryType.MACRO) {
         sb.writeln(entry.sourceText);
       } else {
         var expr = entry.expression;
@@ -301,7 +356,7 @@ class QvExpReader extends QlikViewReader{
     return sb.toString();
   }
   String _nullToStr(str) => str == null? '': str;
-  void importLabels(String labelsFileName) {
+  void importLabels(String labelsFileName, String outFileName) {
     List<String> header;
     int _getColumnPos(String colName) {
       int pos = header.indexOf(colName);
@@ -343,8 +398,9 @@ class QvExpReader extends QlikViewReader{
         }
       }
     }
+    new File(outFileName).writeAsStringSync(this.printOut());;
   }
-  List<int> CsvOut() {
+  List<int> csvOut() {
     var codec = new CsvCodec();
     List<List<String>> outputList = [];
     outputList.add(['ExpressionName','Label','Comments','Section','Version','Definition']);
@@ -354,7 +410,7 @@ class QvExpReader extends QlikViewReader{
         var name = expression.name;
         var label = _nullToStr(expression.tags['label']).replaceAll('\n',' ').trim();
         var comments = _nullToStr(expression.tags['comment']).replaceAll('\n',' ').trim();
-        var section = _nullToStr(expression.tags['tag']).replaceAll('\n',' ').trim();
+        var section = _nullToStr(expression.section);
         var version = _nullToStr(expression.tags['version']);
         var definition = _nullToStr(expression.tags['definition']).replaceAll('\n',' ').trim();
         outputList.add([name,label,comments,section,version,definition]);
@@ -362,5 +418,9 @@ class QvExpReader extends QlikViewReader{
     }
     String strOut = codec.encoder.convert(outputList, fieldDelimiter: ';');
     return SYSTEM_ENCODING.encoder.convert(strOut);
+  }
+  void saveAsCsv(String outFileName) {
+    var file = new File(outFileName);
+    file.writeAsBytesSync(csvOut());
   }
 }

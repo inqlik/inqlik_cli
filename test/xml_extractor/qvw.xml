@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
 <DocumentSummary>
 
  <GenerateLogfile>true</GenerateLogfile>
@@ -763,19 +765,19 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <InternalNumber>3</InternalNumber>
 
-   <Name>$$SysTable 3</Name>
+   <Name>Ð¢Ð°Ð±Ð»Ð¸ÑÐ°ÐÐ°Ð ÑÑÑÐºÐ¾Ð¼</Name>
 
-   <IsSystem>true</IsSystem>
+   <IsSystem>false</IsSystem>
 
    <IsSemantic>false</IsSemantic>
 
    <IsLoose>false</IsLoose>
 
-   <NoOfRows>39</NoOfRows>
+   <NoOfRows>1</NoOfRows>
 
    <NoOfFields>3</NoOfFields>
 
-   <NoOfKeyFields>2</NoOfKeyFields>
+   <NoOfKeyFields>0</NoOfKeyFields>
 
    <Comment></Comment>
 
@@ -795,11 +797,11 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <IsLoose>false</IsLoose>
 
-   <NoOfRows>3</NoOfRows>
+   <NoOfRows>42</NoOfRows>
 
    <NoOfFields>3</NoOfFields>
 
-   <NoOfKeyFields>1</NoOfKeyFields>
+   <NoOfKeyFields>2</NoOfKeyFields>
 
    <Comment></Comment>
 
@@ -819,7 +821,31 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <IsLoose>false</IsLoose>
 
-   <NoOfRows>37</NoOfRows>
+   <NoOfRows>4</NoOfRows>
+
+   <NoOfFields>3</NoOfFields>
+
+   <NoOfKeyFields>1</NoOfKeyFields>
+
+   <Comment></Comment>
+
+   <IsLinked>false</IsLinked>
+
+ </TableDescription>
+
+ <TableDescription>
+
+   <InternalNumber>6</InternalNumber>
+
+   <Name>$$SysTable 6</Name>
+
+   <IsSystem>true</IsSystem>
+
+   <IsSemantic>false</IsSemantic>
+
+   <IsLoose>false</IsLoose>
+
+   <NoOfRows>40</NoOfRows>
 
    <NoOfFields>2</NoOfFields>
 
@@ -847,9 +873,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <DistinctOnly>false</DistinctOnly>
 
-   <Cardinal>37</Cardinal>
+   <Cardinal>40</Cardinal>
 
-   <TotalCount>39</TotalCount>
+   <TotalCount>42</TotalCount>
 
    <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
 
@@ -872,8 +898,6 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
      <String>$hidden</String>
 
      <String>$system</String>
-
-     <String>$ascii</String>
 
      <String>$text</String>
 
@@ -897,9 +921,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <DistinctOnly>false</DistinctOnly>
 
-   <Cardinal>3</Cardinal>
+   <Cardinal>4</Cardinal>
 
-   <TotalCount>39</TotalCount>
+   <TotalCount>42</TotalCount>
 
    <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
 
@@ -923,8 +947,6 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
      <String>$system</String>
 
-     <String>$ascii</String>
-
      <String>$text</String>
 
    </Tags>
@@ -947,9 +969,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <DistinctOnly>false</DistinctOnly>
 
-   <Cardinal>3</Cardinal>
+   <Cardinal>4</Cardinal>
 
-   <TotalCount>3</TotalCount>
+   <TotalCount>4</TotalCount>
 
    <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
 
@@ -995,9 +1017,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <DistinctOnly>false</DistinctOnly>
 
-   <Cardinal>3</Cardinal>
+   <Cardinal>4</Cardinal>
 
-   <TotalCount>3</TotalCount>
+   <TotalCount>4</TotalCount>
 
    <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
 
@@ -1045,7 +1067,7 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <Cardinal>18</Cardinal>
 
-   <TotalCount>39</TotalCount>
+   <TotalCount>42</TotalCount>
 
    <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
 
@@ -1093,7 +1115,7 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <Cardinal>1</Cardinal>
 
-   <TotalCount>37</TotalCount>
+   <TotalCount>40</TotalCount>
 
    <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
 
@@ -1115,9 +1137,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
      <String>$system</String>
 
-     <String>$ascii</String>
-
      <String>$text</String>
+
+     <String>$ascii</String>
 
    </Tags>
 
@@ -1167,9 +1189,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
      <String>$key</String>
 
-     <String>$ascii</String>
-
      <String>$text</String>
+
+     <String>$ascii</String>
 
    </Tags>
 
@@ -1307,9 +1329,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <Tags>
 
-     <String>$ascii</String>
-
      <String>$text</String>
+
+     <String>$ascii</String>
 
    </Tags>
 
@@ -1541,9 +1563,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <Tags>
 
-     <String>$ascii</String>
-
      <String>$text</String>
+
+     <String>$ascii</String>
 
    </Tags>
 
@@ -1867,9 +1889,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <Tags>
 
-     <String>$ascii</String>
-
      <String>$text</String>
+
+     <String>$ascii</String>
 
    </Tags>
 
@@ -2731,9 +2753,9 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
    <Tags>
 
-     <String>$ascii</String>
-
      <String>$text</String>
+
+     <String>$ascii</String>
 
    </Tags>
 
@@ -2879,6 +2901,148 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
  </FieldDescription>
 
+ <FieldDescription>
+
+   <InternalNumber>43</InternalNumber>
+
+   <Name>ÐÐ¾Ð»Ðµ1</Name>
+
+   <SrcTables>
+
+     <String>Ð¢Ð°Ð±Ð»Ð¸ÑÐ°ÐÐ°Ð ÑÑÑÐºÐ¾Ð¼</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>1</Cardinal>
+
+   <TotalCount>1</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>44</InternalNumber>
+
+   <Name>Ð¢ÐµÐºÑÑÐ¾Ð²Ð¾ÐµÐÐ¾Ð»Ðµ</Name>
+
+   <SrcTables>
+
+     <String>Ð¢Ð°Ð±Ð»Ð¸ÑÐ°ÐÐ°Ð ÑÑÑÐºÐ¾Ð¼</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>1</Cardinal>
+
+   <TotalCount>1</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>45</InternalNumber>
+
+   <Name>Ð§Ð¸ÑÐ»Ð¾Ð²Ð¾ÐµÐÐ¾Ð»Ðµ</Name>
+
+   <SrcTables>
+
+     <String>Ð¢Ð°Ð±Ð»Ð¸ÑÐ°ÐÐ°Ð ÑÑÑÐºÐ¾Ð¼</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>1</Cardinal>
+
+   <TotalCount>1</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
  <VariableDescription>
 
   <Name>CD</Name>
@@ -2921,7 +3085,7 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
   <ShownValue></ShownValue>
 
-  <RawValue>C:\Program Files\QlikView</RawValue>
+  <RawValue>C:\PROGRA~1\QlikView</RawValue>
 
   <Comment></Comment>
 
@@ -4239,5 +4403,52 @@ Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
 
  </VariableDescription>
 
+ <VariableDescription>
+
+  <Name>DynamicDim</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>$(=Only(DimField))</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vL.Dim</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>$(=Only(Field1))</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vL.Sum</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>sum($(=Only(Field1)))</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
 </DocumentSummary>
->
