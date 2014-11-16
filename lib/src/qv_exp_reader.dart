@@ -5,9 +5,9 @@ import 'dart:collection';
 import 'package:csv/csv.dart';
 import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
-import 'parser.dart';
+import 'parser.dart' as prs;
 import 'reader.dart';
-import 'productions.dart';
+import 'productions.dart' as p;
 QvExpReader newReader() => new QvExpReader(new ReaderData());
 QvExpReader read(String fileName, String code) {
   var reader = new QvExpReader(new ReaderData());
@@ -20,6 +20,7 @@ class TagTuple {
   String value;
 }
 class Expression {
+  ExpressionEntry entry;
   String sourceText;
   String expandedDefinition;
   String name;
@@ -171,9 +172,10 @@ class ReaderState {
 
 
 class QvExpReader extends QlikViewReader{
-  QvsParser parser;
+  prs.QvsParser parser;
   static final startNewTagPattern = new RegExp(r'^\s*(backgroundColor|billionSymbol|command|definition|comment|enableCondition|fontColor|label|let|macro|millionSymbol|name|separator|set|showCondition|sortBy|symbol|tag|textFormat|thousandSymbol|visualCueLower|visualCueUpper):');
   static final startDirectivePattern = new RegExp(r'^\s*(#define|#SECTION|---)');
+  static final variablePattern = new RegExp(r'\$\(([\wА-Яа-яA-Za-z._0-9]*)\)');
   String currentSection;
   String sourceFileName;
   bool skipParse = false;
@@ -181,7 +183,7 @@ class QvExpReader extends QlikViewReader{
   ExpressionEntry _expEntry;
   final ReaderData data;
   QvExpReader(this.data) {
-    parser = new QvsParser(this);
+    parser = new prs.QvsParser(this);
   }
   List<ExpressionEntry> get entries => data.entries; 
   List<ErrorDescriptor> get errors => data.errors; 
@@ -287,21 +289,26 @@ class QvExpReader extends QlikViewReader{
     return LineType.UNDEFINED;
   }
   void addEntry(ExpressionEntry entry) {
-    data.entries.add(entry);
     if (entry.entryType == EntryType.EXPRESSION) {
+      if (entry.expression.tags.isEmpty) {
+        return;
+      }
       var exp = entry.expression;
+      exp.entry = entry;
       String def = exp.tags['definition'];
       if (def == null) {
         setDefinitionFromMacro(entry);
       } else  {
         exp.definition = def;
       }
+      exp.expandedDefinition = exp.definition;
       exp.section = currentSection;
       data.expMap[exp.name] = exp;
     }
     if (entry.entryType == EntryType.SECTION_HEADER) {
       currentSection = entry.sourceText.substring(QvExpDirective.SECTION.length).trim();
     }
+    data.entries.add(entry);
   }
   setDefinitionFromMacro(ExpressionEntry entry) {
     var exp = entry.expression;
@@ -423,4 +430,33 @@ class QvExpReader extends QlikViewReader{
     var file = new File(outFileName);
     file.writeAsBytesSync(csvOut());
   }
+  void expandExpression(Expression expr) {
+    var m = variablePattern.firstMatch(expr.expandedDefinition);
+    while (m != null) {
+      var varName = m.group(1);
+      var varValue = '';
+      if (data.expMap.containsKey(varName)) {
+        varValue = data.expMap[varName].expandedDefinition;
+      } else {
+        addError(expr.entry,'Expression `${expr.name}` use undefined variable `$varName`');
+      }
+      expr.expandedDefinition = expr.expandedDefinition.replaceAll('\$($varName)',varValue == null ? '' : varValue);
+      m = variablePattern.firstMatch(expr.expandedDefinition);
+    }
+  }
+  void checkExpressionSyntax(Expression expression) {
+    Result result = parser.guarded_parse(expression.expandedDefinition,p.expression);
+    if (result.isFailure) {
+      addError(expression.entry,'Syntax error. ${result.message}.', result.position);
+    }
+  }
+  void checkSyntax() {
+    for (var each in data.entries) {
+      if (each.expression != null) {
+        expandExpression(each.expression);
+        checkExpressionSyntax(each.expression);
+      }
+    }
+  }
+
 }
