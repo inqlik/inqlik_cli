@@ -1,0 +1,4243 @@
+<DocumentSummary>
+
+ <GenerateLogfile>true</GenerateLogfile>
+
+ <Title></Title>
+
+ <Author></Author>
+
+ <Sheet>
+
+  <SheetId>Document\SH02</SheetId>
+
+  <Title>Dashboard</Title>
+
+  <ChildObjects>
+
+   <ObjectId>Document\TX03</ObjectId>
+
+   <ObjectId>Document\TX04</ObjectId>
+
+   <ObjectId>Document\TX08</ObjectId>
+
+   <ObjectId>Document\TX09</ObjectId>
+
+   <ObjectId>Document\TX07</ObjectId>
+
+   <ObjectId>Document\TX06</ObjectId>
+
+   <ObjectId>Document\TX12</ObjectId>
+
+   <ObjectId>Document\LB20</ObjectId>
+
+   <ObjectId>Document\LB21</ObjectId>
+
+   <ObjectId>Document\CH05</ObjectId>
+
+   <ObjectId>Document\CH08</ObjectId>
+
+   <ObjectId>Document\LB19</ObjectId>
+
+   <ObjectId>Document\SO02</ObjectId>
+
+   <ObjectId>Document\LB11</ObjectId>
+
+   <ObjectId>Document\LB13</ObjectId>
+
+   <ObjectId>Document\CS02</ObjectId>
+
+   <ObjectId>Document\LB12</ObjectId>
+
+   <ObjectId>Document\LB26</ObjectId>
+
+  </ChildObjects>
+
+ </Sheet>
+
+ <Sheet>
+
+  <SheetId>Document\SH01</SheetId>
+
+  <Title>Sales</Title>
+
+  <ChildObjects>
+
+   <ObjectId>Document\TX03</ObjectId>
+
+   <ObjectId>Document\TX02</ObjectId>
+
+   <ObjectId>Document\TX10</ObjectId>
+
+   <ObjectId>Document\TX13</ObjectId>
+
+   <ObjectId>Document\LB08</ObjectId>
+
+   <ObjectId>Document\LB09</ObjectId>
+
+   <ObjectId>Document\LB10</ObjectId>
+
+   <ObjectId>Document\CT01</ObjectId>
+
+   <ObjectId>Document\CS03</ObjectId>
+
+   <ObjectId>Document\LB22</ObjectId>
+
+   <ObjectId>Document\LB23</ObjectId>
+
+   <ObjectId>Document\LB24</ObjectId>
+
+   <ObjectId>Document\SO03</ObjectId>
+
+   <ObjectId>Document\LB25</ObjectId>
+
+  </ChildObjects>
+
+ </Sheet>
+
+ <SheetObject>
+
+  <ObjectId>Document\CH01</ObjectId>
+
+  <Caption>Sales</Caption>
+
+  <Type>Bar Chart</Type>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\CH02</ObjectId>
+
+  <Caption>Sales</Caption>
+
+  <Type>Pie Chart</Type>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\CH05</ObjectId>
+
+  <Caption>Sales Index 98/97</Caption>
+
+  <Type>Gauge Chart</Type>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\CH08</ObjectId>
+
+  <Caption>Sales</Caption>
+
+  <Type>Combo Chart</Type>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB08</ObjectId>
+
+  <Caption>Year</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>=Year(OrderDate)</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB09</ObjectId>
+
+  <Caption>Month</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>=Week(OrderDate)</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB10</ObjectId>
+
+  <Caption>Month</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>=Month(OrderDate)</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB11</ObjectId>
+
+  <Caption>ProductName</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>ProductName</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB12</ObjectId>
+
+  <Caption>City</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>City</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB13</ObjectId>
+
+  <Caption>CompanyName</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>CompanyName</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB19</ObjectId>
+
+  <Caption>Month</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>=Week(OrderDate)</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB20</ObjectId>
+
+  <Caption>Year</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>=Year(OrderDate)</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB21</ObjectId>
+
+  <Caption>Month</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>=Month(OrderDate)</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB22</ObjectId>
+
+  <Caption>City</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>City</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB23</ObjectId>
+
+  <Caption>CompanyName</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>CompanyName</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB24</ObjectId>
+
+  <Caption>ProductName</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>ProductName</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB25</ObjectId>
+
+  <Caption>Language</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>Language</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\LB26</ObjectId>
+
+  <Caption>Language</Caption>
+
+  <Type>List Box</Type>
+
+  <Field>Language</Field>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\CS02</ObjectId>
+
+  <Caption>Current Selections</Caption>
+
+  <Type>Current Selections Box</Type>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\CS03</ObjectId>
+
+  <Caption>Current Selections</Caption>
+
+  <Type>Current Selections Box</Type>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX02</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>Northwind Business User App</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX03</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text></Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX04</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>Northwind Business User App</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX06</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>=Sales1998.Comment &amp; &apos;: &apos; &amp; Num($(Sales1998),&apos;#,##0&apos;)&amp;&apos; kr&apos;</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX07</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>=Sales1997.Comment &amp; &apos;: &apos; &amp; Num($(Sales1997),&apos;#,##0&apos;)&amp;&apos; kr&apos;</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX08</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>Northwind Business User App</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX09</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>=&apos;Last reload date: &apos;&amp;ReloadTime()</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX10</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>=&apos;Last reload date: &apos;&amp;ReloadTime()</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX12</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>Clear Selections</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\TX13</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Text Object</Type>
+
+  <Text>Clear Selections</Text>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\SO02</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Search Object</Type>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\SO03</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Search Object</Type>
+
+ </SheetObject>
+
+ <SheetObject>
+
+  <ObjectId>Document\CT01</ObjectId>
+
+  <Caption></Caption>
+
+  <Type>Container</Type>
+
+ </SheetObject>
+
+ <Expression>
+
+  <ObjectId>CH01</ObjectId>
+
+  <Definition>$(Sales)</Definition>
+
+  <Label>=Sales.Label</Label>
+
+  <Comment>=Sales.Comment</Comment>
+
+ </Expression>
+
+ <Dimension>
+
+  <ObjectId>CH01</ObjectId>
+
+  <PseudoDef>CompanyName</PseudoDef>
+
+  <Title></Title>
+
+ </Dimension>
+
+ <Expression>
+
+  <ObjectId>CH02</ObjectId>
+
+  <Definition>$(Sales)</Definition>
+
+  <Label>=Sales.Label</Label>
+
+  <Comment>=Sales.Comment</Comment>
+
+ </Expression>
+
+ <Expression>
+
+  <ObjectId>CH02</ObjectId>
+
+  <Definition>$(Discount)</Definition>
+
+  <Label>=Discount.Label</Label>
+
+  <Comment>=Discount.Comment</Comment>
+
+ </Expression>
+
+ <Dimension>
+
+  <ObjectId>CH02</ObjectId>
+
+  <PseudoDef>Country</PseudoDef>
+
+  <Title></Title>
+
+ </Dimension>
+
+ <Expression>
+
+  <ObjectId>CH05</ObjectId>
+
+  <Definition>$(Sales1998to1997)</Definition>
+
+  <Label>=Sales1998to1997.Label</Label>
+
+  <Comment>=Sales1998to1997.Comment</Comment>
+
+ </Expression>
+
+ <Expression>
+
+  <ObjectId>CH05</ObjectId>
+
+  <Definition>
+Sum(If(Year(OrderDate)=1998, Quantity*UnitPrice))</Definition>
+
+  <Label>1998</Label>
+
+  <Comment></Comment>
+
+ </Expression>
+
+ <Expression>
+
+  <ObjectId>CH05</ObjectId>
+
+  <Definition>Sum(If(Year(OrderDate)=1997, Quantity*UnitPrice))</Definition>
+
+  <Label>1997</Label>
+
+  <Comment></Comment>
+
+ </Expression>
+
+ <Expression>
+
+  <ObjectId>CH08</ObjectId>
+
+  <Definition>$(Sales)</Definition>
+
+  <Label>=Sales.Label</Label>
+
+  <Comment>=Sales.Comment</Comment>
+
+ </Expression>
+
+ <Expression>
+
+  <ObjectId>CH08</ObjectId>
+
+  <Definition>$(AvgOrder)</Definition>
+
+  <Label>=AvgOrder.Label</Label>
+
+  <Comment>=AvgOrder.Comment</Comment>
+
+ </Expression>
+
+ <Expression>
+
+  <ObjectId>CH08</ObjectId>
+
+  <Definition>$(Sales1998)</Definition>
+
+  <Label>=Sales1998.Label</Label>
+
+  <Comment>=Sales1998.Comment</Comment>
+
+ </Expression>
+
+ <Expression>
+
+  <ObjectId>CH08</ObjectId>
+
+  <Definition>$(Sales1997)</Definition>
+
+  <Label>=Sales1997.Label</Label>
+
+  <Comment>=Sales1997.Comment</Comment>
+
+ </Expression>
+
+ <Dimension>
+
+  <ObjectId>CH08</ObjectId>
+
+  <PseudoDef>=Year(OrderDate)</PseudoDef>
+
+  <Title>Year</Title>
+
+ </Dimension>
+
+ <LineageInfo>
+
+   <Discriminator>AUTOGENERATE</Discriminator>
+
+   <Statement></Statement>
+
+ </LineageInfo>
+
+ <LineageInfo>
+
+   <Discriminator>C:\Projects\QDF_Project_Sample\1.App\4.Mart\DataMart.qvw</Discriminator>
+
+   <Statement>Binary</Statement>
+
+ </LineageInfo>
+
+ <LineageInfo>
+
+   <Discriminator>INLINE</Discriminator>
+
+   <Statement></Statement>
+
+ </LineageInfo>
+
+ <LineageInfo>
+
+   <Discriminator>RESIDENT __DoDir_Tmp_Tbl</Discriminator>
+
+   <Statement></Statement>
+
+ </LineageInfo>
+
+ <LineageInfo>
+
+   <Discriminator>RESIDENT vL.temp_table_map</Discriminator>
+
+   <Statement></Statement>
+
+ </LineageInfo>
+
+ <LineageInfo>
+
+   <Discriminator>c:\projects\qdf_project_sample\1.app\3.include\1.basevariable\\containermap.csv</Discriminator>
+
+   <Statement></Statement>
+
+ </LineageInfo>
+
+ <LineageInfo>
+
+   <Discriminator>c:\projects\qdf_project_sample\1.app\3.include\1.basevariable\customvariables.csv</Discriminator>
+
+   <Statement></Statement>
+
+ </LineageInfo>
+
+ <LineageInfo>
+
+   <Discriminator>c:\projects\qdf_project_sample\99.shared_folders\3.include\1.basevariable\customvariables.csv</Discriminator>
+
+   <Statement></Statement>
+
+ </LineageInfo>
+
+ <TableDescription>
+
+   <InternalNumber>0</InternalNumber>
+
+   <Name>Customers</Name>
+
+   <IsSystem>false</IsSystem>
+
+   <IsSemantic>false</IsSemantic>
+
+   <IsLoose>false</IsLoose>
+
+   <NoOfRows>91</NoOfRows>
+
+   <NoOfFields>11</NoOfFields>
+
+   <NoOfKeyFields>1</NoOfKeyFields>
+
+   <Comment></Comment>
+
+   <IsLinked>false</IsLinked>
+
+ </TableDescription>
+
+ <TableDescription>
+
+   <InternalNumber>1</InternalNumber>
+
+   <Name>Products</Name>
+
+   <IsSystem>false</IsSystem>
+
+   <IsSemantic>false</IsSemantic>
+
+   <IsLoose>false</IsLoose>
+
+   <NoOfRows>77</NoOfRows>
+
+   <NoOfFields>10</NoOfFields>
+
+   <NoOfKeyFields>1</NoOfKeyFields>
+
+   <Comment></Comment>
+
+   <IsLinked>false</IsLinked>
+
+ </TableDescription>
+
+ <TableDescription>
+
+   <InternalNumber>2</InternalNumber>
+
+   <Name>SalesTrans</Name>
+
+   <IsSystem>false</IsSystem>
+
+   <IsSemantic>false</IsSemantic>
+
+   <IsLoose>false</IsLoose>
+
+   <NoOfRows>2155</NoOfRows>
+
+   <NoOfFields>18</NoOfFields>
+
+   <NoOfKeyFields>2</NoOfKeyFields>
+
+   <Comment></Comment>
+
+   <IsLinked>false</IsLinked>
+
+ </TableDescription>
+
+ <TableDescription>
+
+   <InternalNumber>3</InternalNumber>
+
+   <Name>$$SysTable 3</Name>
+
+   <IsSystem>true</IsSystem>
+
+   <IsSemantic>false</IsSemantic>
+
+   <IsLoose>false</IsLoose>
+
+   <NoOfRows>39</NoOfRows>
+
+   <NoOfFields>3</NoOfFields>
+
+   <NoOfKeyFields>2</NoOfKeyFields>
+
+   <Comment></Comment>
+
+   <IsLinked>false</IsLinked>
+
+ </TableDescription>
+
+ <TableDescription>
+
+   <InternalNumber>4</InternalNumber>
+
+   <Name>$$SysTable 4</Name>
+
+   <IsSystem>true</IsSystem>
+
+   <IsSemantic>false</IsSemantic>
+
+   <IsLoose>false</IsLoose>
+
+   <NoOfRows>3</NoOfRows>
+
+   <NoOfFields>3</NoOfFields>
+
+   <NoOfKeyFields>1</NoOfKeyFields>
+
+   <Comment></Comment>
+
+   <IsLinked>false</IsLinked>
+
+ </TableDescription>
+
+ <TableDescription>
+
+   <InternalNumber>5</InternalNumber>
+
+   <Name>$$SysTable 5</Name>
+
+   <IsSystem>true</IsSystem>
+
+   <IsSemantic>false</IsSemantic>
+
+   <IsLoose>false</IsLoose>
+
+   <NoOfRows>37</NoOfRows>
+
+   <NoOfFields>2</NoOfFields>
+
+   <NoOfKeyFields>1</NoOfKeyFields>
+
+   <Comment></Comment>
+
+   <IsLinked>false</IsLinked>
+
+ </TableDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>0</InternalNumber>
+
+   <Name>$Field</Name>
+
+   <SrcTables></SrcTables>
+
+   <IsSystem>true</IsSystem>
+
+   <IsHidden>true</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>37</Cardinal>
+
+   <TotalCount>39</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$key</String>
+
+     <String>$hidden</String>
+
+     <String>$system</String>
+
+     <String>$ascii</String>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>1</InternalNumber>
+
+   <Name>$Table</Name>
+
+   <SrcTables></SrcTables>
+
+   <IsSystem>true</IsSystem>
+
+   <IsHidden>true</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>3</Cardinal>
+
+   <TotalCount>39</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$key</String>
+
+     <String>$hidden</String>
+
+     <String>$system</String>
+
+     <String>$ascii</String>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>2</InternalNumber>
+
+   <Name>$Rows</Name>
+
+   <SrcTables></SrcTables>
+
+   <IsSystem>true</IsSystem>
+
+   <IsHidden>true</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>3</Cardinal>
+
+   <TotalCount>3</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$hidden</String>
+
+     <String>$system</String>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>3</InternalNumber>
+
+   <Name>$Fields</Name>
+
+   <SrcTables></SrcTables>
+
+   <IsSystem>true</IsSystem>
+
+   <IsHidden>true</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>3</Cardinal>
+
+   <TotalCount>3</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$hidden</String>
+
+     <String>$system</String>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>4</InternalNumber>
+
+   <Name>$FieldNo</Name>
+
+   <SrcTables></SrcTables>
+
+   <IsSystem>true</IsSystem>
+
+   <IsHidden>true</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>18</Cardinal>
+
+   <TotalCount>39</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$hidden</String>
+
+     <String>$system</String>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>5</InternalNumber>
+
+   <Name>$Info</Name>
+
+   <SrcTables></SrcTables>
+
+   <IsSystem>true</IsSystem>
+
+   <IsHidden>true</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>1</Cardinal>
+
+   <TotalCount>37</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$hidden</String>
+
+     <String>$system</String>
+
+     <String>$ascii</String>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>6</InternalNumber>
+
+   <Name>CustomerID</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>true</DistinctOnly>
+
+   <Cardinal>91</Cardinal>
+
+   <TotalCount>0</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$key</String>
+
+     <String>$ascii</String>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>7</InternalNumber>
+
+   <Name>CompanyName</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>91</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>8</InternalNumber>
+
+   <Name>ContactName</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>91</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>9</InternalNumber>
+
+   <Name>ContactTitle</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>12</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$ascii</String>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>10</InternalNumber>
+
+   <Name>Address</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>91</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>11</InternalNumber>
+
+   <Name>City</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>69</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>12</InternalNumber>
+
+   <Name>Region</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>18</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>13</InternalNumber>
+
+   <Name>PostalCode</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>85</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>14</InternalNumber>
+
+   <Name>Country</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>21</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$ascii</String>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>15</InternalNumber>
+
+   <Name>Phone</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>91</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags></Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>16</InternalNumber>
+
+   <Name>Fax</Name>
+
+   <SrcTables>
+
+     <String>Customers</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>69</Cardinal>
+
+   <TotalCount>91</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags></Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>17</InternalNumber>
+
+   <Name>ProductID</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>77</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$key</String>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>18</InternalNumber>
+
+   <Name>ProductName</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>77</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>19</InternalNumber>
+
+   <Name>SupplierID</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>29</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>20</InternalNumber>
+
+   <Name>CategoryID</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>8</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>21</InternalNumber>
+
+   <Name>QuantityPerUnit</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>70</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$ascii</String>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>22</InternalNumber>
+
+   <Name>UnitPrice</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>62</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>23</InternalNumber>
+
+   <Name>UnitsInStock</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>51</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>24</InternalNumber>
+
+   <Name>UnitsOnOrder</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>10</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>25</InternalNumber>
+
+   <Name>ReorderLevel</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>7</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>26</InternalNumber>
+
+   <Name>Discontinued</Name>
+
+   <SrcTables>
+
+     <String>Products</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>2</Cardinal>
+
+   <TotalCount>77</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>27</InternalNumber>
+
+   <Name>OrderID</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>830</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>28</InternalNumber>
+
+   <Name>EmployeeID</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>9</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>29</InternalNumber>
+
+   <Name>OrderDate</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>480</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+     <String>$timestamp</String>
+
+     <String>$date</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>30</InternalNumber>
+
+   <Name>RequiredDate</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>454</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+     <String>$timestamp</String>
+
+     <String>$date</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>31</InternalNumber>
+
+   <Name>ShippedDate</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>387</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+     <String>$timestamp</String>
+
+     <String>$date</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>32</InternalNumber>
+
+   <Name>ShipVia</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>3</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>33</InternalNumber>
+
+   <Name>Freight</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>799</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>34</InternalNumber>
+
+   <Name>ShipName</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>89</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>35</InternalNumber>
+
+   <Name>ShipAddress</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>89</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>36</InternalNumber>
+
+   <Name>ShipCity</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>70</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>37</InternalNumber>
+
+   <Name>ShipRegion</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>19</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>38</InternalNumber>
+
+   <Name>ShipPostalCode</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>83</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>39</InternalNumber>
+
+   <Name>ShipCountry</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>21</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>false</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$ascii</String>
+
+     <String>$text</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>40</InternalNumber>
+
+   <Name>Quantity</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>55</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+     <String>$integer</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>41</InternalNumber>
+
+   <Name>Discount</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>11</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <FieldDescription>
+
+   <InternalNumber>42</InternalNumber>
+
+   <Name>Amount</Name>
+
+   <SrcTables>
+
+     <String>SalesTrans</String>
+
+   </SrcTables>
+
+   <IsSystem>false</IsSystem>
+
+   <IsHidden>false</IsHidden>
+
+   <IsSemantic>false</IsSemantic>
+
+   <DistinctOnly>false</DistinctOnly>
+
+   <Cardinal>860</Cardinal>
+
+   <TotalCount>2155</TotalCount>
+
+   <PossibleCount_OBSOLETE>-1</PossibleCount_OBSOLETE>
+
+   <HasInfo_OBSOLETE>false</HasInfo_OBSOLETE>
+
+   <IsLocked>false</IsLocked>
+
+   <AlwaysOneSelected>false</AlwaysOneSelected>
+
+   <AndMode>false</AndMode>
+
+   <IsNumeric>true</IsNumeric>
+
+   <Comment></Comment>
+
+   <Tags>
+
+     <String>$numeric</String>
+
+   </Tags>
+
+ </FieldDescription>
+
+ <VariableDescription>
+
+  <Name>CD</Name>
+
+  <IsConfig>true</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>E:</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>CD2</Name>
+
+  <IsConfig>true</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue></RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>QvPath</Name>
+
+  <IsConfig>true</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Program Files\QlikView</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>QvRoot</Name>
+
+  <IsConfig>true</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>QvWorkPath</Name>
+
+  <IsConfig>true</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\1.Application</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>QvWorkRoot</Name>
+
+  <IsConfig>true</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>WinPath</Name>
+
+  <IsConfig>true</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\WINDOWS</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>WinRoot</Name>
+
+  <IsConfig>true</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>ErrorMode</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue></RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>StripComments</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue></RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>OpenUrlTimeout</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue></RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>ScriptErrorCount</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>0</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>ScriptErrorList</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue></RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>ScriptError</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue></RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>MoneyFormat</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>$#,##0.00;($#,##0.00)</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>TimeFormat</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>h:mm:ss TT</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>DateFormat</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>M/D/YYYY</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>ScriptErrorDetails</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue></RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>TimestampFormat</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>M/D/YYYY h:mm:ss[.fff] TT</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>MonthNames</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Jan;Feb;Mar;Apr;May;Jun;Jul;Aug;Sep;Oct;Nov;Dec</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>DayNames</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Mon;Tue;Wed;Thu;Fri;Sat;Sun</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>ThousandSep</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>,</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>DecimalSep</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>.</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>MoneyThousandSep</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>,</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>MoneyDecimalSep</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>true</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>.</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.BasePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vU.Environment</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>PROD</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.ApplicationPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\1.Application\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.QVDPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\2.QVD\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.IncludePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\3.Include\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.MartPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\4.Mart\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.ConfigPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\5.Config\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.ScriptPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\6.Script\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.ExportPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\7.Export\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.ImportPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\8.Import\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.BaseVariablePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\3.Include\1.BaseVariable\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.LocalePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\3.Include\2.Locale\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.ConnStringPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\3.Include\3.ConnString\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SubPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\3.Include\4.Sub\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.ColorSchemePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\3.Include\5.ColorScheme\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.CustomPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\1.App\3.Include\6.Custom\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.RootPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedBaseVariablePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\3.Include\1.BaseVariable\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedBasePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedApplicationPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\1.Application\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedQVDPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\2.QVD\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedIncludePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\3.Include\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedMartPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\4.Mart\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedConfigPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\5.Config\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedScriptPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\6.Script\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedExportPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\7.Export\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedImportPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\8.Import\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedLocalePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\3.Include\2.Locale\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedConnStringPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\3.Include\3.ConnString\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedSubPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\3.Include\4.Sub\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedColorSchemePath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\3.Include\5.ColorScheme\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.SharedCustomPath</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>C:\Projects\QDF_Project_Sample\99.shared_folders\3.Include\6.Custom\</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vU.CurrentDate</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>41897</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vU.StartDate</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>41275</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vU.EndDate</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>41912</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sum(Amount)</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales.Label</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sales</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales.Comment</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sales amount for selected period</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales.backgroundColor</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>=LightGreen(96)</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1998</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sum(If(Year(OrderDate)=1998, Amount))</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1998.Label</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>1998</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1998.Comment</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sales 1998</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1997</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sum(If(Year(OrderDate)=1997, Amount))</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1997.Label</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>1997</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1997.Comment</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sales 1997</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1998to1997</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>($(Sales1998)/$(Sales1997))</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1998to1997.Label</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sales Index 98/97</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Sales1998to1997.Comment</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Ratio for sales 1998 to 1997 years</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>AvgOrder</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sum(Amount)/Count(DISTINCT OrderID)</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>AvgOrder.Label</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Avg order value</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>AvgOrder.Comment</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Avg order value</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>NoOfOrders</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Count (Distinct OrderID)</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>NoOfOrders.Label</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>No of orders</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>NoOfOrders.Comment</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Number of orders</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Discount</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Sum(DiscAmount)</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Discount.Label</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Discount</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>Discount.Comment</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>Discount amount</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>ShowLangSelection</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>0</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>vG.ShowLangSelection</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>0</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+ <VariableDescription>
+
+  <Name>LightGreen</Name>
+
+  <IsConfig>false</IsConfig>
+
+  <IsReserved>false</IsReserved>
+
+  <ShownValue></ShownValue>
+
+  <RawValue>LightRed(96)</RawValue>
+
+  <Comment></Comment>
+
+ </VariableDescription>
+
+</DocumentSummary>
+>

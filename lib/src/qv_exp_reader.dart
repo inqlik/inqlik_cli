@@ -2,6 +2,7 @@ library qv_exp_reader;
 
 import 'dart:io';
 import 'dart:collection';
+import 'package:csv/csv.dart';
 import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
 import 'parser.dart';
@@ -46,7 +47,7 @@ class Expression {
         return 'Repeated expression name definition $line';
       }
       var tagTuple = splitTag(line);
-      name = tagTuple.value;
+      name = tagTuple.value.trim();
       tags[tagTuple.key] = tagTuple.value;
     }
     if (lineType == LineType.EXPRESSION_TAG) {
@@ -61,7 +62,7 @@ class Expression {
     if (_currentTag == null) {
       return;
     }
-    var value = _currentContent.join('\r\n');
+    var value = _currentContent.join('\n');
     tags[_currentTag] = value;
     _currentTag = null;
     _currentContent.clear();
@@ -71,7 +72,7 @@ class Expression {
     var result = new TagTuple();
     int colonPos = line.indexOf(':');
     result.key = line.substring(0,colonPos).trim();
-    result.value = line.substring(colonPos+1).trim();
+    result.value = line.substring(colonPos+1);
     return result;
   }
 }
@@ -120,6 +121,7 @@ class ErrorDescriptor {
 class ReaderData {
   String qvwFileName;
   int internalLineNum=0;
+  final Map<String,Expression> expMap = {};
   final List<ExpressionEntry> entries = [];
   String rootFile;
   final List<ErrorDescriptor> errors = [];
@@ -171,7 +173,7 @@ class ReaderState {
 
 class QvExpReader extends QlikViewReader{
   QvsParser parser;
-  static final startNewTagPattern = new RegExp(r'^\s*(backgroundColor|billionSymbol|command|definition|description|description|enableCondition|fontColor|label|let|macro|millionSymbol|name|separator|set|showCondition|sortBy|symbol|tag|textFormat|thousandSymbol|visualCueLower|visualCueUpper):');
+  static final startNewTagPattern = new RegExp(r'^\s*(backgroundColor|billionSymbol|command|definition|comment|enableCondition|fontColor|label|let|macro|millionSymbol|name|separator|set|showCondition|sortBy|symbol|tag|textFormat|thousandSymbol|visualCueLower|visualCueUpper):');
   static final startDirectivePattern = new RegExp(r'^\s*(#define|#SECTION|---)');
   String currentSection;
   String sourceFileName;
@@ -220,7 +222,9 @@ class QvExpReader extends QlikViewReader{
     if (_expEntry == null) {
       return;
     }
-    _expEntry.expression.completeCurrentTag();
+    if (_expEntry.entryType == EntryType.EXPRESSION) {
+      _expEntry.expression.completeCurrentTag();
+    }
     addEntry(_expEntry);
     _expEntry = null;
   }
@@ -246,8 +250,9 @@ class QvExpReader extends QlikViewReader{
             addError(null,'Expression not started. Unexpected line $line', lineNum);
             return;
           }
+        } else {
+          _expEntry.expression.addLine(line,lineType);
         }
-        _expEntry.expression.addLine(line,lineType);
       }
     }
     _processCurrentExpression();
@@ -276,6 +281,86 @@ class QvExpReader extends QlikViewReader{
   }
   void addEntry(ExpressionEntry entry) {
     data.entries.add(entry);
+    if (entry.entryType == EntryType.EXPRESSION) {
+      data.expMap[entry.expression.name] = entry.expression;
+    }
   }
-   
+  String printOut() {
+    var sb = new StringBuffer();
+    for (var entry in data.entries) {
+      if (entry.entryType != EntryType.EXPRESSION) {
+        sb.writeln(entry.sourceText);
+      } else {
+        var expr = entry.expression;
+        sb.writeln(QvExpDirective.EXPRESSION_DELIMITER);
+        expr.tags.forEach((tag,value) {
+          sb.writeln('$tag:$value');
+        });
+      }
+    }
+    return sb.toString();
+  }
+  String _nullToStr(str) => str == null? '': str;
+  void importLabels(String labelsFileName) {
+    List<String> header;
+    int _getColumnPos(String colName) {
+      int pos = header.indexOf(colName);
+      if (pos == -1) {
+        throw new Exception('Cannot fine ExpressionName in header row');
+      }
+      return pos;
+    }
+    var file = new File(labelsFileName);
+    if (!file.existsSync()) {
+      throw new Exception('Labels file not found: %labelsFileName');
+    }
+    var bytes = file.readAsBytesSync();
+    String contents = SYSTEM_ENCODING.decoder.convert(bytes);
+    List<List<String>> rows = new CsvCodec(fieldDelimiter: ';').decoder.convert(contents);
+    header = rows[0];
+    int namePos = _getColumnPos('ExpressionName');
+    int labelPos = _getColumnPos('Label');
+    int commentPos = _getColumnPos('Comments');
+    int versionPos = _getColumnPos('Version');
+    for (var row in rows.sublist(1)) {
+      var name = row[namePos];
+      var expr = data.expMap[name];
+      if (expr == null) {
+        print('Not found expression $name while improting labels');
+      } else {
+        bool updated = false;
+        var label = row[labelPos].toString();
+        if (_nullToStr(expr.tags['label']).trim() != label) {
+          print('Updated label in expression $name');
+          updated = true;
+          expr.tags['label'] = label;
+        }
+        var comment = row[commentPos];
+        if (_nullToStr(expr.tags['comment']).trim() != comment) {
+          print('Updated comment in expression $name');
+          updated = true;
+          expr.tags['comment'] = comment;
+        }
+      }
+    }
+  }
+  List<int> CsvOut() {
+    var codec = new CsvCodec();
+    List<List<String>> outputList = [];
+    outputList.add(['ExpressionName','Label','Comments','Section','Version','Definition']);
+    for (var each in data.entries) {
+      if (each.entryType == EntryType.EXPRESSION) {
+        var expression = each.expression;
+        var name = expression.name;
+        var label = _nullToStr(expression.tags['label']).replaceAll('\n',' ').trim();
+        var comments = _nullToStr(expression.tags['comment']).replaceAll('\n',' ').trim();
+        var section = _nullToStr(expression.tags['tag']).replaceAll('\n',' ').trim();
+        var version = _nullToStr(expression.tags['version']);
+        var definition = _nullToStr(expression.tags['definition']).replaceAll('\n',' ').trim();
+        outputList.add([name,label,comments,section,version,definition]);
+      }
+    }
+    String strOut = codec.encoder.convert(outputList, fieldDelimiter: ';');
+    return SYSTEM_ENCODING.encoder.convert(strOut);
+  }
 }
