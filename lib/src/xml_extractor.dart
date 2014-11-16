@@ -1,5 +1,6 @@
 library xml_extractor;
 import 'dart:io';
+import 'dart:convert';
 import 'dart:collection';
 import 'package:csv/csv.dart';
 import 'package:collection/equality.dart';
@@ -64,7 +65,7 @@ class XmlExtractor {
       return '';
     }
     print('XML range from $startPos to $endPos');
-    return new String.fromCharCodes(bytes.sublist(startPos,endPos+1));
+    return UTF8.decoder.convert(bytes.sublist(startPos,endPos+1));
   }
   void _moveToken(int byte) {
     token.removeFirst();
