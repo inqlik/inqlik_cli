@@ -21,6 +21,7 @@ class TagTuple {
 }
 class Expression {
   ExpressionEntry entry;
+  bool   suppressError = false;
   String sourceText;
   String expandedDefinition;
   String name;
@@ -114,7 +115,7 @@ class ErrorDescriptor {
   int lineNum;
   String commandWithError;
   ErrorDescriptor(this.entry, this.errorMessage, this.lineNum) {
-//    commandWithError = entry.commandWithError();
+  commandWithError = entry != null? entry.expression.expandedDefinition:'';
   }
   String toString() => 'ErrorDescriptor(${this.errorMessage})';
 }
@@ -122,6 +123,7 @@ class ReaderData {
   String qvwFileName;
   int internalLineNum=0;
   final Map<String,Expression> expMap = {};
+  final Map<String,String> defineMap = {};
   final List<ExpressionEntry> entries = [];
   String rootFile;
   final List<ErrorDescriptor> errors = [];
@@ -176,6 +178,7 @@ class QvExpReader extends QlikViewReader{
   static final startNewTagPattern = new RegExp(r'^\s*(backgroundColor|billionSymbol|command|definition|comment|enableCondition|fontColor|label|let|macro|millionSymbol|name|separator|set|showCondition|sortBy|symbol|tag|textFormat|thousandSymbol|visualCueLower|visualCueUpper):');
   static final startDirectivePattern = new RegExp(r'^\s*(#define|#SECTION|---)');
   static final variablePattern = new RegExp(r'\$\(([\wА-Яа-яA-Za-z._0-9]*)\)');
+  static final definePattern = new RegExp(r'^\s*#define\s+(\S+)\s+(\S+)');
   String currentSection;
   String sourceFileName;
   bool skipParse = false;
@@ -211,6 +214,7 @@ class QvExpReader extends QlikViewReader{
   void printErrors() {
     for (var error in data.errors) {
       print('------------------------------');
+      print(error.commandWithError);
       print('>>>>> ' + error.errorMessage);
     }
   }
@@ -301,12 +305,24 @@ class QvExpReader extends QlikViewReader{
       } else  {
         exp.definition = def;
       }
+      applyDefineDirectives(exp);
       exp.expandedDefinition = exp.definition;
       exp.section = currentSection;
       data.expMap[exp.name] = exp;
+      if (exp.section.contains('QvSuppressError')) {
+        exp.suppressError = true;
+      }
     }
     if (entry.entryType == EntryType.SECTION_HEADER) {
       currentSection = entry.sourceText.substring(QvExpDirective.SECTION.length).trim();
+    }
+    if (entry.entryType == EntryType.DEFINE) {
+      var m = definePattern.firstMatch(entry.sourceText);
+      if (m == null) {
+        addError(entry,'Invalid define format: ${entry.sourceText}');
+      } else {
+        data.defineMap[m.group(1)] = m.group(2);
+      }
     }
     data.entries.add(entry);
   }
@@ -445,9 +461,18 @@ class QvExpReader extends QlikViewReader{
     }
   }
   void checkExpressionSyntax(Expression expression) {
+    if (expression.suppressError) {
+      return;
+    }
     Result result = parser.guarded_parse(expression.expandedDefinition,p.expression);
     if (result.isFailure) {
-      addError(expression.entry,'Syntax error. ${result.message}.', result.position);
+      addError(expression.entry,'Syntax error. ${result.message}.');
+    }
+  }
+  void applyDefineDirectives(Expression expression) {
+    var keys = data.defineMap.keys.toList();
+    for (var key in data.defineMap.keys) {
+      expression.definition = expression.definition.replaceAll(key, data.defineMap[key]);
     }
   }
   void checkSyntax() {

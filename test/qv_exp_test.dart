@@ -144,9 +144,9 @@ definition: Sum(Amount)
     shouldBeSuccess(reader);
   });
     
-  solo_test('Syntax check with define directive', () {
+  test('Syntax check with define directive', () {
     var source = r"""
-#define SALES 12
+#define #Sales 12
 ---
 set: SumAmount
 definition: Sum({<Sales={#Sales}>} Amount)
@@ -158,5 +158,18 @@ definition: Sum({<Sales={#Sales}>} Amount)
     shouldBeSuccess(reader);
   });
 
+  solo_test('Syntax check - supress error', () {
+    var source = r"""
+#SECTION :Set filter snippets //#!QvSuppressError
+---
+set: FilterSnippet
+definition: Field1={2}
+""";
+    var reader = newReader()..readFile('test.qlikview-vars',source);
+    expect(reader.entries.length, 2);
+    expect(reader.entries.last.expression.definition.trim(), 'Field1={2}');
+    reader.checkSyntax();
+    shouldBeSuccess(reader);
+  });
   
 }
