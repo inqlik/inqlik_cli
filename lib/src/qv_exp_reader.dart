@@ -378,7 +378,9 @@ class QvExpReader extends QlikViewReader{
     }
     return sb.toString();
   }
+  
   String _nullToStr(str) => str == null? '': str;
+  
   void importLabels(String labelsFileName, String outFileName) {
     List<String> header;
     int _getColumnPos(String colName) {
@@ -418,6 +420,12 @@ class QvExpReader extends QlikViewReader{
           print('Updated comment in expression $name');
           updated = true;
           expr.tags['comment'] = comment;
+        }
+        var version = row[versionPos];
+        if (_nullToStr(expr.tags['version']).trim() != version) {
+          print('Updated version in expression $name');
+          updated = true;
+          expr.tags['version'] = version;
         }
       }
     }
