@@ -207,6 +207,8 @@ class QvExpReader extends QlikViewReader{
             print(exception);
             return; 
           }
+        } else {
+          throw new Exception('File not found: $sourceFileName');
         }
       }
       readLines(lines);
