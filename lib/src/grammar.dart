@@ -327,7 +327,7 @@ class QvsGrammar extends CompositeParser {
             .seq(_keyword('is'))
             .seq(ref(p.decimalInteger))
             .seq(_keyword('lines')))
-        .or(_keyword('delimiter is').seq(ref(p.str)))
+        .or(_keyword('delimiter is').seq(ref(p.str).or(_keyword('spaces'))))
         .flatten());
     def(p.fileModifierElement,
         ref(p.fileModifierTokens)

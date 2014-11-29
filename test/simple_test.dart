@@ -681,5 +681,15 @@ end switch
        shouldPass(str,p.start);
    });
 
+test('LOAD with "delimiter is spaces"',() {
+       var str = r'''
+  LOAD 
+    TypeGood, 
+    CodeGood, 
+    max_good
+     FROM  aaa.txt (txt, codepage is 20866, no labels, delimiter is spaces, msq);
+  ''';
+       shouldPass(str,p.start);
+   });
 
 }

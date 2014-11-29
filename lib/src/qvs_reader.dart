@@ -96,15 +96,7 @@ class ReaderData {
     print('ReaderData state. entries: ${entries.length}, errors: ${errors.length}');
   }
 }
-class LineType {
-  final String _val;
-  const LineType._internal(this._val);
-  static const CONTROL_STRUCTURE = const LineType._internal('CONTROL_STRUCTURE');
-  static const END_OF_COMMAND = const LineType._internal('END_OF_COMMAND');
-  static const SIMPLE_LINE = const LineType._internal('SIMPLE_LINE');
-  static const COMMENT_LINE = const LineType._internal('COMMENT_LINE');
-  String toString() => 'QvsLineType($_val)';
-}
+enum _LineType { CONTROL_STRUCTURE, END_OF_COMMAND, SIMPLE_LINE, COMMENT_LINE }
 
 class CommandType {
   final String _val;
@@ -208,7 +200,7 @@ class QvsReader extends QlikViewReader{
     int sourceLineNum = 1;
     String command = '';
     bool suppressError = false;
-    LineType lineType;
+    _LineType lineType;
     List<String> commandLines = [];
     _processCommand([bool finishMode = false]) {
       data.internalLineNum++;
@@ -219,7 +211,7 @@ class QvsReader extends QlikViewReader{
       ..suppressError = suppressError
       ..internalLineNum = data.internalLineNum
       ..sourceText = command;
-      if (!finishMode && lineType == LineType.COMMENT_LINE) {
+      if (!finishMode && lineType == _LineType.COMMENT_LINE) {
         entry.commandType = CommandType.COMMENT_LINE;
       }
       addCommand(entry);
@@ -254,9 +246,9 @@ class QvsReader extends QlikViewReader{
       commandLines.add(line);
       lineCounter++;
       lineType = testLineType(line);
-      if (lineType == LineType.CONTROL_STRUCTURE 
-          || lineType == LineType.END_OF_COMMAND
-          || (commandLines.length == 1 && lineType == LineType.COMMENT_LINE )) {
+      if (lineType == _LineType.CONTROL_STRUCTURE 
+          || lineType == _LineType.END_OF_COMMAND
+          || (commandLines.length == 1 && lineType == _LineType.COMMENT_LINE )) {
         _processCommand();
       }
       
@@ -466,36 +458,36 @@ class QvsReader extends QlikViewReader{
       addError(entry,message,row,col);
     }
   }
-  LineType testLineType(line) {
+  _LineType testLineType(line) {
     if (multiLineCommentStart.hasMatch(line)) {
       if (!closedMultiLineComment.hasMatch(line)) {
         inMultiLineCommentBlock = true;
-        return LineType.COMMENT_LINE;
+        return _LineType.COMMENT_LINE;
       }  
     }
     if (closedMultiLineCommentOnWholeLine.hasMatch(line)) {
-      return LineType.COMMENT_LINE;
+      return _LineType.COMMENT_LINE;
     }
     if (inMultiLineCommentBlock) {
       if ( multiLineCommentEnd.hasMatch(line)){
         inMultiLineCommentBlock = false;
       }      
-      return LineType.COMMENT_LINE;
+      return _LineType.COMMENT_LINE;
     }
     if (singleLineComment.hasMatch(line)) {
-      return LineType.COMMENT_LINE;
+      return _LineType.COMMENT_LINE;
     }
     if (line.trim() == '') {
-      return LineType.COMMENT_LINE;
+      return _LineType.COMMENT_LINE;
     }
 
     if (commandTerminationPattern.hasMatch(line)) {
-      return LineType.END_OF_COMMAND;
+      return _LineType.END_OF_COMMAND;
     }
     if (controlStructurePatterns.any((p) => p.hasMatch(line))) {
-      return LineType.CONTROL_STRUCTURE;
+      return _LineType.CONTROL_STRUCTURE;
     }
-    return LineType.SIMPLE_LINE;
+    return _LineType.SIMPLE_LINE;
   }
   void addTable(String tableName) {
     data.tables.add(tableName);
