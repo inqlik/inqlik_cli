@@ -78,6 +78,7 @@ class Expression {
   }
 }
 class ExpressionEntry {
+  CheckResult checkResult = CheckResult.NOT_EXPRESSION;
   int sourceLineNum;
   int internalLineNum;
   String sourceText;
@@ -91,6 +92,7 @@ class ExpressionEntry {
   ExpressionEntry(LineType lineType, this.sourceLineNum, this.sourceText) {
     if (lineType == LineType.EXPRESSION_DELIMITER) {
       entryType = EntryType.EXPRESSION;
+      checkResult = CheckResult.NOT_CHECKED;
       expression = new Expression();
     } else if (lineType == LineType.DEFINE) {
       entryType = EntryType.DEFINE;
@@ -128,15 +130,27 @@ class ReaderData {
   String rootFile;
   final List<ErrorDescriptor> errors = [];
   final Set<String> tables = new Set<String>();
-  void printState() {
-    print('ReaderData state. entries: ${entries.length}, errors: ${errors.length}');
-  }
 }
 class QvExpDirective {
   static const String EXPRESSION_DELIMITER = '---';
   static const String DEFINE = '#define';
   static const String SECTION = '#SECTION';
 }
+
+class CheckResult {
+  final String _val;
+
+  const CheckResult._internal(this._val);
+  static const SUCCESS = const CheckResult._internal('SUCCESS');
+  static const ERROR = const CheckResult._internal('ERROR');
+  static const SKIPPED_BY_DIRECTIVE = const CheckResult._internal('SKIPPED_BY_DIRECTIVE');
+  static const SKIPPED_BY_DYNAMIC_CONTENT = const CheckResult._internal('SKIPPED_BY_DYNAMIC_CONTENT');
+  static const NOT_CHECKED = const CheckResult._internal('NOT_CHECKED');
+  static const NOT_EXPRESSION = const CheckResult._internal('NOT_EXPRESSION');
+  String toString() => 'LineType($_val)';
+  static List<CheckResult> get values => [SUCCESS,ERROR,SKIPPED_BY_DIRECTIVE,SKIPPED_BY_DYNAMIC_CONTENT,NOT_CHECKED,NOT_EXPRESSION];
+}
+
 
 class LineType {
   final String _val;
@@ -179,7 +193,7 @@ class QvExpReader extends QlikViewReader{
   static final startDirectivePattern = new RegExp(r'^\s*(#define|#SECTION|---)');
   static final variablePattern = new RegExp(r'\$\(([\wА-Яа-яA-Za-z._0-9]*)\)');
   static final definePattern = new RegExp(r'^\s*#define\s+(\S+)\s+(\S+)');
-  String currentSection;
+  String currentSection = '';
   String sourceFileName;
   bool skipParse = false;
   bool inMultiLineCommentBlock = false;
@@ -187,6 +201,7 @@ class QvExpReader extends QlikViewReader{
   final ReaderData data;
   QvExpReader(this.data) {
     parser = new prs.QvsParser(this);
+    data.expMap['vU.CurrentDate'] = new Expression()..definition = '4093'..expandedDefinition='4093';
   }
   List<ExpressionEntry> get entries => data.entries; 
   List<ErrorDescriptor> get errors => data.errors; 
@@ -213,12 +228,31 @@ class QvExpReader extends QlikViewReader{
       }
       readLines(lines);
   }
-  void printErrors() {
+  void printStatus() {
     for (var error in data.errors) {
       print('------------------------------');
+      var varName;
+      if (error.entry != null && error.entry.expression != null) {
+        varName = error.entry.expression.name;
+      }
+      print('Variable: $varName');
       print(error.commandWithError);
       print('>>>>> ' + error.errorMessage);
     }
+    Map<CheckResult,int> counters = {};
+    for (var each in CheckResult.values) {
+      counters[each] = 0;
+    }
+    for (var each in data.entries) {
+      counters[each.checkResult]++;
+    }
+    print('');
+    print('Total expressions: ${data.entries.length - counters[CheckResult.NOT_EXPRESSION]}');
+    print('Success: ${counters[CheckResult.SUCCESS]}');
+    print('Skipped by directive: ${counters[CheckResult.SKIPPED_BY_DIRECTIVE]}');
+    print('Skipped by dynamic content: ${counters[CheckResult.SKIPPED_BY_DYNAMIC_CONTENT]}');
+    print('Errors: ${counters[CheckResult.ERROR]}');
+
   }
   void addError(ExpressionEntry entry, String message,[int row, int col]) {
     if (entry.suppressError) {
@@ -308,7 +342,7 @@ class QvExpReader extends QlikViewReader{
         exp.definition = def;
       }
       applyDefineDirectives(exp);
-      exp.expandedDefinition = exp.definition;
+      exp.expandedDefinition = exp.definition.trim();
       exp.section = currentSection;
       data.expMap[exp.name] = exp;
       if (exp.section.contains('QvSuppressError')) {
@@ -464,7 +498,13 @@ class QvExpReader extends QlikViewReader{
       if (data.expMap.containsKey(varName)) {
         varValue = data.expMap[varName].expandedDefinition;
       } else {
+        expr.entry.checkResult = CheckResult.ERROR;
         addError(expr.entry,'Expression `${expr.name}` use undefined variable `$varName`');
+        return;
+      }
+      if (varValue.startsWith('=')) {
+        expr.entry.checkResult = CheckResult.SKIPPED_BY_DYNAMIC_CONTENT;
+        return;
       }
       expr.expandedDefinition = expr.expandedDefinition.replaceAll('\$($varName)',varValue == null ? '' : varValue);
       m = variablePattern.firstMatch(expr.expandedDefinition);
@@ -472,11 +512,27 @@ class QvExpReader extends QlikViewReader{
   }
   void checkExpressionSyntax(Expression expression) {
     if (expression.suppressError) {
+      expression.entry.checkResult = CheckResult.SKIPPED_BY_DIRECTIVE;
       return;
     }
-    Result result = parser.guarded_parse(expression.expandedDefinition,p.expression);
+    if (expression.entry.checkResult == CheckResult.ERROR 
+        || expression.entry.checkResult == CheckResult.SKIPPED_BY_DYNAMIC_CONTENT) {
+      return;
+    }
+    var definition = expression.expandedDefinition;
+    if (definition.startsWith('=')) {
+      definition = definition.substring(1);
+    }
+    Result result = parser.guarded_parse(definition,p.expression);
     if (result.isFailure) {
-      addError(expression.entry,'Syntax error. ${result.message}.');
+      if (expression.expandedDefinition.contains(r'$(')) {
+        expression.entry.checkResult = CheckResult.SKIPPED_BY_DYNAMIC_CONTENT;
+      } else {
+        expression.entry.checkResult = CheckResult.ERROR;
+        addError(expression.entry,'Syntax error. ${result.message}.');
+      }
+    } else {
+      expression.entry.checkResult = CheckResult.SUCCESS;
     }
   }
   void applyDefineDirectives(Expression expression) {

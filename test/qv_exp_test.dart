@@ -158,7 +158,7 @@ definition: Sum({<Sales={#Sales}>} Amount)
     shouldBeSuccess(reader);
   });
 
-  solo_test('Syntax check - supress error', () {
+  test('Syntax check - supress error', () {
     var source = r"""
 #SECTION :Set filter snippets //#!QvSuppressError
 ---
@@ -171,5 +171,11 @@ definition: Field1={2}
     reader.checkSyntax();
     shouldBeSuccess(reader);
   });
-  
+
+  skip_test('Functional test', () {
+    var reader = newReader()..readFile('exp_parser\\App.Variables.qlikview-vars');
+    reader.checkSyntax();
+    shouldBeSuccess(reader);
+  });
+
 }
