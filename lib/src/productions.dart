@@ -28,6 +28,7 @@ const String primaryExpression = 'primaryExpression';
 const String binaryExpression = 'binaryExpression';
 const String binaryPart = 'binaryPart';
 const String identifier = 'identifier';
+const String alternateStateIdentifier = 'alternateStateIdentifier';
 const String varName = 'varName';
 const String fieldName = 'fieldName';
 const String fieldrefInBrackets = 'fieldrefInBrackets';

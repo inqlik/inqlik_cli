@@ -1,7 +1,6 @@
 library qv_exp_reader;
 
 import 'dart:io';
-import 'dart:collection';
 import 'package:csv/csv.dart';
 import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
@@ -137,20 +136,7 @@ class QvExpDirective {
   static const String SECTION = '#SECTION';
 }
 
-class CheckResult {
-  final String _val;
-
-  const CheckResult._internal(this._val);
-  static const SUCCESS = const CheckResult._internal('SUCCESS');
-  static const ERROR = const CheckResult._internal('ERROR');
-  static const SKIPPED_BY_DIRECTIVE = const CheckResult._internal('SKIPPED_BY_DIRECTIVE');
-  static const SKIPPED_BY_DYNAMIC_CONTENT = const CheckResult._internal('SKIPPED_BY_DYNAMIC_CONTENT');
-  static const NOT_CHECKED = const CheckResult._internal('NOT_CHECKED');
-  static const NOT_EXPRESSION = const CheckResult._internal('NOT_EXPRESSION');
-  String toString() => 'LineType($_val)';
-  static List<CheckResult> get values => [SUCCESS,ERROR,SKIPPED_BY_DIRECTIVE,SKIPPED_BY_DYNAMIC_CONTENT,NOT_CHECKED,NOT_EXPRESSION];
-}
-
+enum CheckResult {SUCCESS, ERROR, SKIPPED_BY_DIRECTIVE, SKIPPED_BY_DYNAMIC_CONTENT, NOT_CHECKED, NOT_EXPRESSION} 
 
 class LineType {
   final String _val;
@@ -189,6 +175,8 @@ class ReaderState {
 
 class QvExpReader extends QlikViewReader{
   prs.QvsParser parser;
+  Set<String> fieldList; 
+  static final macroParamPattern = new RegExp(r'\$[0-9]');
   static final startNewTagPattern = new RegExp(r'^\s*(backgroundColor|billionSymbol|command|definition|comment|enableCondition|fontColor|label|let|macro|millionSymbol|name|separator|set|showCondition|sortBy|symbol|tag|textFormat|thousandSymbol|visualCueLower|visualCueUpper):');
   static final startDirectivePattern = new RegExp(r'^\s*(#define|#SECTION|---)');
   static final variablePattern = new RegExp(r'\$\(([\wА-Яа-яA-Za-z._0-9]*)\)');
@@ -207,10 +195,24 @@ class QvExpReader extends QlikViewReader{
   List<ErrorDescriptor> get errors => data.errors; 
   String toString() => 'QvExpReader(${data.entries})';
   bool get hasErrors => data.errors.isNotEmpty;
+  void loadFieldList() {
+    String fieldListFileName = sourceFileName.replaceAll('qlikview-vars', 'field-list');
+    File file = new File(fieldListFileName);
+    if (!file.existsSync()) {
+      return;
+    }
+    var list = file.readAsLinesSync();
+    list = list.where((e) => e.trim() != '').toList();
+    if (list.isEmpty) {
+      return;
+    }
+    fieldList = new Set<String>.from(list);
+  }
   void readFile(String fileName, [String fileContent = null]) {
       List<String> lines = [];
-      data.rootFile = path.normalize(path.absolute(path.dirname(Platform.script.toFilePath()),fileName));
+      data.rootFile = path.normalize(path.absolute(path.current,fileName));
       sourceFileName = data.rootFile;
+      loadFieldList();
       if (fileContent != null) {
         lines = fileContent.split('\n');
       } else {
@@ -227,6 +229,21 @@ class QvExpReader extends QlikViewReader{
         }
       }
       readLines(lines);
+  }
+  bool testIdentifier(String identifier) {
+    if (fieldList == null) {
+      return true;
+    }
+    if (fieldList.contains(identifier)) {
+      return true;
+    }
+    if (data.expMap.containsKey(identifier)) {
+      return true;
+    }
+    if (identifier.contains(macroParamPattern)) {
+      return true;
+    }
+    return false;
   }
   void printStatus() {
     for (var error in data.errors) {

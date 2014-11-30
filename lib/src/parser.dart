@@ -74,6 +74,13 @@ class QvsParser extends QvsGrammar {
       return result;
     });
 
+    qv_action(p.identifier, (Result result, int savedPosition) {
+      if (!reader.testIdentifier(result.value)) {
+        throw result.failure("Field `${result.value}` not found in fieldList", savedPosition);        
+      }
+      return result;
+    });
+
     
     action(p.call, (List list) {
       String subName = list[1];
@@ -178,7 +185,8 @@ class QvActionParser extends QvDelegateParser {
   Parser copy() => new QvActionParser(_delegate, _function);
 
   @override
-  bool isEqualTo(QvActionParser other, [Set<Parser> seen]) {
-    return super.isEqualTo(other, seen) && _function == other._function;
+  bool hasEqualProperties(QvActionParser other) {
+    return super.hasEqualProperties(other) && _function == other._function;
   }
 }
+

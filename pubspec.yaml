@@ -13,3 +13,5 @@ dependencies:
   xml: any
 dev_dependencies:
   unittest: any
+executables:
+  inqlik:

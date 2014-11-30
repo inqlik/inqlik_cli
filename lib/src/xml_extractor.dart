@@ -14,13 +14,16 @@ class QvwFieldDescriptor {
   String toString() => 'QvwFieldDescriptor($name, sourceTables:$sourceTables, tags: $tags)';
 }
 class XmlExtractor {
-  static const SEEK_BUFFER_SIZE = 500000;
+  static const MB = 1048576;
+  int seekBufferSize;
   String sourceFileName;
   bool qvwMode = false;
   String rootTag;
   Queue<int> token;
   final equality = new IterableEquality<int>();
-  XmlExtractor(this.sourceFileName,this.rootTag);
+  XmlExtractor(this.sourceFileName,this.rootTag, [int seekBufferSize = 2]) {
+    this.seekBufferSize = seekBufferSize * MB;
+  }
   String extract() {
     qvwMode = sourceFileName.toUpperCase().endsWith('.QVW');
     var file = new File(sourceFileName);
@@ -29,17 +32,17 @@ class XmlExtractor {
     }
     var raf = file.openSync(mode: FileMode.READ);
     if (qvwMode) {
-      int seekPos = raf.lengthSync() - SEEK_BUFFER_SIZE;
+      int seekPos = raf.lengthSync() - seekBufferSize;
       if (seekPos > 0) {
         raf.setPositionSync(seekPos);
       }
     } 
-    var bytes = raf.readSync(SEEK_BUFFER_SIZE);
+    var bytes = raf.readSync(seekBufferSize);
     var tokenToMatch = '<$rootTag>'.codeUnits;
     token = new Queue<int>.from(tokenToMatch);
     _moveToken(0);
     int startPos = -1;
-    for (int i = 0; i < SEEK_BUFFER_SIZE; i++) {
+    for (int i = 0; i < seekBufferSize; i++) {
       _moveToken(bytes[i]);
       if (equality.equals(token, tokenToMatch)) {
         startPos = i;
@@ -54,7 +57,7 @@ class XmlExtractor {
     token = new Queue<int>.from(tokenToMatch);
     _moveToken(0);
     int endPos = -1;
-    for (int i = startPos; i < SEEK_BUFFER_SIZE; i++) {
+    for (int i = startPos; i < seekBufferSize; i++) {
       _moveToken(bytes[i]);
       if (equality.equals(token, tokenToMatch)) {
         endPos = i;

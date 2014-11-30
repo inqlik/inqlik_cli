@@ -12,10 +12,6 @@ class FuncDesc {
 
 
 class QvsGrammar extends CompositeParser {
-//  void def(String name, Parser parser) {
-//    print('def($name');
-//    super.def(name,parser);
-//  }
   void initialize() {
     _whitespace();
     _number();
@@ -499,8 +495,12 @@ class QvsGrammar extends CompositeParser {
       _keyword(r'$').seq(_keyword('_').optional()).seq(ref(p.integer)).
       or(_keyword('1')).
       or(_keyword(r'$')).
-      or(ref(p.identifier)).
+      or(ref(p.alternateStateIdentifier)).
       or(ref(p.fieldrefInBrackets)));
+    def(p.alternateStateIdentifier,letter().or(anyIn(r'_%@$').or(localLetter()))
+        .seq(word().or(anyIn('.%')).or(char('_')).or(localLetter().or(char(r'$'))).plus())
+        .or(letter())
+        .flatten().trim(trimmer));
     def(p.setOperator,
       _keyword(r'+').
       or(_keyword(r'-')).
@@ -623,7 +623,6 @@ class QvsGrammar extends CompositeParser {
     def(p.identifier,letter().or(anyIn(r'_%@$').or(localLetter()))
         .seq(word().or(anyIn('.%')).or(char('_')).or(localLetter().or(char(r'$'))).plus())
         .or(letter())
-//        .seq(whitespace().star().seq(char('(')).not())
         .flatten().trim(trimmer));
     def(p.varName,
         word()
@@ -1150,3 +1149,4 @@ const Map<String, FuncDesc> BUILT_IN_FUNCTIONS = const <String, FuncDesc>{
   'TRANSPOSE':const FuncDesc('TRANSPOSE',false,0,999),  
   'SELECT':const FuncDesc('SELECT',false,0,999)};
 
+ 
