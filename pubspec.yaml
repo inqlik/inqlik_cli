@@ -1,8 +1,8 @@
-name: qvs
-version: 1.1.6
+name: inqlik_cli
+version: 1.2.1
 author: Vadim Tsushko <vadimtsushko@gmail.com>
-description: A sample command-line application
-homepage: https://github.com/vadimtsushko/qvs_parser
+description: InQlik command line interface tools. Set of command line tools supporting QlikView development process
+homepage: https://github.com/inqlik/inqlik_cli
 dependencies:
   args: '>=0.12.1 <0.13.0'
   collection: any
@@ -14,4 +14,4 @@ dependencies:
 dev_dependencies:
   unittest: any
 executables:
-  inqlik:
+  inqlik: null

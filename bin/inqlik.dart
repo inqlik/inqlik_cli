@@ -1,8 +1,8 @@
 import 'package:args/args.dart';
-import 'package:qvs/qvs.dart';
-import 'package:qvs/src/qvs_file_reader.dart' as qvs;
-import 'package:qvs/src/qv_exp_reader.dart' as exp;
-import 'package:qvs/src/xml_extractor.dart' as meta;
+import 'package:inqlik_cli/qvs.dart';
+import 'package:inqlik_cli/src/qvs_file_reader.dart' as qvs;
+import 'package:inqlik_cli/src/qv_exp_reader.dart' as exp;
+import 'package:inqlik_cli/src/xml_extractor.dart' as meta;
 
 import 'dart:io';
 String input = r'''

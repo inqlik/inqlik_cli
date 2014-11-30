@@ -1,5 +1,5 @@
 library xml_extractor_test;
-import 'package:qvs/src/xml_extractor.dart';
+import 'package:inqlik_cli/src/xml_extractor.dart';
 import 'dart:io';
 main () {
 //  var extractor = new XmlExtractor(r'xml_extractor\Customers.qvd','QvdTableHeader');

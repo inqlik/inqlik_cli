@@ -1,6 +1,6 @@
 library reader_tests;
 
-import 'package:qvs/src/qv_exp_reader.dart';
+import 'package:inqlik_cli/src/qv_exp_reader.dart';
 import 'package:unittest/unittest.dart';
 import 'dart:io';
 part 'qv_exp_test_constants.dart';

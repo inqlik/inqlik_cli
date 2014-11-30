@@ -1,5 +1,9 @@
-QVS. Parser for QlikView load scripts
-================
+InQlik command line interface tools
+========================
+Set of command line tools supporting QlikView development process
+
+
+#QVS. Parser for QlikView load scripts
 
 Command line tool to check syntax of QlikView load scripts
 

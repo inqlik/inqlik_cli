@@ -1,10 +1,10 @@
 library simple_tests;
 
-import 'package:qvs/src/parser.dart';
-import 'package:qvs/src/productions.dart' as p;
+import 'package:inqlik_cli/src/parser.dart';
+import 'package:inqlik_cli/src/productions.dart' as p;
 import 'package:unittest/unittest.dart';
 import 'package:petitparser/petitparser.dart';
-import 'package:qvs/src/qvs_reader.dart';
+import 'package:inqlik_cli/src/qvs_reader.dart';
 QvsParser qvs = newParser(new QvsReader(new ReaderData()));
 
 Result _parse(String source, String production) {

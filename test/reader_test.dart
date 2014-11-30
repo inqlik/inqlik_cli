@@ -1,7 +1,7 @@
 library reader_tests;
 
-import 'package:qvs/src/qvs_file_reader.dart';
-import 'package:qvs/src/qvs_reader.dart';
+import 'package:inqlik_cli/src/qvs_file_reader.dart';
+import 'package:inqlik_cli/src/qvs_reader.dart';
 import 'package:unittest/unittest.dart';
 
 void shouldBeSuccess(FileReader reader) {
