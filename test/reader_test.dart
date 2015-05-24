@@ -2,7 +2,7 @@ library reader_tests;
 
 import 'package:inqlik_cli/src/qvs_file_reader.dart';
 import 'package:inqlik_cli/src/qvs_reader.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 void shouldBeSuccess(FileReader reader) {
   for (var error in reader.errors) {
@@ -58,14 +58,6 @@ void main() {
     expect(reader.entries[2].sourceLineNum,5);
   });
   test('test_read_mock_files', () {
-    var code = '''
-      IF 2 = 3 THEN
-        LOAD * 
-        RESIDENT Table1
-          ORDER BY Field1;
-      END IF
-      TRACE FINISH;
-   ''';  
     var reader = newReader();
     reader.readFile('test1.qvs','TRACE in test1;');
     var nestedReader = reader.readIncludeFile('test2.qvs','TRACE in test2;',null);
@@ -647,6 +639,16 @@ SOME OTHER ABRAKADABRA;
     expect(reader.data.qvwFileName, isNotNull);
     expect(reader.data.qvwFileName,contains('files1\\file_with_shebang_qvw_directive.qvw'));
   });
+
+  test('Test qvw file location with shebang directive. Referenced to relative path and file name', () {
+    var reader = newReader();
+    reader.readFile('files/file_with_shebang_qvw_directive_alternative.qvs');
+    expect(reader.entries.isEmpty, isFalse);
+    expect(reader.hasErrors, isFalse,reason: 'Script must have no errors');
+    expect(reader.data.qvwFileName, isNotNull);
+    expect(reader.data.qvwFileName,contains('files1\\file_with_shebang_qvw_directive.qvw'));
+  });
+
   
   test('Test table management', () {
     var reader = newReader();
@@ -827,27 +829,27 @@ CALL Recurse('dummyDir');
     shouldBeSuccess(reader);
   });
   
-  skip_test('Variable with parameter expansion (Macrofunction)', () {
-    var reader = newReader();
-    var code = r'''
-SET mask=;
-SET _Qvc.DefaultIfEmpty = if(len('$1')= 0,'$2', '$1');
-LET mask = $(_Qvc.DefaultIfEmpty($(mask), '*'));
-''';
-    reader.readFile('test.qvs',code);
-    shouldBeSuccess(reader);
-    expect(reader.entries[2].expandedText, r"LET mask = if(len('$(mask)')= 0,'*', $(mask);");
-  });
-  skip_test('Variable with parameter expansion - error on wrong parameter', () {
-    var reader = newReader();
-    var code = r'''
-SET mask=;
-SET _Qvc.DefaultIfEmpty = if(len('$1')= 0,'$2', '$1');
-LET mask = $(_Qvc.DefaultIfEmpty('$(mask)', '*'));
-''';
-    reader.readFile('test.qvs',code);
-    expect(reader.errors.isNotEmpty, isTrue);
-  });
+//  skip_test('Variable with parameter expansion (Macrofunction)', () {
+//    var reader = newReader();
+//    var code = r'''
+//SET mask=;
+//SET _Qvc.DefaultIfEmpty = if(len('$1')= 0,'$2', '$1');
+//LET mask = $(_Qvc.DefaultIfEmpty($(mask), '*'));
+//''';
+//    reader.readFile('test.qvs',code);
+//    shouldBeSuccess(reader);
+//    expect(reader.entries[2].expandedText, r"LET mask = if(len('$(mask)')= 0,'*', $(mask);");
+//  });
+//  skip_test('Variable with parameter expansion - error on wrong parameter', () {
+//    var reader = newReader();
+//    var code = r'''
+//SET mask=;
+//SET _Qvc.DefaultIfEmpty = if(len('$1')= 0,'$2', '$1');
+//LET mask = $(_Qvc.DefaultIfEmpty('$(mask)', '*'));
+//''';
+//    reader.readFile('test.qvs',code);
+//    expect(reader.errors.isNotEmpty, isTrue);
+//  });
 
   test('Mixed lang name of subroutine', () {
     var reader = newReader();

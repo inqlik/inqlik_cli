@@ -1,5 +1,5 @@
 name: inqlik_cli
-version: 1.2.1
+version: 1.2.2-dev
 author: Vadim Tsushko <vadimtsushko@gmail.com>
 description: InQlik command line interface tools. Set of command line tools supporting QlikView development process
 homepage: https://github.com/inqlik/inqlik_cli
@@ -12,6 +12,6 @@ dependencies:
   petitparser: '>=1.2.2 <2.0.0'
   xml: any
 dev_dependencies:
-  unittest: any
+  test: any
 executables:
   inqlik: null

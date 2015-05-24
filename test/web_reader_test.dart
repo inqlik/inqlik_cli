@@ -1,7 +1,7 @@
 library reader_tests;
 
 import 'package:inqlik_cli/src/qvs_reader.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 void shouldBeSuccess(QvsReader reader) {
   for (var error in reader.errors) {

@@ -295,8 +295,6 @@ class QvExpReader extends QlikViewReader{
     _expEntry = null;
   }
   void readLines(List<String> lines) {
-    ReaderState state = ReaderState.BLANK;
-    ExpressionEntry _entry;
     int lineNum = 0;
     for (var line in lines) {
       lineNum ++;
@@ -553,7 +551,6 @@ class QvExpReader extends QlikViewReader{
     }
   }
   void applyDefineDirectives(Expression expression) {
-    var keys = data.defineMap.keys.toList();
     for (var key in data.defineMap.keys) {
       expression.definition = expression.definition.replaceAll(key, data.defineMap[key]);
     }

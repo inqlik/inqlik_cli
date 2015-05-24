@@ -23,13 +23,17 @@ void main(arguments) {
   var ap = new ArgParser();
   ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
   var qvsArgs = new ArgParser();
-  qvsArgs.addOption('command', allowed: ['check_and_reload', 'open','force_reload','check', 'check_directories'], abbr: 'c', defaultsTo: 'check_and_reload',
+  qvsArgs.addOption('command', allowed: ['check_and_reload', 'open','force_reload','just_reload','check', 'check_directories', 'qvw_extract_fields', 'qvw_extract_vars'], abbr: 'c', defaultsTo: 'check_and_reload',
     allowedHelp: {
          'check_and_reload': 'Check script for errors and run reload task on success',
          'open': 'Open related qvw application',
          'force_reload': 'Check syntax and run reload task regardless of errors',
          'check': 'Check syntax, do not run reload task',
-         'check_directories': 'Read file passed as parameter -d --directories, get list of directories to batch check syntax'}  
+         'just_reload': 'Just reload qvw, without qvs syntax check',
+         'check_directories': 'Read file passed as parameter -d --directories, get list of directories to batch check syntax',
+         'qvw_extract_fields': 'Extract field list from qvw file into *.metadata.fields.csv',
+         'qvw_extract_vars': 'Extract variables from qvw file into *.metadata.vars.csv'
+    }      
   );
   qvsArgs.addOption('include', abbr: 'i',defaultsTo: 'default_include.qvs');
 //  ap.addFlag('show-resident-tables', negatable: false, defaultsTo: false);
@@ -107,7 +111,7 @@ usage: ${ap.usage}
     print(message);
     exit(-1);
   }
-  qvs.FileReader reader = run(args.rest[0], args['command']=='open', args['include']);
+  qvs.FileReader reader = run(args.rest[0], args['command'], args['include']);
   if (args['command']=='check') {
     exit(0);
   }
@@ -123,7 +127,7 @@ usage: ${ap.usage}
   } else {
     if (args['command']=='check_and_reload') {
       if (reader.errors.isNotEmpty) {
-        exit(reader.errors.length);
+        exit(0);
       }
     }
     cmArgs = ['/C', executable, '/r', '/Nodata', '/Nosecurity',reader.data.qvwFileName];

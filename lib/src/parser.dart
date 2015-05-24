@@ -38,7 +38,8 @@ class QvsParser extends QvsGrammar {
   Result unguarded_parse(String source, [String production = 'start']) {
     Result res;
     var parser = this[production].end();
-    return res = parser.parse(source);
+    res = parser.parse(source);
+    return res;
   }
 
   

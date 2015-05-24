@@ -2,7 +2,7 @@ library simple_tests;
 
 import 'package:inqlik_cli/src/parser.dart';
 import 'package:inqlik_cli/src/productions.dart' as p;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:inqlik_cli/src/qvs_reader.dart';
 QvsParser qvs = newParser(new QvsReader(new ReaderData()));
@@ -18,14 +18,16 @@ shouldFail(String source, String production) {
 
 shouldPass(String source, String production) {
   Result res = _parse(source, production);
-  String reason = '';
   expect(res.isSuccess,isTrue, reason: '"$source" did not parse as "$production". Message: ${res.message}. ${res.toPositionString()}' );
 }
 
 void main() {
+  int debug = 1;
+  shouldPass('SimpleName', 'identifier');
   test('testIdentifier1', () {
     shouldPass('SimpleName', 'identifier');
   });
+  return;
   test('testIdentifier2', () {
     shouldPass('_SimpleNameWithUnderscore', 'identifier');
   });
@@ -258,19 +260,19 @@ LOAD *
    str = r'Tag Fields Dim1 With "$date";';
    shouldPass(str,p.commentWith);
  });
- skip_test('HierarchyBelongsTo', () {
-   var str = '''
-BdrLinksTemp:
-HierarchyBelongsTo(СтатьяБДР, РодительСтатьиБДР, СтатьяНаименование, AncestorId, АИ_СтатьяБДР)
-LOAD РодительСтатьиБДР, 
-     СтатьяБДР,
-     СтатьяБДР as СтатьяНаименование,
-     _АИ_БДР_ФлагКонсолидации
-FROM
-C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархияБДР.xlsx
-(ooxml, embedded labels, table is Лист2);''';
-   shouldPass(str,'load');
- });
+// skip_test('HierarchyBelongsTo', () {
+//   var str = '''
+//BdrLinksTemp:
+//HierarchyBelongsTo(СтатьяБДР, РодительСтатьиБДР, СтатьяНаименование, AncestorId, АИ_СтатьяБДР)
+//LOAD РодительСтатьиБДР,
+//     СтатьяБДР,
+//     СтатьяБДР as СтатьяНаименование,
+//     _АИ_БДР_ФлагКонсолидации
+//FROM
+//C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархияБДР.xlsx
+//(ooxml, embedded labels, table is Лист2);''';
+//   shouldPass(str,'load');
+// });
 
  test('variable assignment (LET) ',() {
    var str = r'    LET vL.Match= -1  ;';
@@ -329,10 +331,10 @@ C:\QlikDocs\Agora_Pilot\Data\Source\АльтернативнаяИерархия
    expect(res.value[1][0],"dummy");
  });
  
- skip_test('Another SET ',() {
-   var str = r"SET CD = E:;";
-   shouldPass(str,p.assignment);
- });
+// skip_test('Another SET ',() {
+//   var str = r"SET CD = E:;";
+//   shouldPass(str,p.assignment);
+// });
 
  test('TRACE with comments on both sides ',() {
    var str = r"""
@@ -346,6 +348,7 @@ TRACE  1; //adf asdf asdf asdf""";
 // dsdfg sdfg sdfgs df
 TRACE 1;""";
     Result res = _parse(str, p.trimFromStart);
+    return res;
   });
  
  test('Typical load',() {
@@ -645,15 +648,15 @@ WHERE (Qvc.LineageInfo.Source = 'RESIDENT _qvctemp.*')
        shouldPass(str,p.start);
    });
 
-skip_test('Load connection from text file',() {
-       var str = r"""
-  _qvctemp.Conn_temp:
-  LOAD @1:2 as _qvctemp.ConnectString
-  FROM [DbExtract\_qvctemp.den.connectionFilename_ASSIGNED_VALUE]
-  (fix, codepage is 1252);
-""";
-       shouldPass(str,p.start);
-   });
+//skip_test('Load connection from text file',() {
+//       var str = r"""
+//  _qvctemp.Conn_temp:
+//  LOAD @1:2 as _qvctemp.ConnectString
+//  FROM [DbExtract\_qvctemp.den.connectionFilename_ASSIGNED_VALUE]
+//  (fix, codepage is 1252);
+//""";
+//       shouldPass(str,p.start);
+//   });
 
 test('Load connection from text file',() {
        var str = r"""

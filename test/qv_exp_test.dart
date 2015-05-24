@@ -1,8 +1,7 @@
 library reader_tests;
 
 import 'package:inqlik_cli/src/qv_exp_reader.dart';
-import 'package:unittest/unittest.dart';
-import 'dart:io';
+import 'package:test/test.dart';
 part 'qv_exp_test_constants.dart';
 void shouldBeSuccess(QvExpReader reader) {
   for (var error in reader.errors) {
