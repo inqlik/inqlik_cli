@@ -129,7 +129,7 @@ class QvsGrammarDefinition extends GrammarDefinition {
   selectList() => ref(fieldrefAs)
       .or(ref(_keyword,'*'))
       .separatedBy(char(',').trim(ref(spacer)), includeSeparators: false);
-  trimFromStart() => trim(ref(spacer));
+//  trimFromStart() => trim(ref(spacer));
 //    field() =>
 //        ref(expression).seq(ref(_keyword,'as')).seq(ref(fieldref))
 //        .or(ref(expression))
@@ -566,9 +566,9 @@ class QvsGrammarDefinition extends GrammarDefinition {
   }
    _word (dynamic input) {
      if (input is String) {
-       input = stringIgnoreCase(input + ' ');
+       input = stringIgnoreCase(input);
      }
-    return input.token().trim(ref(spacer));
+    return input.token().seq(ref(whitespace)).trim(ref(spacer));
   }
 
   number() => char('-').optional().seq(ref(positiveNumber)).flatten();

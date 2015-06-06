@@ -33,17 +33,41 @@ shouldPass(String source, Function production) {
 }
 
 void main() {
+  test('Simple function as expression', () {
+    shouldPass('If(1=2,3)',definition.expression);
+  });
+
+  test('Simple function as expression with line break between parameters', () {
+    shouldPass('''If(1=2,
+      3)''',definition.expression);
+  });
+
+  test('Expression with a line break', () {
+    shouldPass(''' 2 = 4 and
+    4 = 6''',definition.expression);
+  });
+
+
+  test('Less simple function', () {
+    shouldPass('''
+
+
+          If(Peek('НоменклатураНаименованиеУровня1')=НоменклатураНаименованиеУровня1 and
+          Peek('_НоменклатураНаименованиеУровня2')<>НоменклатураНаименованиеУровня2,
+               '^^' & НоменклатураНаименованиеУровня1)
+
+    ''',definition.expression);
+  });
+
   test('Call sub with params parsing ',() {
     var str = r"call dummy('qwe',Dual('123123',23));";
     Result res = _parse(str,definition.call);
     print(res.value);
-    expect(res.value.length,2);
-    expect(res.value[0],"dummy");
-    expect(res.value[1].length,2);
-    expect(res.value[1][0],"'qwe'");
-    expect(res.value[1][1],"Dual('123123',23)");
-  });
-  return;
+    expect(res.value.length,4);
+    Token t = res.value[0];
+    expect(res.value[1],"dummy");
+    expect(res.value[2].length,3);
+  },skip: 'Should be moved to parser test');
 
   test('testIdentifier1', () {
     shouldPass('SimpleName', definition.identifier);
@@ -341,11 +365,11 @@ LOAD *
    expect(res.value.length,3);
    expect(res.value[1][0],"dummy");
  });
- 
-// skip_test('Another SET ',() {
-//   var str = r"SET CD = E:;";
-//   shouldPass(str,definition.assignment);
-// });
+
+ test('Another SET ', () {
+   var str = r"SET CD = E:;";
+   shouldPass(str,definition.assignment);
+ }, skip: true);
 
  test('TRACE with comments on both sides ',() {
    var str = r"""
@@ -354,13 +378,13 @@ TRACE  1; //adf asdf asdf asdf""";
    shouldPass(str,definition.trace);
  });
 
- test('Trim input from beginning',() {
-    var str = r"""
-// dsdfg sdfg sdfgs df
-TRACE 1;""";
-    Result res = _parse(str, definition.trimFromStart);
-    return res;
-  });
+// test('Trim input from beginning',() {
+//    var str = r"""
+//// dsdfg sdfg sdfgs df
+//TRACE 1;""";
+//    Result res = _parse(str, definition.trimFromStart);
+//    return res;
+//  });
  
  test('Typical load',() {
      var str = r"""
