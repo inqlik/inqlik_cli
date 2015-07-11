@@ -171,10 +171,10 @@ definition: Field1={2}
     shouldBeSuccess(reader);
   });
 
-  skip_test('Functional test', () {
+  test('Functional test', () {
     var reader = newReader()..readFile('exp_parser\\App.Variables.qlikview-vars');
     reader.checkSyntax();
     shouldBeSuccess(reader);
-  });
+  },skip: true);
 
 }

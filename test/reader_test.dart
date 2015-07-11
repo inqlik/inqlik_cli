@@ -29,7 +29,7 @@ void main() {
     expect(reader.entries[0].internalLineNum,1);
   });
 
-  test('test_semicolon_in_string', () {
+  test('SOLO test_semicolon_in_string', () {
     var code = '''
         LOAD * as ';'
         RESIDENT Table1

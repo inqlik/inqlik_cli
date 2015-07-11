@@ -162,8 +162,11 @@ class QvsReader extends QlikViewReader{
   bool skipParse = false;
   bool inMultiLineCommentBlock = false;
   final ReaderData data;
+  QvsGrammarDefinition definition = new QvsGrammarDefinition();
+  Parser commandParser;
   QvsReader(this.data) {
     parser = new QvsParser(this);
+    commandParser = definition.build(start: definition.command).end();
   }
   List<QvsCommandEntry> get entries => data.entries; 
   ReaderContext get context => data.stack.isEmpty? null: data.stack.first;
@@ -434,9 +437,7 @@ class QvsReader extends QlikViewReader{
     if (entry.expandedText == null) {
       throw entry;
     }
-    Result res = parser.guarded_parse(entry.expandedText,command);
-//    Result res = parser.ref(command).end()
-//         .parse(entry.expandedText);
+    Result res = parser.guarded_parse(entry.expandedText,definition.command);
     entry.parsed = true;
     if (res.isFailure) {
       int maxPosition = -1;
@@ -444,7 +445,7 @@ class QvsReader extends QlikViewReader{
       int col;
       var rowAndCol;
       String message;
-      for (Parser p in parser.ref(command).children) {
+      for (Parser p in commandParser.children) {
         res = qv_parse(p.end(),entry.expandedText);
         if (maxPosition < res.position) {
           maxPosition = res.position;

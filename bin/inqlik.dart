@@ -16,7 +16,6 @@ void printUsage(ArgParser ap) {
   print('  qvs');
   print('  exp');
   print('  qvw');
-  
 }
 void main(arguments) {
   

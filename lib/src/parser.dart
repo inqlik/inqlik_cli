@@ -20,6 +20,7 @@ Result qv_parse(Parser parser, String source) {
 }
 class QvsParser extends QvsGrammar {
   QlikViewReader reader;
+  QvsGrammarDefinition definition = new QvsGrammarDefinition();
   QvsParser(this.reader): super();
   String _stripBrakets(String val) {
     if (val.startsWith('[')) {
@@ -31,13 +32,13 @@ class QvsParser extends QvsGrammar {
   void qv_action(String name, Function function) {
     redef(name, (parser) => new QvActionParser(parser, function));
   }
-  Result guarded_parse(String source, [String production = 'start']) {
-    var parser = this[production].end();
+  Result guarded_parse(String source, [Function production]) {
+    var parser = definition.build(start: production).end();
     return qv_parse(parser,source);    
   }
-  Result unguarded_parse(String source, [String production = 'start']) {
+  Result unguarded_parse(String source, [Function production] ) {
     Result res;
-    var parser = this[production].end();
+    var parser = definition.build(start: production).end();
     res = parser.parse(source);
     return res;
   }
