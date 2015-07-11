@@ -162,11 +162,16 @@ class QvsReader extends QlikViewReader{
   bool skipParse = false;
   bool inMultiLineCommentBlock = false;
   final ReaderData data;
-  QvsGrammarDefinition definition = new QvsGrammarDefinition();
+  QvsReaderGrammarDefinition definition;
   Parser commandParser;
+  Parser subStartParser;
+  Parser callParser;
   QvsReader(this.data) {
     parser = new QvsParser(this);
+    definition = new QvsReaderGrammarDefinition(this);
     commandParser = definition.build(start: definition.command).end();
+    callParser = definition.build(start: definition.call).end();
+    subStartParser = definition.build(start: definition.subStart).end();
   }
   List<QvsCommandEntry> get entries => data.entries; 
   ReaderContext get context => data.stack.isEmpty? null: data.stack.first;
@@ -281,6 +286,7 @@ class QvsReader extends QlikViewReader{
       m = variablePattern.firstMatch(entry.expandedText);
     }
   }
+
   void processAssignmentCommand(String varName, String varValue, bool isLetCommand) {
     if (varValue == null) { 
       varValue = '';
@@ -293,8 +299,8 @@ class QvsReader extends QlikViewReader{
       varValue = varValue.replaceAll("'",'');
     } else {
       if (isLetCommand) {
-        Result num = parser[number].end().parse(varValue);
-        if (num.isFailure) {
+        var numValue = num.parse(varValue,(_) => null);
+        if (numValue == null) {
           varValue = '${varName}_ASSIGNED_VALUE';
         }
       }
@@ -339,7 +345,7 @@ class QvsReader extends QlikViewReader{
     }
   }
   void walkIntoSubroutine(QvsCommandEntry entry) {
-    Result r = parser[call].end().parse(entry.expandedText);
+    Result r = callParser.parse(entry.expandedText);
     if (r.isFailure) {
       addError(entry,'Invalid subroutine call');
       return;
@@ -356,7 +362,7 @@ class QvsReader extends QlikViewReader{
     List<String> actualParams = r.value[1];
     SubDescriptor subDescriptor = subMap[subName];
     QvsCommandEntry currentEntry = entries[subDescriptor.startIndex];
-    r = parser[subStart].end().parse(currentEntry.sourceText);
+    r = subStartParser.parse(currentEntry.sourceText);
     if (r.isFailure) {
       throw r.message;
     }
@@ -402,7 +408,7 @@ class QvsReader extends QlikViewReader{
     var m = startSubroutinePattern.firstMatch(entry.sourceText);
     if (m != null) {
       entry.commandType = CommandType.SUB_DECLARATION;
-      Result r = parser[subStart].parse(entry.sourceText.trim());
+      Result r = subStartParser.parse(entry.sourceText.trim());
       if (r.isFailure) {
         addError(entry,'Invalid subroutine call');
         return;
@@ -437,7 +443,7 @@ class QvsReader extends QlikViewReader{
     if (entry.expandedText == null) {
       throw entry;
     }
-    Result res = parser.guarded_parse(entry.expandedText,definition.command);
+    Result res = qv_parse(commandParser,entry.expandedText);
     entry.parsed = true;
     if (res.isFailure) {
       int maxPosition = -1;
