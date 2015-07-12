@@ -3,7 +3,7 @@ import 'package:inqlik_cli/src/xml_extractor.dart';
 import 'dart:io';
 main () {
 //  var extractor = new XmlExtractor(r'xml_extractor\Customers.qvd','QvdTableHeader');
-//  var extractor = new XmlExtractor(r'xml_extractor\QDF_PROJECT_SAMPLE.qvw','DocumentSummary');
+//  //var extractor = new XmlExtractor(r'xml_extractor\QDF_PROJECT_SAMPLE.qvw','DocumentSummary');
 //  var res = extractor.extract();
 ////  print(res);
 //  var fields = extractor.getQvwFieldList(res);

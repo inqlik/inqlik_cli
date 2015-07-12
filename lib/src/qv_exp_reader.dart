@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:path/path.dart' as path;
 import 'package:petitparser/petitparser.dart';
-import 'parser.dart' as prs;
+import 'parser.dart';
 import 'reader.dart';
 import 'productions.dart' as p;
 QvExpReader newReader() => new QvExpReader(new ReaderData());
@@ -174,7 +174,7 @@ class ReaderState {
 
 
 class QvExpReader extends QlikViewReader{
-  prs.QvsParser parser;
+  QvsParser parser;
   Set<String> fieldList; 
   static final macroParamPattern = new RegExp(r'\$[0-9]');
   static final startNewTagPattern = new RegExp(r'^\s*(backgroundColor|billionSymbol|command|definition|comment|enableCondition|fontColor|label|let|macro|millionSymbol|name|separator|set|showCondition|sortBy|symbol|tag|textFormat|thousandSymbol|visualCueLower|visualCueUpper):');
@@ -187,8 +187,12 @@ class QvExpReader extends QlikViewReader{
   bool inMultiLineCommentBlock = false;
   ExpressionEntry _expEntry;
   final ReaderData data;
+  QvsReaderGrammarDefinition definition;
+  Parser expressionParser;
   QvExpReader(this.data) {
-    parser = new prs.QvsParser(this);
+    parser = new QvsParser(this);
+    definition = new QvsReaderGrammarDefinition(this);
+    expressionParser = definition.build(start: definition.expression).end();
     data.expMap['vU.CurrentDate'] = new Expression()..definition = '4093'..expandedDefinition='4093';
   }
   List<ExpressionEntry> get entries => data.entries; 
@@ -220,7 +224,7 @@ class QvExpReader extends QlikViewReader{
         if (file.existsSync()) {
           try {
             lines = file.readAsLinesSync();
-          } catch (exception, stacktrace) {
+          } catch (exception) {
             print(exception);
             return; 
           }
@@ -459,23 +463,19 @@ class QvExpReader extends QlikViewReader{
       if (expr == null) {
         print('Not found expression $name while improting labels');
       } else {
-        bool updated = false;
         var label = row[labelPos].toString();
         if (_nullToStr(expr.tags['label']).trim() != label) {
           print('Updated label in expression $name');
-          updated = true;
           expr.tags['label'] = label;
         }
         var comment = row[commentPos];
         if (_nullToStr(expr.tags['comment']).trim() != comment) {
           print('Updated comment in expression $name');
-          updated = true;
           expr.tags['comment'] = comment;
         }
         var version = row[versionPos];
         if (_nullToStr(expr.tags['version']).trim() != version) {
           print('Updated version in expression $name');
-          updated = true;
           expr.tags['version'] = version;
         }
       }
@@ -534,11 +534,11 @@ class QvExpReader extends QlikViewReader{
         || expression.entry.checkResult == CheckResult.SKIPPED_BY_DYNAMIC_CONTENT) {
       return;
     }
-    var definition = expression.expandedDefinition;
-    if (definition.startsWith('=')) {
-      definition = definition.substring(1);
+    var expressionBody = expression.expandedDefinition;
+    if (expressionBody.startsWith('=')) {
+      expressionBody = expressionBody.substring(1);
     }
-    Result result = parser.guarded_parse(definition,p.expression);
+    Result result = qv_parse(expressionParser,expressionBody);
     if (result.isFailure) {
       if (expression.expandedDefinition.contains(r'$(')) {
         expression.entry.checkResult = CheckResult.SKIPPED_BY_DYNAMIC_CONTENT;

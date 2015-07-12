@@ -819,7 +819,7 @@ REM Default configuration for Qvc.Log;
     shouldBeSuccess(reader);
   });
 
-  test('SOLO On-line comment in string ', () {
+  test('On-line comment in string ', () {
     var reader = newReader();
     var code = r'''
   _colorTable:
@@ -896,6 +896,18 @@ END SUB
     shouldBeSuccess(reader);
   });
 
+  test('Call sub with params parsing ', () {
+    var reader = newReader();
+    var code = r"""
+    SUB dummy(param1, param2)
+    END SUB
+
+    call dummy('qwe',Dual('123123',23));
+    """;
+    reader.readFile('test.qvs', code);
+    shouldBeSuccess(reader);
+  });
+
   test('Switch statement', () {
     var reader = newReader();
     var code = r'''
@@ -941,4 +953,27 @@ WHERE Not(1=2);''';
     reader.readFile('test.qvs', code);
     shouldBeSuccess(reader);
   });
+
+  test('Test function call with wrong cardinality', () {
+    var reader = newReader();
+    var code = r'''LET s = Peek();''';
+    reader.readFile('test.qvs', code);
+    expect(reader.errors,isNotEmpty, reason: 'Peek() function should have one or more params');
+  });
+
+  test('SOLO Undefined variable used', () {
+    var reader = newReader();
+    var code = r'''
+ItemNameMap:
+MAPPING LOAD
+itemId, ItemName
+FROM $(vL.SourceFile) (TXT);
+    ''';
+    reader.readFile('test.qvs', code);
+    expect(reader.errors,isNotEmpty, reason: 'Undefined variable used. Should be error');
+  });
+
 }
+
+
+

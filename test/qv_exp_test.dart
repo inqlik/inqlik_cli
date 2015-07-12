@@ -20,7 +20,7 @@ definition: $(=Only(Field1))
 ---
 set: vL.Sum
 definition: sum($(=Only(Field1)))
-''';  
+''';
     var reader = newReader()..readFile('test.qlikview-vars',code);
     expect(reader.entries.length, 2);
     expect(reader.entries[0].sourceLineNum,1);
@@ -35,23 +35,23 @@ definition: sum($(=Only(Field1)))
 set: Sales
 definition: Sum(Amount)
 label: Sales
-comment: Sales amount for 
+comment: Sales amount for
   selected period
 backgroundColor: =LightGreen(96)
 tag: Another tag
-''';  
+''';
     var reader = newReader()..readFile('test.qlikview-vars',code);
     expect(reader.entries.length, 1);
     expect(reader.entries[0].entryType,EntryType.EXPRESSION);
     Expression exp = reader.entries[0].expression;
     expect(exp.name,'Sales');
     expect(exp.tags['label'],' Sales');
-    expect(exp.tags['comment'],startsWith(' Sales amount for '));
+    expect(exp.tags['comment'],'Sales amount for selected period');
 
   });
 
-  
-  
+
+
   test('Test directives', () {
     var code = r'''
 #define ABRACADABRA = 1
@@ -59,16 +59,16 @@ tag: Another tag
 #SECTION :Chart expressions
 ---
 set: DynamicDim
-definition: $(=Only(DimField)) 
+definition: $(=Only(DimField))
 ---
 set: Sales
 definition: Sum(Amount)
 label: Sales
-comment: Sales amount for 
+comment: Sales amount for
   selected period
 backgroundColor: =LightGreen(96)
 tag: Another tag
-''';  
+''';
     var reader = newReader()..readFile('test.qlikview-vars',code);
     expect(reader.entries.length, 5);
     expect(reader.entries[0].entryType,EntryType.DEFINE);
@@ -93,8 +93,8 @@ tag: Another tag
     expect(tuple.value.trim(), 'abrakadabra');
 
   });
- 
-  
+
+
   test('Reader printOut', () {
     var source = TEST_FILE_CONTENTS.replaceAll("\r\n", "\n");
     var reader = newReader()..readFile('test.qlikview-vars',source);
@@ -109,9 +109,9 @@ tag: Another tag
 //    File outFile = new File('CsvOut.csv');
 //    outFile.writeAsBytesSync(out);
 //  });
-  
 
-  
+
+
   test('Macros', () {
     var source = r"""
 ---
@@ -129,8 +129,8 @@ macro: MacroFunc
     expect(reader.entries[1].expression.definition,'Sum(Field1)');
 //    print(reader.printOut());
   });
-  
-  
+
+
   test('Simplest syntax check', () {
     var source = r"""
 ---
@@ -142,7 +142,7 @@ definition: Sum(Amount)
     reader.checkSyntax();
     shouldBeSuccess(reader);
   });
-    
+
   test('Syntax check with define directive', () {
     var source = r"""
 #define #Sales 12
@@ -175,6 +175,6 @@ definition: Field1={2}
     var reader = newReader()..readFile('exp_parser\\App.Variables.qlikview-vars');
     reader.checkSyntax();
     shouldBeSuccess(reader);
-  },skip: true);
+  },skip: 'TODO: Check some real files');
 
 }

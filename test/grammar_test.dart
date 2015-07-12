@@ -52,15 +52,6 @@ void main() {
     expect(str,accept(_parser(definition.expression)));
   });
 
-  test('Call sub with params parsing ',() {
-    var str = r"call dummy('qwe',Dual('123123',23));";
-    Result res = _parse(str,definition.call);
-    print(res.value);
-    expect(res.value.length,4);
-    Token t = res.value[0];
-    expect(res.value[1],"dummy");
-    expect(res.value[2].length,3);
-  },skip: 'Should be moved to parser test');
 
   test('testIdentifier1', () {
     expect('SimpleName',accept(_parser(definition.identifier)));

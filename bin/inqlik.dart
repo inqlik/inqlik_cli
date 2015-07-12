@@ -18,7 +18,6 @@ void printUsage(ArgParser ap) {
   print('  qvw');
 }
 void main(arguments) {
-  
   var ap = new ArgParser();
   ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
   var qvsArgs = new ArgParser();
@@ -111,6 +110,7 @@ usage: ${ap.usage}
     exit(-1);
   }
   qvs.FileReader reader = run(args.rest[0], args['command'], args['include']);
+
   if (args['command']=='check') {
     exit(0);
   }
