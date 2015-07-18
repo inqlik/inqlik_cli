@@ -1,23 +1,21 @@
-import 'package:args/args.dart';
-import 'package:inqlik_cli/qvs.dart';
-import 'package:inqlik_cli/src/qvs_file_reader.dart' as qvs;
-import 'package:inqlik_cli/src/qv_exp_reader.dart' as exp;
-import 'package:inqlik_cli/src/xml_extractor.dart' as meta;
-
 import 'dart:io';
-String input = r'''
-JOIN (   [asdf]  ) 
-''';
-void printUsage(ArgParser ap) {
-  print('-------------------');
-  print('Inqlik command line interface tools');
-  print(ap.usage);
-  print('available commands are:');
-  print('  qvs');
-  print('  exp');
-  print('  qvw');
+import 'package:inqlik_cli/commands.dart';
+import 'package:args/command_runner.dart';
+
+main(List<String> arguments) async {
+  createRunner().run(arguments).catchError((error) {
+    if (error is! UsageException) {
+      throw error;
+    }
+    print(error);
+    exit(64);
+  });
+
 }
-void main(arguments) {
+
+
+
+void main_old(arguments) {
   var ap = new ArgParser();
   ap.addFlag('help',abbr: 'h', negatable: false, defaultsTo: false);
   var qvsArgs = new ArgParser();
