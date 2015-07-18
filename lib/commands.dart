@@ -110,151 +110,185 @@ class QvsCommand extends Command {
 class QvwCommand extends Command {
   final name = "qvw";
   final description = "Utils for QlikView application (qvw) file";
+  final invocation = "inqlik qvw <subcommand> [params] pathTo\\source_file.qvw";
   QvwCommand() {
     addSubcommand(new QvwXmlCommand());
+    addSubcommand(new QvwVariablesCommand());
+    addSubcommand(new QvwFieldsCommand());
   }
 }
 
-class QvwXmlCommand extends Command {
-  final name = "xml";
-  final description = "Extract full metadata information in XML format";
-  void run() {
-    print('FULL XML');
+abstract class InqlikCommand extends Command {
+  void _outputString(String outStr) {
+    if (argResults['output'] == null) {
+      print(outStr);
+    } else {
+      var sink = new File(argResults['output']).openWrite();
+      sink.write(outStr);
+      sink.close();
+    }
   }
-}
 
-
-
-class QvwCommandOld extends Command {
-  final name = "qvw";
-  final description = "Utils for QlikView application (qvw) files";
-  final invocation = "inqlik qvw [params] pathTo\\fileName.qvw";
-  String get usage => super.usage +
-  r'''
-
-  --------------------------------------
-  Usage sample:  To extract full xml into test.xml and simple list of field names into fieldNames.txt
-
- inqlik qvw --xml=test.xml --field-names=c:\output\fieldNames.txt c:\test\test.qvw
-  ''';
-  QvwCommandOld() {
-//    argParser.addOption('command',
-//        allowed: ['xml', 'fields_csv', 'field_names', 'vars_csv','var_names','vars_qvs'],
-//        abbr: 'c',
-//        defaultsTo: 'xml',
-//        allowedHelp: {
-//      'xml': 'Extract full header xml from qvw application',
-//      'fields_csv': 'Extract fields info from qvw application in csv format',
-//      'field_names': 'Extract simple list of field names from qvw application',
-//      'vars_csv': 'Extract variables info from qvw file into csv format',
-//      'vars_qvs': 'Create QVS script setting all variables from qvw application',
-//      'var_names': 'Extract simple list of variable names from qvw application',
-//    });
-    argParser.addOption('xml',help:'Output full header xml from qvw application into XML file',defaultsTo: '');
-    argParser.addOption('fields-csv',help:'Output fields info from qvw application into csv file',defaultsTo: '');
-    argParser.addOption('field-names',help:'Output simple list of field names from qvw application into txt file',defaultsTo: '');
-  }
-  void run() {
+  String _getXml() {
     if (argResults.rest.isEmpty) {
-      throw new UsageException('Qvw file name expected', argParser.usage);
+      usageException('Qvw file name expected');
+      //throw new UsageException('Qvw file name expected', argParser.usage);
     }
-    bool used = false;
     String sourceFile = argResults.rest[0];
+    if (!new File(sourceFile).existsSync()) {
+      usageException('Source file not found: $sourceFile');
+    }
     var extractor = new meta.XmlExtractor(sourceFile);
-    var xmlContent = extractor.extract();
-    if (argResults['xml'] != '') {
-      var sink = new File(argResults['xml']).openWrite();
-      sink.write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
-      sink.write(xmlContent);
-      sink.close();
-      used = true;
-    }
-    if (argResults['field-names'] != '') {
-      var sink = new File(argResults['field-names']).openWrite();
-      var fields = extractor.getQvwFieldList(xmlContent);
-        for (var each in fields) {
-          sink.writeln(each.name);
-        }
-      sink.close();
-      used = true;
-    }
-    if (argResults['fields-csv'] != '') {
-      var sink = new File(argResults['fields-csv']).openWrite();
-      var fields = extractor.getQvwFieldList(xmlContent);
-      sink.write(extractor.qvwFieldsToCsv(fields));
-      sink.close();
-      used = true;
-    }
-
-
-//    switch (argResults['command']) {
-//      case 'xml':
-//        print('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
-//        print(res);
-//        break;
-//      case 'field_names':
-//        var fields = extractor.getQvwFieldList(res);
-//        for (var each in fields) {
-//          print(each.name);
-//        }
-//        break;
-//      case 'var_names':
-//        var vars = extractor.getQvwVarList(res);
-//        for (var each in vars) {
-//          print(each.name);
-//        }
-//        break;
-//      case 'vars_qvs':
-//        var vars = extractor.getQvwVarList(res);
-//        for (var each in vars) {
-//          print('LET ${each.name} = "${each.rawValue}";' );
-//        }
-//        break;
-
+    return extractor.extract();
   }
 }
-void _writeToFile(String fileName,String content) {
-  File outFile = new File(fileName);
-  var sink = outFile.openWrite();
-  sink.write(content);
-  sink.close();
+
+class QvwXmlCommand extends InqlikCommand {
+  final name = "xml";
+  final description =
+      "Extract full metadata information in XML format from qvw file";
+  final invocation = "inqlik qvw xml [params] pathTo\\source_file.qvw";
+  QvwXmlCommand() {
+    argParser.addOption('output', abbr: 'o', help: 'Output file name');
+  }
+  void run() {
+    String xml = _getXml();
+    if (argResults['output'] == null) {
+      print('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+      print(xml);
+    } else {
+      var sink = new File(argResults['output']).openWrite();
+      sink.write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
+      sink.write(xml);
+      sink.close();
+    }
+  }
 }
-class QvdCommand extends Command {
-  final name = "qvd";
-  final description = "Utils for QVD files";
-  QvdCommand() {
-    argParser.addOption('command',
-        allowed: ['qvw_extract_fields', 'qvw_extract_vars'],
-        abbr: 'c',
+
+class QvwVariablesCommand extends InqlikCommand {
+  final name = "variables";
+  final description = "Extract information about variables from qvw file";
+  QvwVariablesCommand() {
+    argParser.addOption('output', abbr: 'o', help: 'Output file name');
+    argParser.addOption('format',
+        abbr: 'f',
+        help: 'Output format',
+        allowed: ['names', 'csv', 'qvs'],
         allowedHelp: {
-      'qvw_extract_fields':
-          'Extract field list from qvw file into *.metadata.fields.csv',
-      'qvw_extract_vars':
-          'Extract variables from qvw file into *.metadata.vars.csv'
+      'names': 'Simple list of variable names',
+      'qvs': 'QlikView load script with commands to set variables',
+      'csv': 'Table in CSV format'
     });
   }
+
   void run() {
-    if (argResults.rest.isEmpty) {
-      throw new UsageException('QVD file name expected', argParser.usage);
+    String xml = _getXml();
+    var format = argResults['format'];
+    if (format == null) {
+      usageException('Error: mandatory parameter `format` is not set');
     }
-    String sourceFile = argResults.rest[0];
-
-    var extractor = new meta.XmlExtractor(sourceFile);
-    var res = extractor.extract();
-    print(res);
-    var fields = extractor.getQvwFieldList(res);
-    for (var each in fields) {
-      print(each.name);
+    var variables = new meta.XmlExtractor(null).getQvwVarList(xml);
+    if (format == 'names') {
+      var res = variables.map((e) => e.name).join('\n');
+      _outputString(res);
+      return;
     }
-
-    print('----------');
-    var vars = extractor.getQvwVarList(res);
-    for (var each in vars) {
-      print(
-          '${each.name} ${each.isReserved} ${each.isConfig} ${each.rawValue}');
+    if (format == 'qvs') {
+      var res = new meta.XmlExtractor(null).qvwVariablesToQvs(
+          variables, argResults.rest.first);
+      _outputString(res);
+      return;
+    }
+    if (format == 'csv') {
+      var res = new meta.XmlExtractor(null).qvwVariablesToCsv(variables);
+      _outputString(res);
+      return;
     }
   }
 }
+
+class QvwFieldsCommand extends InqlikCommand {
+  final name = "fields";
+  final description = "Extract information about fields from qvw file";
+  QvwFieldsCommand() {
+    argParser.addOption('output', abbr: 'o', help: 'Output file name');
+    argParser.addOption('format',
+        abbr: 'f',
+        help: 'Output format',
+        allowed: ['names', 'csv'],
+        allowedHelp: {
+      'names': 'Simple list of variable names',
+      'csv': 'Table in CSV format'
+    });
+    argParser.addFlag('exclude-system',
+        abbr: 's', help: 'Exclude system fields from the list');
+  }
+
+  void run() {
+    String xml = _getXml();
+    var format = argResults['format'];
+    if (format == null) {
+      usageException('Error: mandatory parameter `format` is not set');
+    }
+    var fields = new meta.XmlExtractor(null).getQvwFieldList(xml);
+    if(argResults['exclude-system']) {
+      fields.removeWhere((e) => e.isSystem);
+    }
+    if (format == 'names') {
+      var res = fields.map((e) => e.name).join('\n');
+      _outputString(res);
+      return;
+    }
+    if (format == 'csv') {
+      var res = new meta.XmlExtractor(null).qvwFieldsToCsv(fields);
+      _outputString(res);
+      return;
+    }
+  }
+}
+
+class QvdCommand extends InqlikCommand {
+  final name = "qvd";
+  final description = "Extract metadata information from qvd file";
+  QvwFieldsCommand() {
+    argParser.addOption('output', abbr: 'o', help: 'Output file name');
+    argParser.addOption('format',
+    abbr: 'f',
+    help: 'Output format',
+    allowed: ['names', 'csv'],
+    allowedHelp: {
+      'names': 'Simple list of variable names',
+      'csv': 'Table in CSV format'
+    });
+    argParser.addFlag('exclude-system',
+    abbr: 's', help: 'Exclude system fields from the list');
+  }
+
+  void run() {
+    String xml = _getXml();
+    var format = argResults['format'];
+    if (format == null) {
+      usageException('Error: mandatory parameter `format` is not set');
+    }
+    var fields = new meta.XmlExtractor(null).getQvdFieldList(xml);
+    if(argResults['exclude-system']) {
+      fields.removeWhere((e) => e.isSystem);
+    }
+    if (format == 'names') {
+      var res = fields.map((e) => e.name).join('\n');
+      _outputString(res);
+      return;
+    }
+    if (format == 'csv') {
+      var res = new meta.XmlExtractor(null).qvwFieldsToCsv(fields);
+      _outputString(res);
+      return;
+    }
+  }
+}
+
+
+
 
 class ExpCommand extends Command {
   final name = "exp";
@@ -262,8 +296,7 @@ class ExpCommand extends Command {
   ExpCommand();
   void run() {
     if (argResults.rest.isEmpty) {
-      throw new UsageException(
-          'InQlik-Tools expression file name expected', argParser.usage);
+      usageException('InQlik-Tools expression file name expected');
     }
     String sourceFile = argResults.rest[0];
     var reader = exp.newReader()..readFile(sourceFile);
