@@ -3,13 +3,14 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:collection';
 import 'package:csv/csv.dart';
+import 'package:path/path.dart' as path;
 import 'package:collection/equality.dart';
 import 'package:xml/xml.dart' as xml;
-class QvwFieldDescriptor {
+class XmlFieldDescriptor {
   String name;
   List<String> sourceTables;
   List<String> tags;
-  int cardinal;
+  int uniqueValues;
   bool isSystem;
   int totalCount;
   String toString() => 'QvwFieldDescriptor($name, sourceTables:$sourceTables, tags: $tags)';
@@ -31,6 +32,7 @@ class XmlExtractor {
   String sourceFileName;
   bool _qvwMode;
   Queue<int> token;
+  String mode;
   final equality = new IterableEquality<int>();
   XmlExtractor(this.sourceFileName,[int seekBufferSize = 5]) {
     this.seekBufferSize = seekBufferSize * MB;
@@ -92,13 +94,13 @@ class XmlExtractor {
     token.addFirst(byte);
   }
 
-  List<QvwFieldDescriptor> getQvwFieldList(String xmlMetadata) {
+  List<XmlFieldDescriptor> getQvwFieldList(String xmlMetadata) {
     var doc = xml.parse(xmlMetadata);
-    List<QvwFieldDescriptor> res = [];
+    List<XmlFieldDescriptor> res = [];
     for (xml.XmlElement each in doc.findAllElements('FieldDescription')) {
-      var fd = new QvwFieldDescriptor();
+      var fd = new XmlFieldDescriptor();
       fd.name = each.findElements('Name').first.text;
-      fd.cardinal = int.parse(each.findElements('Cardinal').first.text);
+      fd.uniqueValues = int.parse(each.findElements('Cardinal').first.text);
       fd.isSystem = each.findElements('IsSystem').first.text.trim().toLowerCase() == 'true';
       fd.totalCount = int.parse(each.findElements('TotalCount').first.text);
       fd.sourceTables = each.findElements('SrcTables').first.findElements('String').map((el)=>el.text).toList();
@@ -107,6 +109,43 @@ class XmlExtractor {
     }
     return res;
   }
+
+  List<XmlFieldDescriptor> getQvdFieldList(String xmlMetadata) {
+    var doc = xml.parse(xmlMetadata);
+    List<XmlFieldDescriptor> res = [];
+    var recordsCount = int.parse(doc.findAllElements('NoOfRecords').first.text,onError: (str)=>0);
+    for (xml.XmlElement each in doc.findAllElements('QvdFieldHeader')) {
+      var fd = new XmlFieldDescriptor();
+      fd.name = each.findElements('FieldName').first.text;
+      fd.uniqueValues = int.parse(each.findElements('NoOfSymbols').first.text);
+      fd.totalCount = recordsCount;
+      res.add(fd);
+    }
+    return res;
+  }
+
+  List<XmlFieldDescriptor> getQvxFieldList(String xmlMetadata) {
+    var doc = xml.parse(xmlMetadata);
+    List<XmlFieldDescriptor> res = [];
+    for (xml.XmlElement each in doc.findAllElements('QvxFieldHeader')) {
+      var fd = new XmlFieldDescriptor();
+      fd.name = each.findElements('FieldName').first.text;
+      res.add(fd);
+    }
+    return res;
+  }
+
+  String qvdFieldsToCsv(List<XmlFieldDescriptor> fields) {
+    var codec = new CsvCodec(fieldDelimiter: '\t');
+    List<List<String>> outputList = [];
+    outputList.add(['FieldName','NoOfSymbols','NoOfRecords']);
+    for (var each in fields) {
+      outputList.add([each.name,each.uniqueValues,each.totalCount]);
+    }
+    return codec.encoder.convert(outputList);
+  }
+
+
 
   List<QvwVarDescriptor> getQvwVarList(String xmlMetadata) {
     var doc = xml.parse(xmlMetadata);
@@ -124,12 +163,12 @@ class XmlExtractor {
   }
 
 
-  String qvwFieldsToCsv(List<QvwFieldDescriptor> fields) {
+  String qvwFieldsToCsv(List<XmlFieldDescriptor> fields) {
     var codec = new CsvCodec(fieldDelimiter: '\t');
     List<List<String>> outputList = [];
     outputList.add(['Name','SourceTables','Tags','Cardinal','TotalCount','IsSystem']);
     for (var each in fields) {
-        outputList.add([each.name,each.sourceTables.join(','),each.tags.join(','),each.cardinal,each.totalCount, each.isSystem]);
+        outputList.add([each.name,each.sourceTables.join(','),each.tags.join(','),each.uniqueValues,each.totalCount, each.isSystem]);
     }
     return codec.encoder.convert(outputList);
   }
@@ -157,6 +196,25 @@ class XmlExtractor {
         sb.writeln('SET ${each.name} = $str;');
       }
     }
+    return sb.toString();
+  }
+  String getLoadStatement(List<XmlFieldDescriptor> fields, bool forceQuote) {
+    String quote(String field) {
+      if (forceQuote) {
+        return '  [$field]';
+      }
+      if (field.contains(r'[ ().,)]')) {
+        return '  [$field]';
+      }
+      return '  $field';
+    }
+    var sb = new StringBuffer();
+    var quotedFields = fields.map((f)=>quote(f.name));
+    sb.writeln('LOAD');
+    sb.writeln(quotedFields.join(',\n'));
+    var quotedFileName = path.absolute(sourceFileName);
+    quotedFileName = '    FROM [$quotedFileName] ($mode);';
+    sb.write(quotedFileName);
     return sb.toString();
   }
 

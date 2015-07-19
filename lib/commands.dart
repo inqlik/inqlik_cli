@@ -12,8 +12,39 @@ CommandRunner createRunner() {
   return new CommandRunner(
       'inqlik', 'Command line interface to various InQlik utils')
     ..addCommand(new ExpCommand())
+    ..addCommand(new QvdCommand())
+    ..addCommand(new QvxCommand())
     ..addCommand(new QvwCommand())
     ..addCommand(new QvsCommand());
+}
+
+abstract class InqlikCommand extends Command {
+  meta.XmlExtractor xmlExtractor;
+  void _outputString(String outStr) {
+    if (argResults['output'] == null) {
+      print(outStr);
+    } else {
+      var sink = new File(argResults['output']).openWrite();
+      sink.write(outStr);
+      sink.close();
+    }
+  }
+
+  String _getXml(String mode) {
+    if (argResults.rest.isEmpty) {
+      usageException('Error: Source file name expected');
+    }
+    String sourceFile = argResults.rest[0];
+    if (!new File(sourceFile).existsSync()) {
+      usageException('Error: Source file not found: $sourceFile');
+    }
+    if (!sourceFile.toUpperCase().endsWith(mode.toUpperCase())) {
+      usageException('Error: $mode file expected. Got $sourceFile');
+    }
+    xmlExtractor = new meta.XmlExtractor(sourceFile);
+    xmlExtractor.mode = mode;
+    return xmlExtractor.extract();
+  }
 }
 
 class QvsCommand extends Command {
@@ -118,31 +149,6 @@ class QvwCommand extends Command {
   }
 }
 
-abstract class InqlikCommand extends Command {
-  void _outputString(String outStr) {
-    if (argResults['output'] == null) {
-      print(outStr);
-    } else {
-      var sink = new File(argResults['output']).openWrite();
-      sink.write(outStr);
-      sink.close();
-    }
-  }
-
-  String _getXml() {
-    if (argResults.rest.isEmpty) {
-      usageException('Qvw file name expected');
-      //throw new UsageException('Qvw file name expected', argParser.usage);
-    }
-    String sourceFile = argResults.rest[0];
-    if (!new File(sourceFile).existsSync()) {
-      usageException('Source file not found: $sourceFile');
-    }
-    var extractor = new meta.XmlExtractor(sourceFile);
-    return extractor.extract();
-  }
-}
-
 class QvwXmlCommand extends InqlikCommand {
   final name = "xml";
   final description =
@@ -152,7 +158,7 @@ class QvwXmlCommand extends InqlikCommand {
     argParser.addOption('output', abbr: 'o', help: 'Output file name');
   }
   void run() {
-    String xml = _getXml();
+    String xml = _getXml('QVW');
     if (argResults['output'] == null) {
       print('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
       print(xml);
@@ -182,20 +188,20 @@ class QvwVariablesCommand extends InqlikCommand {
   }
 
   void run() {
-    String xml = _getXml();
+    String xml = _getXml('QVW');
     var format = argResults['format'];
     if (format == null) {
       usageException('Error: mandatory parameter `format` is not set');
     }
-    var variables = new meta.XmlExtractor(null).getQvwVarList(xml);
+    var variables = xmlExtractor.getQvwVarList(xml);
     if (format == 'names') {
       var res = variables.map((e) => e.name).join('\n');
       _outputString(res);
       return;
     }
     if (format == 'qvs') {
-      var res = new meta.XmlExtractor(null).qvwVariablesToQvs(
-          variables, argResults.rest.first);
+      var res =
+          xmlExtractor.qvwVariablesToQvs(variables, argResults.rest.first);
       _outputString(res);
       return;
     }
@@ -221,17 +227,17 @@ class QvwFieldsCommand extends InqlikCommand {
       'csv': 'Table in CSV format'
     });
     argParser.addFlag('exclude-system',
-        abbr: 's', help: 'Exclude system fields from the list');
+        abbr: 'x', help: 'Exclude system fields from the list',negatable: false);
   }
 
   void run() {
-    String xml = _getXml();
+    String xml = _getXml('QVW');
     var format = argResults['format'];
     if (format == null) {
       usageException('Error: mandatory parameter `format` is not set');
     }
     var fields = new meta.XmlExtractor(null).getQvwFieldList(xml);
-    if(argResults['exclude-system']) {
+    if (argResults['exclude-system']) {
       fields.removeWhere((e) => e.isSystem);
     }
     if (format == 'names') {
@@ -250,40 +256,91 @@ class QvwFieldsCommand extends InqlikCommand {
 class QvdCommand extends InqlikCommand {
   final name = "qvd";
   final description = "Extract metadata information from qvd file";
-  QvwFieldsCommand() {
+  //final invocation = "inqlik qvd [params] pathTo\\source_file.qvd";
+  QvdCommand() {
     argParser.addOption('output', abbr: 'o', help: 'Output file name');
+    argParser.addFlag('force-quote',abbr: 'q', help: 'Force quote of fields');
     argParser.addOption('format',
-    abbr: 'f',
-    help: 'Output format',
-    allowed: ['names', 'csv'],
-    allowedHelp: {
-      'names': 'Simple list of variable names',
-      'csv': 'Table in CSV format'
+        abbr: 'f',
+        help: 'Output format',
+        allowed: ['xml', 'csv', 'load','names'],
+        allowedHelp: {
+      'xml': 'Full QVD metadata in xml format',
+      'names': 'Simple list of fields',
+      'csv': 'Table in CSV format',
+      'load': 'load statement to load all fields from QVD file'
     });
-    argParser.addFlag('exclude-system',
-    abbr: 's', help: 'Exclude system fields from the list');
   }
 
   void run() {
-    String xml = _getXml();
+    String xml = _getXml('QVS');
     var format = argResults['format'];
     if (format == null) {
       usageException('Error: mandatory parameter `format` is not set');
     }
-    var fields = new meta.XmlExtractor(null).getQvdFieldList(xml);
-    if(argResults['exclude-system']) {
-      fields.removeWhere((e) => e.isSystem);
+    if (format == 'xml') {
+      _outputString(xml);
+      return;
     }
+    var fields = xmlExtractor.getQvdFieldList(xml);
     if (format == 'names') {
       var res = fields.map((e) => e.name).join('\n');
       _outputString(res);
       return;
     }
     if (format == 'csv') {
-      var res = new meta.XmlExtractor(null).qvwFieldsToCsv(fields);
+      var res = xmlExtractor.qvdFieldsToCsv(fields);
       _outputString(res);
       return;
     }
+    if (format == 'load') {
+      var res = xmlExtractor.getLoadStatement(fields, argResults['force-quote'] );
+      _outputString(res);
+      return;
+    }
+
+  }
+}
+
+class QvxCommand extends InqlikCommand {
+  final name = "qvx";
+  final description = "Extract metadata information from qvx file";
+  QvxCommand() {
+    argParser.addOption('output', abbr: 'o', help: 'Output file name');
+    argParser.addFlag('force-quote',abbr: 'q', help: 'Force quote of fields');
+    argParser.addOption('format',
+    abbr: 'f',
+    help: 'Output format',
+    allowed: ['xml', 'load','names'],
+    allowedHelp: {
+      'xml': 'Full QVD metadata in xml format',
+      'names': 'Simple list of fields',
+      'load': 'load statement to load all fields from QVD file'
+    });
+  }
+
+  void run() {
+    String xml = _getXml('QVX');
+    var format = argResults['format'];
+    if (format == null) {
+      usageException('Error: mandatory parameter `format` is not set');
+    }
+    if (format == 'xml') {
+      _outputString(xml);
+      return;
+    }
+    var fields = xmlExtractor.getQvxFieldList(xml);
+    if (format == 'names') {
+      var res = fields.map((e) => e.name).join('\n');
+      _outputString(res);
+      return;
+    }
+    if (format == 'load') {
+      var res = xmlExtractor.getLoadStatement(fields, argResults['force-quote'] );
+      _outputString(res);
+      return;
+    }
+
   }
 }
 
