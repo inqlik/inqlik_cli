@@ -7,6 +7,7 @@ import 'package:petitparser/petitparser.dart';
 import 'parser.dart';
 import 'reader.dart';
 import 'productions.dart' as p;
+
 QvExpReader newReader() => new QvExpReader(new ReaderData());
 QvExpReader read(String fileName, String code) {
   var reader = new QvExpReader(new ReaderData());
@@ -14,13 +15,24 @@ QvExpReader read(String fileName, String code) {
   reader.readLines(code.split('\n'));
   return reader;
 }
+
 class TagTuple {
   String key;
   String value;
 }
+
+class ExpressionData {
+  String name;
+  String label;
+  String comment;
+  String definition;
+  String version;
+  String tags;
+}
+
 class Expression {
   ExpressionEntry entry;
-  bool   suppressError = false;
+  bool suppressError = false;
   String sourceText;
   String expandedDefinition;
   String name;
@@ -28,7 +40,7 @@ class Expression {
   String label;
   String comments;
   String section;
-  Map<String,String> tags = new Map<String,String>(); 
+  Map<String, String> tags = new Map<String, String>();
   bool isMacro = false;
   String _currentTag;
   List<String> _currentContent = [];
@@ -58,6 +70,7 @@ class Expression {
     }
     return '';
   }
+
   void completeCurrentTag() {
     if (_currentTag == null) {
       return;
@@ -67,22 +80,36 @@ class Expression {
     _currentTag = null;
     _currentContent.clear();
   }
-  toString() => 'Expression(name: $name, lavel: $label, section: $section, definition: $definition)';
+
+  toString() =>
+      'Expression(name: $name, lavel: $label, section: $section, definition: $definition)';
   TagTuple splitTag(String line) {
     var result = new TagTuple();
     int colonPos = line.indexOf(':');
-    result.key = line.substring(0,colonPos).trim();
-    result.value = line.substring(colonPos+1);
+    result.key = line.substring(0, colonPos).trim();
+    result.value = line.substring(colonPos + 1);
     return result;
   }
+
+  _normalizeStr(String val) =>
+      val == null ? '' : val.replaceAll('\n', ' ').trim();
+  ExpressionData getData() => new ExpressionData()
+    ..name = name
+    ..label = _normalizeStr(tags['label'])
+    ..comment = _normalizeStr(tags['comment'])
+    ..tags = _normalizeStr(section)
+    ..version = _normalizeStr(tags['version'])
+    ..definition = _normalizeStr(expandedDefinition);
 }
+
 class ExpressionEntry {
   CheckResult checkResult = CheckResult.NOT_EXPRESSION;
   int sourceLineNum;
   int internalLineNum;
   String sourceText;
   Expression expression;
-  String get content => entryType == EntryType.EXPRESSION ? expression.toString(): sourceText;  
+  String get content =>
+      entryType == EntryType.EXPRESSION ? expression.toString() : sourceText;
   EntryType entryType;
   bool parsed = false;
   bool hasError = false;
@@ -102,7 +129,8 @@ class ExpressionEntry {
     }
     assert(entryType != null);
   }
-  String toString() => 'ExpressionEntry(sourceLineNum=$sourceLineNum, $content)';
+  String toString() =>
+      'ExpressionEntry(sourceLineNum=$sourceLineNum, $content)';
 //  String commandWithError() {
 //    if (errorPosition != 0) {
 //      return expandedText.substring(0,errorPosition) + ' ^^^ ' + expandedText.substring(errorPosition);
@@ -110,46 +138,62 @@ class ExpressionEntry {
 //    return expandedText;
 //  }
 }
+
 class ErrorDescriptor {
   final ExpressionEntry entry;
   final String errorMessage;
   int lineNum;
   String commandWithError;
   ErrorDescriptor(this.entry, this.errorMessage, this.lineNum) {
-  commandWithError = entry != null? entry.expression.expandedDefinition:'';
+    commandWithError = entry != null ? entry.expression.expandedDefinition : '';
   }
   String toString() => 'ErrorDescriptor(${this.errorMessage})';
 }
+
 class ReaderData {
   String qvwFileName;
-  int internalLineNum=0;
-  final Map<String,Expression> expMap = {};
-  final Map<String,String> defineMap = {};
+  int internalLineNum = 0;
+  final Map<String, Expression> expMap = {};
+  final Map<String, String> defineMap = {};
   final List<ExpressionEntry> entries = [];
   String rootFile;
   final List<ErrorDescriptor> errors = [];
   final Set<String> tables = new Set<String>();
 }
+
 class QvExpDirective {
   static const String EXPRESSION_DELIMITER = '---';
   static const String DEFINE = '#define';
   static const String SECTION = '#SECTION';
 }
 
-enum CheckResult {SUCCESS, ERROR, SKIPPED_BY_DIRECTIVE, SKIPPED_BY_DYNAMIC_CONTENT, NOT_CHECKED, NOT_EXPRESSION} 
+enum CheckResult {
+  SUCCESS,
+  ERROR,
+  SKIPPED_BY_DIRECTIVE,
+  SKIPPED_BY_DYNAMIC_CONTENT,
+  NOT_CHECKED,
+  NOT_EXPRESSION
+}
 
 class LineType {
   final String _val;
   final bool startsNewEntry;
   const LineType._internal(this._val, this.startsNewEntry);
-  static const EXPRESSION_DELIMITER = const LineType._internal('EXPRESSION_DELIMITER',true);
-  static const EXPRESSION_NAME = const LineType._internal('EXPRESSION_NAME',false);
-  static const EXPRESSION_TAG = const LineType._internal('EXPRESSION_TAG',false);
-  static const SECTION_HEADER = const LineType._internal('SECTION_HEADER',true);
-  static const DEFINE = const LineType._internal('DEFINE',true);
-  static const BLANK = const LineType._internal('BLANK',false);
-  static const UNDEFINED = const LineType._internal('UNDEFINED',false);
-  bool get isEntryDelimiter => _val == 'DEFINE' || _val == 'EXPRESSION_DELIMITER' || _val == 'SECTION_HEADER'; 
+  static const EXPRESSION_DELIMITER =
+      const LineType._internal('EXPRESSION_DELIMITER', true);
+  static const EXPRESSION_NAME =
+      const LineType._internal('EXPRESSION_NAME', false);
+  static const EXPRESSION_TAG =
+      const LineType._internal('EXPRESSION_TAG', false);
+  static const SECTION_HEADER =
+      const LineType._internal('SECTION_HEADER', true);
+  static const DEFINE = const LineType._internal('DEFINE', true);
+  static const BLANK = const LineType._internal('BLANK', false);
+  static const UNDEFINED = const LineType._internal('UNDEFINED', false);
+  bool get isEntryDelimiter => _val == 'DEFINE' ||
+      _val == 'EXPRESSION_DELIMITER' ||
+      _val == 'SECTION_HEADER';
   String toString() => 'LineType($_val)';
 }
 
@@ -163,22 +207,25 @@ class EntryType {
   static const BLANK = const EntryType._internal('BLANK');
   String toString() => '$_val';
 }
+
 class ReaderState {
   final String _val;
   const ReaderState._internal(this._val);
   static const BLANK = const ReaderState._internal('BLANK');
   static const INSIDE_TAG = const ReaderState._internal('INSIDE_TAG');
-  static const INSIDE_EXPPRESSION = const ReaderState._internal('INSIDE_EXPPRESSION');
+  static const INSIDE_EXPPRESSION =
+      const ReaderState._internal('INSIDE_EXPPRESSION');
   String toString() => '$_val';
 }
 
-
-class QvExpReader extends QlikViewReader{
+class QvExpReader extends QlikViewReader {
   QvsParser parser;
-  Set<String> fieldList; 
+  Set<String> fieldList;
   static final macroParamPattern = new RegExp(r'\$[0-9]');
-  static final startNewTagPattern = new RegExp(r'^\s*(backgroundColor|billionSymbol|command|definition|comment|enableCondition|fontColor|label|let|macro|millionSymbol|name|separator|set|showCondition|sortBy|symbol|tag|textFormat|thousandSymbol|visualCueLower|visualCueUpper):');
-  static final startDirectivePattern = new RegExp(r'^\s*(#define|#SECTION|---)');
+  static final startNewTagPattern = new RegExp(
+      r'^\s*(backgroundColor|billionSymbol|command|definition|comment|enableCondition|fontColor|label|let|macro|millionSymbol|name|separator|set|showCondition|sortBy|symbol|tag|textFormat|thousandSymbol|visualCueLower|visualCueUpper):');
+  static final startDirectivePattern =
+      new RegExp(r'^\s*(#define|#SECTION|---)');
   static final variablePattern = new RegExp(r'\$\(([\wА-Яа-яA-Za-z._0-9]*)\)');
   static final definePattern = new RegExp(r'^\s*#define\s+(\S+)\s+(\S+)');
   String currentSection = '';
@@ -193,14 +240,17 @@ class QvExpReader extends QlikViewReader{
     parser = new QvsParser(this);
     definition = new QvsReaderGrammarDefinition(this);
     expressionParser = definition.build(start: definition.expression).end();
-    data.expMap['vU.CurrentDate'] = new Expression()..definition = '4093'..expandedDefinition='4093';
+    data.expMap['vU.CurrentDate'] = new Expression()
+      ..definition = '4093'
+      ..expandedDefinition = '4093';
   }
-  List<ExpressionEntry> get entries => data.entries; 
-  List<ErrorDescriptor> get errors => data.errors; 
+  List<ExpressionEntry> get entries => data.entries;
+  List<ErrorDescriptor> get errors => data.errors;
   String toString() => 'QvExpReader(${data.entries})';
   bool get hasErrors => data.errors.isNotEmpty;
   void loadFieldList() {
-    String fieldListFileName = sourceFileName.replaceAll('qlikview-vars', 'field-list');
+    String fieldListFileName =
+        sourceFileName.replaceAll('qlikview-vars', 'field-list');
     File file = new File(fieldListFileName);
     if (!file.existsSync()) {
       return;
@@ -212,28 +262,30 @@ class QvExpReader extends QlikViewReader{
     }
     fieldList = new Set<String>.from(list);
   }
+
   void readFile(String fileName, [String fileContent = null]) {
-      List<String> lines = [];
-      data.rootFile = path.normalize(path.absolute(path.current,fileName));
-      sourceFileName = data.rootFile;
-      loadFieldList();
-      if (fileContent != null) {
-        lines = fileContent.split('\n');
-      } else {
-        var file = new File(sourceFileName);
-        if (file.existsSync()) {
-          try {
-            lines = file.readAsLinesSync();
-          } catch (exception) {
-            print(exception);
-            return; 
-          }
-        } else {
-          throw new Exception('File not found: $sourceFileName');
+    List<String> lines = [];
+    data.rootFile = path.normalize(path.absolute(path.current, fileName));
+    sourceFileName = data.rootFile;
+    loadFieldList();
+    if (fileContent != null) {
+      lines = fileContent.split('\n');
+    } else {
+      var file = new File(sourceFileName);
+      if (file.existsSync()) {
+        try {
+          lines = file.readAsLinesSync();
+        } catch (exception) {
+          print(exception);
+          return;
         }
+      } else {
+        throw new Exception('File not found: $sourceFileName');
       }
-      readLines(lines);
+    }
+    readLines(lines);
   }
+
   bool testIdentifier(String identifier) {
     if (fieldList == null) {
       return true;
@@ -249,6 +301,7 @@ class QvExpReader extends QlikViewReader{
     }
     return false;
   }
+
   void printStatus() {
     for (var error in data.errors) {
       print('------------------------------');
@@ -260,7 +313,7 @@ class QvExpReader extends QlikViewReader{
       print(error.commandWithError);
       print('>>>>> ' + error.errorMessage);
     }
-    Map<CheckResult,int> counters = {};
+    Map<CheckResult, int> counters = {};
     for (var each in CheckResult.values) {
       counters[each] = 0;
     }
@@ -268,14 +321,17 @@ class QvExpReader extends QlikViewReader{
       counters[each.checkResult]++;
     }
     print('');
-    print('Total expressions: ${data.entries.length - counters[CheckResult.NOT_EXPRESSION]}');
+    print(
+        'Total expressions: ${data.entries.length - counters[CheckResult.NOT_EXPRESSION]}');
     print('Success: ${counters[CheckResult.SUCCESS]}');
-    print('Skipped by directive: ${counters[CheckResult.SKIPPED_BY_DIRECTIVE]}');
-    print('Skipped by dynamic content: ${counters[CheckResult.SKIPPED_BY_DYNAMIC_CONTENT]}');
+    print(
+        'Skipped by directive: ${counters[CheckResult.SKIPPED_BY_DIRECTIVE]}');
+    print(
+        'Skipped by dynamic content: ${counters[CheckResult.SKIPPED_BY_DYNAMIC_CONTENT]}');
     print('Errors: ${counters[CheckResult.ERROR]}');
-
   }
-  void addError(ExpressionEntry entry, String message,[int row, int col]) {
+
+  void addError(ExpressionEntry entry, String message, [int row, int col]) {
     if (entry.suppressError) {
       return;
     }
@@ -285,9 +341,11 @@ class QvExpReader extends QlikViewReader{
     if (col == null) {
       col = 1;
     }
-    var locMessage = 'Parse error. File: "${sourceFileName}", line: $row col: $col message: $message';
-    data.errors.add(new ErrorDescriptor(entry, locMessage, row));  
-  } 
+    var locMessage =
+        'Parse error. File: "${sourceFileName}", line: $row col: $col message: $message';
+    data.errors.add(new ErrorDescriptor(entry, locMessage, row));
+  }
+
   void _processCurrentExpression() {
     if (_expEntry == null) {
       return;
@@ -298,10 +356,11 @@ class QvExpReader extends QlikViewReader{
     addEntry(_expEntry);
     _expEntry = null;
   }
+
   void readLines(List<String> lines) {
     int lineNum = 0;
     for (var line in lines) {
-      lineNum ++;
+      lineNum++;
       var lineType = testLineType(line);
       if (lineType.startsNewEntry) {
         _processCurrentExpression();
@@ -315,16 +374,18 @@ class QvExpReader extends QlikViewReader{
             _expEntry = new ExpressionEntry(lineType, lineNum, line);
             _processCurrentExpression();
           } else {
-            addError(null,'Expression not started. Unexpected line $line', lineNum);
+            addError(
+                null, 'Expression not started. Unexpected line $line', lineNum);
             return;
           }
         } else {
-          _expEntry.expression.addLine(line,lineType);
+          _expEntry.expression.addLine(line, lineType);
         }
       }
     }
     _processCurrentExpression();
   }
+
   LineType testLineType(String line) {
     line = line.trim();
     if (line == '') {
@@ -347,6 +408,7 @@ class QvExpReader extends QlikViewReader{
     }
     return LineType.UNDEFINED;
   }
+
   void addEntry(ExpressionEntry entry) {
     if (entry.entryType == EntryType.EXPRESSION) {
       if (entry.expression.tags.isEmpty) {
@@ -357,7 +419,7 @@ class QvExpReader extends QlikViewReader{
       String def = exp.tags['definition'];
       if (def == null) {
         setDefinitionFromMacro(entry);
-      } else  {
+      } else {
         exp.definition = def;
       }
       applyDefineDirectives(exp);
@@ -369,34 +431,36 @@ class QvExpReader extends QlikViewReader{
       }
     }
     if (entry.entryType == EntryType.SECTION_HEADER) {
-      currentSection = entry.sourceText.substring(QvExpDirective.SECTION.length).trim();
+      currentSection =
+          entry.sourceText.substring(QvExpDirective.SECTION.length).trim();
     }
     if (entry.entryType == EntryType.DEFINE) {
       var m = definePattern.firstMatch(entry.sourceText);
       if (m == null) {
-        addError(entry,'Invalid define format: ${entry.sourceText}');
+        addError(entry, 'Invalid define format: ${entry.sourceText}');
       } else {
         data.defineMap[m.group(1)] = m.group(2);
       }
     }
     data.entries.add(entry);
   }
+
   setDefinitionFromMacro(ExpressionEntry entry) {
     var exp = entry.expression;
     var macro = exp.tags['macro'];
     if (macro == null) {
-      addError(entry,'Expression should have definition or macro defined');
+      addError(entry, 'Expression should have definition or macro defined');
       throw data.errors.last;
     } else {
-      var macroList = macro.replaceAll('\n\r','\n').split('\n');
+      var macroList = macro.replaceAll('\n\r', '\n').split('\n');
       if (macroList.length < 2) {
-        addError(entry,'Invalid macro format');
+        addError(entry, 'Invalid macro format');
         throw data.errors.last;
       }
       var macroFunName = macroList.first.trim();
       var macroFunExpr = data.expMap[macroFunName];
       if (macroFunExpr == null) {
-        addError(entry,'Cannot find expression $macroFunName for macro');
+        addError(entry, 'Cannot find expression $macroFunName for macro');
         throw data.errors.last;
       }
       var def = macroFunExpr.definition;
@@ -408,7 +472,7 @@ class QvExpReader extends QlikViewReader{
         }
         paramNum++;
         if (!param.startsWith('- ')) {
-          addError(entry,'Invalid macro parameter format $param');
+          addError(entry, 'Invalid macro parameter format $param');
           throw data.errors.last;
         }
         param = param.substring(1).trim();
@@ -418,24 +482,26 @@ class QvExpReader extends QlikViewReader{
       entry.entryType = EntryType.MACRO;
     }
   }
+
   String printOut() {
     var sb = new StringBuffer();
     for (var entry in data.entries) {
-      if (entry.entryType != EntryType.EXPRESSION && entry.entryType != EntryType.MACRO) {
+      if (entry.entryType != EntryType.EXPRESSION &&
+          entry.entryType != EntryType.MACRO) {
         sb.writeln(entry.sourceText);
       } else {
         var expr = entry.expression;
         sb.writeln(QvExpDirective.EXPRESSION_DELIMITER);
-        expr.tags.forEach((tag,value) {
+        expr.tags.forEach((tag, value) {
           sb.writeln('$tag:$value');
         });
       }
     }
     return sb.toString();
   }
-  
-  String _nullToStr(str) => str == null? '': str;
-  
+
+  String _nullToStr(str) => str == null ? '' : str;
+
   void importLabels(String labelsFileName, String outFileName) {
     List<String> header;
     int _getColumnPos(String colName) {
@@ -451,7 +517,8 @@ class QvExpReader extends QlikViewReader{
     }
     var bytes = file.readAsBytesSync();
     String contents = SYSTEM_ENCODING.decoder.convert(bytes);
-    List<List<String>> rows = new CsvCodec(fieldDelimiter: ';').decoder.convert(contents);
+    List<List<String>> rows =
+        new CsvCodec(fieldDelimiter: ';').decoder.convert(contents);
     header = rows[0];
     int namePos = _getColumnPos('ExpressionName');
     int labelPos = _getColumnPos('Label');
@@ -480,31 +547,46 @@ class QvExpReader extends QlikViewReader{
         }
       }
     }
-    new File(outFileName).writeAsStringSync(this.printOut());;
+    new File(outFileName).writeAsStringSync(this.printOut());
+    ;
   }
+
   List<int> csvOut() {
     var codec = new CsvCodec();
     List<List<String>> outputList = [];
-    outputList.add(['ExpressionName','Label','Comments','Section','Version','Definition']);
+    outputList.add([
+      'ExpressionName',
+      'Label',
+      'Comments',
+      'Section',
+      'Version',
+      'Definition'
+    ]);
     for (var each in data.entries) {
       if (each.entryType == EntryType.EXPRESSION) {
         var expression = each.expression;
         var name = expression.name;
-        var label = _nullToStr(expression.tags['label']).replaceAll('\n',' ').trim();
-        var comments = _nullToStr(expression.tags['comment']).replaceAll('\n',' ').trim();
+        var label =
+            _nullToStr(expression.tags['label']).replaceAll('\n', ' ').trim();
+        var comments =
+            _nullToStr(expression.tags['comment']).replaceAll('\n', ' ').trim();
         var section = _nullToStr(expression.section);
         var version = _nullToStr(expression.tags['version']);
-        var definition = _nullToStr(expression.tags['definition']).replaceAll('\n',' ').trim();
-        outputList.add([name,label,comments,section,version,definition]);
+        var definition = _nullToStr(expression.tags['definition'])
+            .replaceAll('\n', ' ')
+            .trim();
+        outputList.add([name, label, comments, section, version, definition]);
       }
     }
     String strOut = codec.encoder.convert(outputList, fieldDelimiter: ';');
     return SYSTEM_ENCODING.encoder.convert(strOut);
   }
+
   void saveAsCsv(String outFileName) {
     var file = new File(outFileName);
     file.writeAsBytesSync(csvOut());
   }
+
   void expandExpression(Expression expr) {
     var m = variablePattern.firstMatch(expr.expandedDefinition);
     while (m != null) {
@@ -514,47 +596,54 @@ class QvExpReader extends QlikViewReader{
         varValue = data.expMap[varName].expandedDefinition;
       } else {
         expr.entry.checkResult = CheckResult.ERROR;
-        addError(expr.entry,'Expression `${expr.name}` use undefined variable `$varName`');
+        addError(expr.entry,
+            'Expression `${expr.name}` use undefined variable `$varName`');
         return;
       }
       if (varValue.startsWith('=')) {
         expr.entry.checkResult = CheckResult.SKIPPED_BY_DYNAMIC_CONTENT;
         return;
       }
-      expr.expandedDefinition = expr.expandedDefinition.replaceAll('\$($varName)',varValue == null ? '' : varValue);
+      expr.expandedDefinition = expr.expandedDefinition
+          .replaceAll('\$($varName)', varValue == null ? '' : varValue);
       m = variablePattern.firstMatch(expr.expandedDefinition);
     }
   }
+
   void checkExpressionSyntax(Expression expression) {
     if (expression.suppressError) {
       expression.entry.checkResult = CheckResult.SKIPPED_BY_DIRECTIVE;
       return;
     }
-    if (expression.entry.checkResult == CheckResult.ERROR 
-        || expression.entry.checkResult == CheckResult.SKIPPED_BY_DYNAMIC_CONTENT) {
+    if (expression.entry.checkResult == CheckResult.ERROR ||
+        expression.entry.checkResult ==
+            CheckResult.SKIPPED_BY_DYNAMIC_CONTENT) {
       return;
     }
     var expressionBody = expression.expandedDefinition;
     if (expressionBody.startsWith('=')) {
       expressionBody = expressionBody.substring(1);
     }
-    Result result = qv_parse(expressionParser,expressionBody);
+    Result result = qv_parse(expressionParser, expressionBody);
     if (result.isFailure) {
       if (expression.expandedDefinition.contains(r'$(')) {
         expression.entry.checkResult = CheckResult.SKIPPED_BY_DYNAMIC_CONTENT;
       } else {
         expression.entry.checkResult = CheckResult.ERROR;
-        addError(expression.entry,'Syntax error. ${result.message}.');
+        addError(expression.entry, 'Syntax error. ${result.message}.');
       }
     } else {
       expression.entry.checkResult = CheckResult.SUCCESS;
     }
   }
+
   void applyDefineDirectives(Expression expression) {
     for (var key in data.defineMap.keys) {
-      expression.definition = expression.definition.replaceAll(key, data.defineMap[key]);
+      expression.definition =
+          expression.definition.replaceAll(key, data.defineMap[key]);
     }
   }
+
   void checkSyntax() {
     for (var each in data.entries) {
       if (each.expression != null) {
@@ -563,5 +652,4 @@ class QvExpReader extends QlikViewReader{
       }
     }
   }
-
 }
