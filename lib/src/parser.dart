@@ -277,7 +277,11 @@ class QvActionParser extends QvDelegateParser {
   Parser copy() => new QvActionParser(_delegate, _function);
 
   @override
-  bool hasEqualProperties(QvActionParser other) {
-    return super.hasEqualProperties(other) && _function == other._function;
+  bool hasEqualProperties(Parser other) {
+    if (other != QvActionParser) {
+      return false;
+    } else {
+      return super.hasEqualProperties(other) && _function == (other as QvActionParser)._function;
+    }
   }
 }

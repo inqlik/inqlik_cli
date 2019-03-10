@@ -8,3 +8,5 @@ packages
 *.xml
 /.pub/
 *.packages
+.dart_tool
+

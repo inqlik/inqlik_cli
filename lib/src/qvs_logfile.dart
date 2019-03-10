@@ -20,10 +20,7 @@ class QvsLogTransformer {
     if (!file.existsSync()) {
       throw (new FileSystemException('File not found: $fileName'));
     }
-    var bytes = file.readAsBytesSync();
-    Uint16List uil = new Uint16List.view(bytes.buffer);
-    String input = new String.fromCharCodes(uil);
-    return transformString(input);
+    return file.readAsStringSync();
   }
   String transformString(String input) {
     input.split('\n');

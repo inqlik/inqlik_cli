@@ -99,7 +99,7 @@ class XmlExtractor {
     if (endPos == -1) {
       return '';
     }
-    return UTF8.decoder.convert(bytes.sublist(startPos, endPos));
+    return utf8.decoder.convert(bytes.sublist(startPos, endPos));
   }
   void _moveToken(int byte) {
     token.removeLast();
@@ -162,7 +162,7 @@ class XmlExtractor {
     List<List<String>> outputList = [];
     outputList.add(['FieldName', 'NoOfSymbols', 'NoOfRecords']);
     for (var each in fields) {
-      outputList.add([each.name, each.uniqueValues, each.totalCount]);
+      outputList.add([each.name, each.uniqueValues.toString(), each.totalCount.toString()]);
     }
     return codec.encoder.convert(outputList);
   }
@@ -198,9 +198,9 @@ class XmlExtractor {
         each.name,
         each.sourceTables.join(','),
         each.tags.join(','),
-        each.uniqueValues,
-        each.totalCount,
-        each.isSystem
+        each.uniqueValues.toString(),
+        each.totalCount.toString(),
+        each.isSystem.toString()
       ]);
     }
     return codec.encoder.convert(outputList);
@@ -231,8 +231,8 @@ class XmlExtractor {
       outputList.add([
         each.name,
         each.rawValue,
-        each.isConfig,
-        each.isReserved,
+        each.isConfig.toString(),
+        each.isReserved.toString(),
         each.comment
       ]);
     }
