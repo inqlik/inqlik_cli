@@ -368,7 +368,8 @@ class QvsReader extends QlikViewReader{
     }
     List<String> formalParams = [];
     if (r.value[1][1] != null) {
-      formalParams.addAll(r.value[1][1][1]);
+      var params = List<String>.from(r.value[1][1][1]);
+      formalParams.addAll(params);
     }
     Map<String,String> params = {};
     if (data.stack.isNotEmpty) {

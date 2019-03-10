@@ -41,7 +41,8 @@ class QvsReaderGrammarDefinition extends QvsGrammarDefinition {
     String subName = list[1];
     List<String> actualParams = [];
     if (list[2] != null) {
-      actualParams.addAll(list[2][1][0]);
+      var params = List<String>.from(list[2][1][0]);
+      actualParams.addAll(params);
     }
     return [subName, actualParams];
   });
@@ -93,9 +94,10 @@ class QvsReaderGrammarDefinition extends QvsGrammarDefinition {
 
   function() => new QvActionParser(super.function(),(result, int savedPosition) {
     String funcName = result.value[0];
-    List<String> params = result.value[5];
-    if (params == null) {
-      params = [];
+    var dynamicParams = result.value[5];
+    var params = <String>[];
+    if (dynamicParams != null) {
+      params = List<String>.from(result.value[5]);
     }
     if (!BUILT_IN_FUNCTIONS.containsKey(funcName.toUpperCase())) {
       throw result.failure(
