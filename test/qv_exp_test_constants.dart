@@ -6,19 +6,17 @@ const TEST_FILE_CONTENTS = r"""
 #SECTION :Chart expressions
 ---
 set: DynamicDim
-definition: $(=Only(DimField)) 
+definition: $(=Only(DimField))
 ---
 set: Продажи
 definition: Sum(Amount)
 label: Sales
-comment: Продажи за
-  выбранный период
+comment: Продажи за выбранный период
 backgroundColor: =LightGreen(96)
 tag: Another tag
 ---
 set: Sales1998
-definition: Sum(If(Year(OrderDate)=1998,
-   Amount))
+definition: Sum(If(Year(OrderDate)=1998, Amount))
 label: 1998
 comment: Sales 1998
 ---

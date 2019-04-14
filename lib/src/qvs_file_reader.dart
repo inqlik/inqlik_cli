@@ -19,7 +19,7 @@ class FileReader extends QvsReader{
     bool rootFileMode = false;
     if (data.rootFile == null) {
      rootFileMode = true;
-     data.rootFile = path.normalize(path.absolute(path.dirname(Platform.script.toFilePath()),fileName));
+     data.rootFile = path.normalize(path.join('test',fileName));
      String pathToDefaulInclude = path.normalize(path.join(path.dirname(data.rootFile),defaultInclude)); 
      if (new File(pathToDefaulInclude).existsSync()) {
        readIncludeFile(pathToDefaulInclude, null, null); 

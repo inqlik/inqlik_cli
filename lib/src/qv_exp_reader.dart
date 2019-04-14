@@ -60,7 +60,7 @@ class Expression {
       }
       var tagTuple = splitTag(line);
       name = tagTuple.value.trim();
-      tags[tagTuple.key] = tagTuple.value;
+      tags[tagTuple.key] = name;
     }
     if (lineType == LineType.EXPRESSION_TAG) {
       completeCurrentTag();
@@ -75,7 +75,7 @@ class Expression {
     if (_currentTag == null) {
       return;
     }
-    var value = _currentContent.join('\n');
+    var value = _currentContent.map((line)=>line.trim()).join(' ');
     tags[_currentTag] = value;
     _currentTag = null;
     _currentContent.clear();
@@ -493,7 +493,7 @@ class QvExpReader extends QlikViewReader {
         var expr = entry.expression;
         sb.writeln(QvExpDirective.EXPRESSION_DELIMITER);
         expr.tags.forEach((tag, value) {
-          sb.writeln('$tag:$value');
+          sb.writeln('$tag: $value');
         });
       }
     }

@@ -353,7 +353,7 @@ LOAD *
   test('Another SET ', () {
     var str = r"SET CD = E:;";
     expect(str,accept(_parser(definition.assignment)));
-  }, skip: true);
+  });
 
   test('TRACE with comments on both sides ',() {
     var str = r"""

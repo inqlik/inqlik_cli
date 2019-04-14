@@ -1,1 +1,2 @@
+LET x = 1;
 TRACE $(x);
